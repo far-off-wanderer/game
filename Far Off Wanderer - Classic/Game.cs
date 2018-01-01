@@ -73,11 +73,13 @@ namespace Far_Off_Wanderer___Classic
 
             startTime = null;
             dead = false;
+            won = false;
+            fadeOut = null;
             gameOverTouch = false;
             gameOverKeyboard = false;
             gameOverGamepad = false;
 
-            fadeInTime = App.Current.FirstTime ? 3 : 1;
+            fadeInTime = 0.25f; // App.Current.FirstTime ? 3 : 1;
             App.Current.FirstTime = false;
 
             playing = true;
@@ -206,12 +208,13 @@ namespace Far_Off_Wanderer___Classic
                 fadeIn = Math.Min((float)sinceStart.TotalSeconds / fadeInTime, 1);
                 if (fadeIn == 1)
                 {
-                    fadeInTime = 1;
+                    //fadeInTime = 1;
                 }
 
+                //level.UpdateScene(sinceStart.TotalSeconds > fadeInTime ? e.ElapsedTime : TimeSpan.Zero);
                 level.UpdateScene(sinceStart.TotalSeconds > fadeInTime ? e.ElapsedTime : TimeSpan.Zero);
 
-                if (sinceStart.TotalSeconds > fadeInTime - 0.5f)
+                //if (sinceStart.TotalSeconds > fadeInTime - 0.5f)
                 {
                     if (started == false)
                     {
@@ -441,15 +444,15 @@ namespace Far_Off_Wanderer___Classic
 
                 var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut.HasValue ? fadeOut.Value : 0) * 1.5f - 1, 0, 1));
 
-                if (fadeIn < 1f)
-                {
-                    var timer = (1 - fadeIn) * fadeInTime;
-                    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
-                    var msgSize = game.Resources.Fonts[Data.Font].MeasureString(msg).X;
-                    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
-                    spriteBatch.Draw(game.Resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
-                }
-                else
+                //if (fadeIn < 1f)
+                //{
+                //    var timer = (1 - fadeIn) * fadeInTime;
+                //    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
+                //    var msgSize = game.Resources.Fonts[Data.Font].MeasureString(msg).X;
+                //    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
+                //    spriteBatch.Draw(game.Resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
+                //}
+                //else
                 {
                     spriteBatch.DrawString(game.Resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
                 }
@@ -457,13 +460,31 @@ namespace Far_Off_Wanderer___Classic
                 if (fadeOut.HasValue)
                 {
                     spriteBatch.Draw(game.Resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
-                    if (dead == true)
+
+                    var splash = game.Resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
+
+                    var screen = Window.ClientBounds;
+                    var screenAspect = (float)screen.Width / screen.Height;
+                    var output = new Rectangle();
+                    var titleAspect = (float)splash.Width / splash.Height;
+                    //if (titleAspect > screenAspect)
                     {
-                        spriteBatch.Draw(game.Resources.Sprites[Data.GameOverOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                        output.Width = splash.Width * screen.Height / splash.Height;
+                        output.Height = screen.Height;
+                        output.X = -(output.Width - screen.Width) / 2;
+                        output.Y = 0;
                     }
-                    else if (won == true)
+                    //else
                     {
-                        spriteBatch.Draw(game.Resources.Sprites[Data.GameWonOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                        output.Width = screen.Width;
+                        output.Height = splash.Height * screen.Width / splash.Width;
+                        output.X = 0;
+                        output.Y = -(output.Height - screen.Height) / 2;
+                    }
+
+                    if (dead == true || won == true)
+                    {
+                        spriteBatch.Draw(splash, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
                     }
                 }
                 spriteBatch.End();

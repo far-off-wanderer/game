@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="55993davepermen.FarOffWanderer-Classic" Publisher="CN=C85FCB14-A751-4330-9D31-04C80C3B9382" Version="1.1.0.0" />
+  <Identity Name="55993davepermen.FarOffWanderer-Classic" Publisher="CN=C85FCB14-A751-4330-9D31-04C80C3B9382" Version="1.1.2.0" />
   <mp:PhoneIdentity PhoneProductId="a672d565-265b-43b4-85ab-4fd4cf069ac9" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Far Off Wanderer - Classic</DisplayName>
@@ -19,7 +19,7 @@
         <uap:LockScreen Notification="badge" BadgeLogo="Assets\BadgeLogo.png" />
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="Far Off Wanderer" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png">
         </uap:DefaultTile>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#000000" />
       </uap:VisualElements>
     </Application>
   </Applications>

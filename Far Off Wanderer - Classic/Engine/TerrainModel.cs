@@ -77,14 +77,16 @@ namespace Conesoft.Engine
 
                     var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
 
-                    Point += DisplaceData[x + DataWidth * y] * halfWidthOfSmallerStepSize;
-
                     var c = Height / 255f;
                     var color = new Color();
                     if (c < 0.02f)
                     {
                         color = Color.DarkBlue;
                     }
+
+
+
+                    Point += DisplaceData[x + DataWidth * y] * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.3f);
 
                     var dx =
                         (
@@ -154,8 +156,13 @@ namespace Conesoft.Engine
             b.TextureEnabled = texture != null;
             b.VertexColorEnabled = true;
             b.Texture = texture;
-
-            b.GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicWrap;
+            b.GraphicsDevice.SamplerStates[0] = new SamplerState
+            {
+                MaxMipLevel = 8,
+                MipMapLevelOfDetailBias = -.5f,
+                MaxAnisotropy = 8,
+                Filter = TextureFilter.Anisotropic
+            };
 
             var world = b.World;
 
