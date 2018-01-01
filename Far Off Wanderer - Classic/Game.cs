@@ -1,0 +1,490 @@
+﻿using Microsoft.Xna.Framework;
+
+namespace Far_Off_Wanderer___Classic
+{
+    using Conesoft.Engine;
+    using Conesoft.Game;
+    using Microsoft.Xna.Framework.Audio;
+    using Microsoft.Xna.Framework.Graphics;
+    using Microsoft.Xna.Framework.Input;
+    using Microsoft.Xna.Framework.Input.Touch;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Windows.Foundation;
+
+    internal class Game : Microsoft.Xna.Framework.Game
+    {
+        GraphicsDeviceManager manager;
+        IGame game;
+        SpriteBatch spriteBatch;
+        GraphicsDevice graphics;
+        TimeSpan? startTime;
+
+        float fadeInTime;
+        float fadeIn;
+        float? fadeOut;
+        TimeSpan sinceStart;
+        bool gameOverTouch;
+        bool dead;
+        bool won;
+        bool started;
+        LocalPlayer localPlayer;
+        DefaultEnvironment environment;
+
+        DefaultLevel level;
+        private bool gameOverKeyboard;
+        private bool gameOverGamepad;
+
+        Texture2D titleScreenLandscape;
+        Texture2D titleScreenPortrait;
+        bool playing;
+        bool startPlayingKeyup;
+        bool startPlayingButtonup;
+        bool startPlayingTouchup;
+
+        public Game()
+        {
+            manager = new GraphicsDeviceManager(this)
+            {
+                IsFullScreen = true
+            };
+
+            Content.RootDirectory = "Content\\bin";
+
+            App.Current.Content = Content;
+
+            game = TinyIoC.TinyIoCContainer.Current.Resolve<IGame>();
+        }
+
+        public void StartGame()
+        {
+            level = new DefaultLevel(environment);
+
+            var spaceShips = level.Objects3D.OfType<Spaceship>();
+            if (spaceShips.Count() > 0)
+            {
+                localPlayer = new LocalPlayer()
+                {
+                    ControlledObject = spaceShips.First()
+                };
+                level.Players.Add(localPlayer);
+            }
+
+            startTime = null;
+            dead = false;
+            gameOverTouch = false;
+            gameOverKeyboard = false;
+            gameOverGamepad = false;
+
+            fadeInTime = App.Current.FirstTime ? 3 : 1;
+            App.Current.FirstTime = false;
+
+            playing = true;
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            graphics = GraphicsDevice;
+
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            titleScreenLandscape = Content.Load<Texture2D>("titlescreen-landscape");
+            titleScreenPortrait = Content.Load<Texture2D>("titlescreen-portrait");
+
+            environment = new DefaultEnvironment()
+            {
+                Random = new Random(),
+                ModelBoundaries = new Dictionary<string, BoundingSphere>()
+            };
+
+            game.Resources.Load((to, from) =>
+            {
+                to.Models.Add(from.Load<Model>(Data.Ship, Data.Drone, Data.Spaceship));
+                to.Sprites.Add(from.Load<Texture2D>(Data.Fireball, Data.Energyball, Data.Bullet, Data.Grass, Data.TutorialOverlay, Data.GameWonOverlay, Data.GameOverOverlay));
+
+                var texture = new Texture2D(graphics, 1, 1);
+                texture.SetData(new Color[] { Color.Black });
+                to.Sprites.Add(Data.BlackBackground, texture);
+
+                to.Sounds.Add(from.Load<SoundEffect>(Data.ExplosionSound, Data.GameOverSound, Data.GoSound, Data.GoodSound, Data.LaserSound));
+
+                to.Fonts.Add(from.Load<SpriteFont>(Data.Font, Data.SmallFont));
+
+                var terrainModel = new TerrainModel()
+                {
+                    Position = Vector3.Down * 64 * 40,
+                    Size = new Vector3(1024 * 128, 256 * 40, 1024 * 128)
+                };
+                terrainModel.LoadFromTexture2D(from.Load<Texture2D>(Data.LandscapeGround), environment);
+                to.Terrains.Add(Data.Landscape, terrainModel);
+
+                foreach (var model in to.Models)
+                {
+                    var boundingSphere = default(BoundingSphere);
+                    foreach (var mesh in model.Value.Meshes)
+                    {
+                        boundingSphere = BoundingSphere.CreateMerged(boundingSphere, mesh.BoundingSphere);
+                    }
+                    environment.ModelBoundaries[model.Key] = boundingSphere;
+                }
+            });
+
+            environment.Sounds = game.Resources.Sounds;
+        }
+
+        protected override void LoadContent()
+        {
+            base.LoadContent();
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            environment.Update(gameTime.ElapsedGameTime);
+
+            if (!playing)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                {
+                    Exit();
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
+                {
+                    startPlayingKeyup = true;
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) && startPlayingKeyup == true)
+                {
+                    startPlayingKeyup = false;
+                    StartGame();
+                }
+                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
+                {
+                    startPlayingButtonup = true;
+                }
+                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) && startPlayingKeyup == true)
+                {
+                    startPlayingButtonup = false;
+                    StartGame();
+                }
+                if (TouchPanel.GetState().Count == 0)
+                {
+                    startPlayingTouchup = true;
+                }
+                if (TouchPanel.GetState().Count > 0 && startPlayingTouchup == true)
+                {
+                    startPlayingTouchup = false;
+                    StartGame();
+                }
+            }
+            else
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                {
+                    OnGameOver();
+                }
+                var e = new
+                {
+                    TotalTime = gameTime.TotalGameTime,
+                    ElapsedTime = gameTime.ElapsedGameTime
+                };
+
+                base.Update(gameTime);
+                level.Environment.Acceleration = game.Accelerometer.Acceleration;
+                level.Environment.ScreenSize = new Size(Window.ClientBounds.Width, Window.ClientBounds.Height);
+                level.Environment.ActiveCamera = level.Camera;
+                level.Environment.Flipped = false; // Orientation == PageOrientation.LandscapeRight;
+
+                if (startTime.HasValue == false)
+                {
+                    startTime = e.TotalTime;
+                }
+
+                sinceStart = e.TotalTime - startTime.Value;
+
+                fadeIn = Math.Min((float)sinceStart.TotalSeconds / fadeInTime, 1);
+                if (fadeIn == 1)
+                {
+                    fadeInTime = 1;
+                }
+
+                level.UpdateScene(sinceStart.TotalSeconds > fadeInTime ? e.ElapsedTime : TimeSpan.Zero);
+
+                if (sinceStart.TotalSeconds > fadeInTime - 0.5f)
+                {
+                    if (started == false)
+                    {
+                        game.Resources.Sounds[Data.GoSound].Play();
+                    }
+                    started = true;
+                }
+
+                if (level.Objects3D.Contains(localPlayer.ControlledObject) == false)
+                {
+                    if (dead != true)
+                    {
+                        game.Resources.Sounds[Data.GameOverSound].Play();
+                    }
+                    dead = true;
+                    CheckForExitClick();
+                    UpdateFadeout(gameTime);
+                }
+                else if (level.Objects3D.OfType<Spaceship>().Count() == 1 && dead == false)
+                {
+                    if (won != true)
+                    {
+                        game.Resources.Sounds[Data.GoodSound].Play();
+                        //UpdateHighscore();
+                    }
+                    won = true;
+                    CheckForExitClick();
+                    UpdateFadeout(gameTime);
+                }
+            }
+        }
+
+        private void CheckForExitClick()
+        {
+            if (TouchPanel.GetState().Count == 0)
+            {
+                gameOverTouch = true;
+            }
+            if (TouchPanel.GetState().Count > 0 && gameOverTouch == true)
+            {
+                OnGameOver();
+                //NavigationService.GoBack();
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
+            {
+                gameOverKeyboard = true;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) == true && gameOverKeyboard == true)
+            {
+                OnGameOver();
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
+            {
+                gameOverGamepad = true;
+            }
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == true && gameOverGamepad == true)
+            {
+                OnGameOver();
+            }
+        }
+
+        public void OnGameOver()
+        {
+            playing = false;
+        }
+
+        private void UpdateFadeout(GameTime e)
+        {
+
+            if (fadeOut.HasValue == false)
+            {
+                fadeOut = 0;
+            }
+            else
+            {
+                fadeOut += (float)e.ElapsedGameTime.TotalSeconds / 3;
+                if (fadeOut > 1)
+                {
+                    fadeOut = 1;
+                }
+            }
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            if (!playing)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                spriteBatch.Begin();
+                var screen = Window.ClientBounds;
+                var screenAspect = (float)screen.Width / screen.Height;
+                var output = new Rectangle();
+                var title = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
+                var titleAspect = (float)title.Width / title.Height;
+                if (titleAspect > screenAspect)
+                {
+                    output.Width = title.Width * screen.Height / title.Height;
+                    output.Height = screen.Height;
+                    output.X = -(output.Width - screen.Width) / 2;
+                    output.Y = 0;
+                }
+                else
+                {
+                    output.Width = screen.Width;
+                    output.Height = title.Height * screen.Width / title.Width;
+                    output.X = 0;
+                    output.Y = -(output.Height - screen.Height) / 2;
+                }
+                spriteBatch.Draw(title, output, Color.White);
+                spriteBatch.End();
+            }
+            else
+            {
+                GraphicsDevice.Clear(Color.MediumOrchid);
+
+                var camera = new CameraModel(level.Camera, new Size(Window.ClientBounds.Width, Window.ClientBounds.Height));
+
+                var basicEffect = new BasicEffect(graphics);
+
+                graphics.Clear(level.Skybox.Color);
+
+                graphics.BlendState = BlendState.Opaque;
+                graphics.DepthStencilState = DepthStencilState.Default;
+
+                basicEffect.EnableDefaultLighting();
+
+                basicEffect.LightingEnabled = true;
+                basicEffect.TextureEnabled = true;
+                basicEffect.VertexColorEnabled = false;
+                basicEffect.FogEnabled = true;
+                basicEffect.FogColor = new Vector3(0.2f, 0.3f, 0.8f);
+                basicEffect.FogStart = 10f;
+                basicEffect.FogEnd = 75000f;
+
+                basicEffect.DirectionalLight0.Enabled = true;
+                basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
+                basicEffect.DirectionalLight0.Direction = new Vector3(0, 1, 0);
+                basicEffect.DirectionalLight0.SpecularColor = new Vector3(0, 0, 0);
+                graphics.RasterizerState = RasterizerState.CullNone;
+
+                basicEffect.World = Matrix.Identity;
+                basicEffect.View = camera.View;
+                basicEffect.Projection = camera.Projection;
+
+                foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
+                {
+                    var model = game.Resources.Models[spaceship.Id];
+                    model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                }
+
+                graphics.RasterizerState = RasterizerState.CullCounterClockwise;
+
+                var terrain = game.Resources.Terrains[level.Terrain.Id];
+                var terrainPosition = terrain.Position;
+
+                var position = localPlayer.ControlledObject.Position;
+                while (terrainPosition.X > position.X + terrain.Size.X / 2)
+                {
+                    terrainPosition -= new Vector3(terrain.Size.X, 0, 0);
+                }
+                while (terrainPosition.Z > position.Z + terrain.Size.Z / 2)
+                {
+                    terrainPosition -= new Vector3(0, 0, terrain.Size.Z);
+                }
+                while (terrainPosition.X < position.X - terrain.Size.X / 2)
+                {
+                    terrainPosition += new Vector3(terrain.Size.X, 0, 0);
+                }
+                while (terrainPosition.Z < position.Z - terrain.Size.Z / 2)
+                {
+                    terrainPosition += new Vector3(0, 0, terrain.Size.Z);
+                }
+
+                var forward = Vector3.Transform(Vector3.Forward, localPlayer.ControlledObject.Orientation);
+
+                var range = 1;
+                for (var z = -range; z <= range; z++)
+                {
+                    for (var x = -range; x <= range; x++)
+                    {
+                        terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
+                        terrain.Draw(basicEffect, game.Resources.Sprites[Data.Grass]);
+                    }
+                }
+                terrain.Position = terrainPosition;
+
+                var bounds = graphics.Viewport.Bounds;
+
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                foreach (var explosion in level.Objects3D.OfType<Explosion>())
+                {
+                    var transformed = graphics.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
+                    var distance = (explosion.Position - level.Camera.Position).Length();
+                    if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                    {
+                        var sprite = game.Resources.Sprites[explosion.Id];
+                        var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
+                        var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                        if (rectangle.Intersects(graphics.Viewport.Bounds))
+                        {
+                            spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, 0);
+                        }
+                    }
+                }
+                spriteBatch.End();
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                foreach (var bullet in level.Objects3D.OfType<Bullet>())
+                {
+                    var transformed = graphics.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
+                    var distance = (bullet.Position - level.Camera.Position).Length();
+                    if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                    {
+                        var sprite = game.Resources.Sprites[bullet.Id];
+                        var width = Math.Max(bounds.Width, bounds.Height) * bullet.Boundary.Radius / distance;
+                        var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                        if (rectangle.Intersects(graphics.Viewport.Bounds))
+                        {
+                            spriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, 0);
+                        }
+                    }
+                }
+                var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
+                var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
+                var enemyCountSize = game.Resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
+
+                var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut.HasValue ? fadeOut.Value : 0) * 1.5f - 1, 0, 1));
+
+                if (fadeIn < 1f)
+                {
+                    var timer = (1 - fadeIn) * fadeInTime;
+                    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
+                    var msgSize = game.Resources.Fonts[Data.Font].MeasureString(msg).X;
+                    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
+                    spriteBatch.Draw(game.Resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
+                }
+                else
+                {
+                    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+                }
+
+                if (fadeOut.HasValue)
+                {
+                    spriteBatch.Draw(game.Resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
+                    if (dead == true)
+                    {
+                        spriteBatch.Draw(game.Resources.Sprites[Data.GameOverOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                    }
+                    else if (won == true)
+                    {
+                        spriteBatch.Draw(game.Resources.Sprites[Data.GameWonOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                    }
+                }
+                spriteBatch.End();
+
+
+
+                base.Draw(gameTime);
+            }
+        }
+
+
+        internal void GoBack()
+        {
+            if (playing)
+            {
+                OnGameOver();
+            }
+            else
+            {
+                Exit();
+            }
+        }
+    }
+}
