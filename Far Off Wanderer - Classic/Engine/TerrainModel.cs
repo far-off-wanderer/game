@@ -86,19 +86,20 @@ namespace Conesoft.Engine
 
 
 
-                    Point += DisplaceData[x + DataWidth * y] * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.3f);
+                    Point += DisplaceData[x + DataWidth * y] * new Vector3(1, 1.41f, 1) * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.1f);
+
 
                     var dx =
                         (
-                            HeightData[((x + DataWidth - 1) % DataWidth) + DataWidth * y]
+                            HeightData[((x + DataWidth - 1) % (DataWidth - 1)) + DataWidth * y]
                             -
-                            HeightData[((x + 1) % DataWidth) + DataWidth * y]
+                            HeightData[((x + 1) % (DataWidth - 1)) + DataWidth * y]
                         ) / 256f;
                     var dy =
                         (
-                            HeightData[x + DataWidth * ((y + DataWidth - 1) % DataWidth)]
+                            HeightData[x + DataWidth * ((y + DataWidth - 1) % (DataWidth - 1))]
                             -
-                            HeightData[x + DataWidth * ((y + 1) % DataWidth)]
+                            HeightData[x + DataWidth * ((y + 1) % (DataWidth - 1))]
                         ) / 256f;
 
                     var dxVector = new Vector3(Size.X * 2 / DataWidth, dx * Size.Y, 0);
@@ -132,7 +133,7 @@ namespace Conesoft.Engine
                     color *= 1.3f;
                     var texcoord = new Vector2(0.5f * Point.X / Size.X + 0.5f, 0.5f * Point.Z / Size.Z + 0.5f);
                     texcoord += 0.3f * DisplaceTextureData[x + DataWidth * y] / (Math.Max(TerrainTexture.Width, TerrainTexture.Height) * 2 * 1.414f);
-                    Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
+                    Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point + (2 * Height / 255f - 1) * normal * new Vector3(1, Height / 255f, 1) * 2500, color, texcoord * 64);
                 }
             }
 

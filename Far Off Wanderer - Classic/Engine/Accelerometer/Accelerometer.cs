@@ -21,7 +21,10 @@ namespace Conesoft.Engine.Accelerometer
                 public Accelerometer()
                 {
                     acc = Windows.Devices.Sensors.Accelerometer.GetDefault(AccelerometerReadingType.Standard);
-                    acc.ReadingChanged += Acc_ReadingChanged;
+                    if (acc != null)
+                    {
+                        acc.ReadingChanged += Acc_ReadingChanged;
+                    }
                 }
 
                 private void Acc_ReadingChanged(Windows.Devices.Sensors.Accelerometer sender, AccelerometerReadingChangedEventArgs args)
@@ -33,34 +36,37 @@ namespace Conesoft.Engine.Accelerometer
                 {
                     get
                     {
-                        var v = new Vector3();
-                        DisplayInformation displayInfo = DisplayInformation.GetForCurrentView();
-                        switch (displayInfo.CurrentOrientation)
+                        var v = Vector3.Up;
+                        if (acc != null)
                         {
-                            case DisplayOrientations.Landscape:
-                                v.X = (float)reading.AccelerationX;
-                                v.Y = (float)reading.AccelerationY;
-                                v.Z = (float)reading.AccelerationZ;
-                                break;
-                            case DisplayOrientations.Portrait:
-                                v.Y = -(float)reading.AccelerationX;
-                                v.X = (float)reading.AccelerationY;
-                                v.Z = (float)reading.AccelerationZ;
-                                break;
-                            case DisplayOrientations.LandscapeFlipped:
-                                v.X = -(float)reading.AccelerationX;
-                                v.Y = -(float)reading.AccelerationY;
-                                v.Z = (float)reading.AccelerationZ;
-                                break;
-                            case DisplayOrientations.PortraitFlipped:
-                                v.Y = (float)reading.AccelerationX;
-                                v.X = -(float)reading.AccelerationY;
-                                v.Z = (float)reading.AccelerationZ;
-                                break;
-                        }
-                        if(displayInfo.NativeOrientation == DisplayOrientations.Portrait)
-                        {
-                            v = new Vector3(-v.Y, v.X, v.Z);
+                            DisplayInformation displayInfo = DisplayInformation.GetForCurrentView();
+                            switch (displayInfo.CurrentOrientation)
+                            {
+                                case DisplayOrientations.Landscape:
+                                    v.X = (float)reading.AccelerationX;
+                                    v.Y = (float)reading.AccelerationY;
+                                    v.Z = (float)reading.AccelerationZ;
+                                    break;
+                                case DisplayOrientations.Portrait:
+                                    v.Y = -(float)reading.AccelerationX;
+                                    v.X = (float)reading.AccelerationY;
+                                    v.Z = (float)reading.AccelerationZ;
+                                    break;
+                                case DisplayOrientations.LandscapeFlipped:
+                                    v.X = -(float)reading.AccelerationX;
+                                    v.Y = -(float)reading.AccelerationY;
+                                    v.Z = (float)reading.AccelerationZ;
+                                    break;
+                                case DisplayOrientations.PortraitFlipped:
+                                    v.Y = (float)reading.AccelerationX;
+                                    v.X = -(float)reading.AccelerationY;
+                                    v.Z = (float)reading.AccelerationZ;
+                                    break;
+                            }
+                            if (displayInfo.NativeOrientation == DisplayOrientations.Portrait)
+                            {
+                                v = new Vector3(-v.Y, v.X, v.Z);
+                            }
                         }
                         return Vector3.Normalize(v);
                     }
