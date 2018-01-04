@@ -50,7 +50,7 @@ namespace Far_Off_Wanderer___Classic
                 IsFullScreen = true
             };
 
-            Content.RootDirectory = "Content\\bin";
+            Content.RootDirectory = "Content";
 
             App.Current.Content = Content;
 
@@ -105,7 +105,7 @@ namespace Far_Off_Wanderer___Classic
             game.Resources.Load((to, from) =>
             {
                 to.Models.Add(from.Load<Model>(Data.Ship, Data.Drone, Data.Spaceship));
-                to.Sprites.Add(from.Load<Texture2D>(Data.Fireball, Data.Energyball, Data.Bullet, Data.Grass, Data.TutorialOverlay, Data.GameWonOverlay, Data.GameOverOverlay));
+                to.Sprites.Add(from.Load<Texture2D>(Data.Fireball, Data.Energyball, Data.Bullet, Data.Grass, /*Data.TutorialOverlay, */Data.GameWonOverlay, Data.GameOverOverlay));
 
                 var texture = new Texture2D(graphics, 1, 1);
                 texture.SetData(new Color[] { Color.Black });

@@ -37,18 +37,6 @@
 /processorParam:TextureFormat=Color
 /build:overlays/gamewon.png
 
-#begin overlays/tutorial.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:overlays/tutorial.png
-
 #begin Bullet.png
 /importer:TextureImporter
 /processor:TextureProcessor

@@ -11,7 +11,7 @@
         public static readonly string Energyball = "Energyball";
         public static readonly string Bullet = "Bullet";
         public static readonly string Grass = "grass A bump";
-        public static readonly string TutorialOverlay = "overlays/tutorial";
+        //public static readonly string TutorialOverlay = "overlays/tutorial";
         public static readonly string GameWonOverlay = "overlays/gamewon";
         public static readonly string GameOverOverlay = "overlays/gameover";
         public static readonly string BlackBackground = "Black Background";
