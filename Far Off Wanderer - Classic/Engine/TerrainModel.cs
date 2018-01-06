@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Conesoft.Engine
@@ -15,12 +16,15 @@ namespace Conesoft.Engine
         public Vector3[] DisplaceData { get; private set; }
         public Vector2[] DisplaceTextureData { get; private set; }
         public VertexPositionColorTexture[] Grid { get; private set; }
+        public VertexPositionNormalTexture[] Grid2 { get; private set; }
         public short[] Indicees { get; private set; }
+        public List<Collider> Colliders { get; private set; }
 
         public TerrainModel()
         {
             DataWidth = 0;
             HeightData = null;
+            Colliders = new List<Collider>();
         }
 
         public void LoadFromTexture2D(Texture2D TerrainTexture, Conesoft.Game.DefaultEnvironment Environment)
@@ -65,6 +69,7 @@ namespace Conesoft.Engine
             }
 
             Grid = new VertexPositionColorTexture[DataWidth * DataWidth];
+            Grid2 = new VertexPositionNormalTexture[DataWidth * DataWidth];
             foreach (var y in Enumerable.Range(0, DataWidth))
             {
                 foreach (var x in Enumerable.Range(0, DataWidth))
@@ -87,7 +92,6 @@ namespace Conesoft.Engine
 
 
                     Point += DisplaceData[x + DataWidth * y] * new Vector3(1, 1.41f, 1) * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.1f);
-
 
                     var dx =
                         (
@@ -133,7 +137,17 @@ namespace Conesoft.Engine
                     color *= 1.3f;
                     var texcoord = new Vector2(0.5f * Point.X / Size.X + 0.5f, 0.5f * Point.Z / Size.Z + 0.5f);
                     texcoord += 0.3f * DisplaceTextureData[x + DataWidth * y] / (Math.Max(TerrainTexture.Width, TerrainTexture.Height) * 2 * 1.414f);
-                    Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point + (2 * Height / 255f - 1) * normal * new Vector3(1, Height / 255f, 1) * 2500, color, texcoord * 64);
+
+                    Point += (2 * Height / 255f - 1) * normal * new Vector3(1, Height / 255f, 1) * 2500;
+
+                    var position = Point + Position - halfWidthOfSmallerStepSize * Vector3.Up;
+                    if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
+                    {
+                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                    }
+
+                    Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
+                    Grid2[x + DataWidth * y] = new VertexPositionNormalTexture(Point, normal, texcoord * 64);
                 }
             }
 
@@ -151,7 +165,7 @@ namespace Conesoft.Engine
             }
         }
 
-        public void Draw(BasicEffect b, Texture2D texture = null)
+        public void DrawFirst(BasicEffect b, Texture2D texture = null)
         {
             b.LightingEnabled = false;
             b.TextureEnabled = texture != null;
@@ -178,6 +192,89 @@ namespace Conesoft.Engine
             }
 
             b.World = world;
+        }
+
+        Color[][] sides = new Color[6][];
+
+        Color[] Side(int i)
+        {
+            if(sides[i] == null)
+            {
+                var r = new System.Random(i * 253523);
+                sides[i] = Enumerable.Range(0, 32 * 32).Select(_ =>
+                {
+                    return new Color(new Vector3(0.2f, 0.3f, 0.8f) * (float)r.NextDouble());
+                }).ToArray();
+            }
+            return sides[i];
+        }
+
+        static EnvironmentMapEffect _ee;
+        static Texture2D _t;
+        EnvironmentMapEffect Ee(GraphicsDevice graphics)
+        {
+            if(_ee == null)
+            {
+                _ee = new EnvironmentMapEffect(graphics);
+                _ee.FogEnabled = true;
+                _ee.FogColor = Vector3.Zero;
+                _ee.FogStart = 10f;
+                _ee.FogEnd = 75000f;
+                _ee.EnvironmentMapSpecular = Vector3.Zero;
+                //_ee.EnableDefaultLighting();
+
+                _ee.EnvironmentMapAmount = 1;
+                _ee.FresnelFactor = 25f;
+                _ee.EnvironmentMap = new TextureCube(graphics, 32, true, SurfaceFormat.Color);
+                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveX, Side(0));
+                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeY, Side(1));
+                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveY, Side(2));
+                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeZ, Side(3));
+                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveZ, Side(4));
+                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeX, Side(5));
+
+                _t = new Texture2D(graphics, 1, 1, false, SurfaceFormat.Color);
+                _t.SetData(new[] { Color.Black });
+            }
+            return _ee;
+        }
+
+        public void Draw(BasicEffect b, Texture2D texture = null)
+        {
+            DrawFirst(b, texture);
+
+            return;
+
+            var ee = Ee(b.GraphicsDevice);
+
+
+            ee.World = b.World;
+            ee.View = b.View;
+            ee.Projection = b.Projection;
+
+            ee.Texture = _t;
+
+            var world = ee.World;
+
+            ee.World *= Matrix.CreateTranslation(Position.X, Position.Y, Position.Z);
+            foreach (var pass in ee.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                ee.GraphicsDevice.BlendState = new BlendState
+                {
+                    ColorBlendFunction = BlendFunction.Add,
+                    ColorSourceBlend = Blend.Zero,
+                    ColorDestinationBlend = Blend.One,
+                    ColorWriteChannels = ColorWriteChannels.All
+                };
+
+                foreach (var i in Enumerable.Range(0, DataWidth - 1))
+                {
+                    b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid2, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
+                }
+            }
+
+            ee.World = world;
         }
     }
 }

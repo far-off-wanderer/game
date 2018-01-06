@@ -60,6 +60,8 @@ namespace Far_Off_Wanderer___Classic
         public void StartGame()
         {
             level = new DefaultLevel(environment);
+            var terrain = game.Resources.Terrains[level.Terrain.Id];
+            level.Objects3D.AddRange(terrain.Colliders);
 
             var spaceShips = level.Objects3D.OfType<Spaceship>();
             if (spaceShips.Count() > 0)
@@ -120,6 +122,7 @@ namespace Far_Off_Wanderer___Classic
                     Position = Vector3.Down * 64 * 40,
                     Size = new Vector3(1024 * 128, 256 * 40, 1024 * 128)
                 };
+                environment.Range = terrainModel.Size.X;
                 terrainModel.LoadFromTexture2D(from.Load<Texture2D>(Data.LandscapeGround), environment);
                 to.Terrains.Add(Data.Landscape, terrainModel);
 
@@ -309,7 +312,8 @@ namespace Far_Off_Wanderer___Classic
                 var screen = Window.ClientBounds;
                 var screenAspect = (float)screen.Width / screen.Height;
                 var output = new Rectangle();
-                var title = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
+                var titleTexture = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
+                var title = screenAspect > 1 ? (Width: 1836, Height: 1200) : (Width: 1080, Height: 1920);
                 var titleAspect = (float)title.Width / title.Height;
                 if (titleAspect > screenAspect)
                 {
@@ -325,7 +329,7 @@ namespace Far_Off_Wanderer___Classic
                     output.X = 0;
                     output.Y = -(output.Height - screen.Height) / 2;
                 }
-                spriteBatch.Draw(title, output, Color.White);
+                spriteBatch.Draw(titleTexture, output, Color.White);
                 spriteBatch.End();
             }
             else
@@ -364,6 +368,7 @@ namespace Far_Off_Wanderer___Classic
                 foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
                 {
                     var model = game.Resources.Models[spaceship.Id];
+
                     model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
                 }
 
@@ -406,6 +411,7 @@ namespace Far_Off_Wanderer___Classic
                 var bounds = graphics.Viewport.Bounds;
 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
                 foreach (var explosion in level.Objects3D.OfType<Explosion>())
                 {
                     var transformed = graphics.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
@@ -417,12 +423,13 @@ namespace Far_Off_Wanderer___Classic
                         var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                         if (rectangle.Intersects(graphics.Viewport.Bounds))
                         {
-                            spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, 0);
+                            spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                         }
                     }
                 }
                 spriteBatch.End();
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
                 foreach (var bullet in level.Objects3D.OfType<Bullet>())
                 {
                     var transformed = graphics.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
@@ -434,16 +441,40 @@ namespace Far_Off_Wanderer___Classic
                         var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                         if (rectangle.Intersects(graphics.Viewport.Bounds))
                         {
-                            spriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, 0);
+                            spriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                         }
                     }
                 }
+                spriteBatch.End();
+                if (Keyboard.GetState().IsKeyDown(Keys.D))
+                {
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                    GraphicsDevice.DepthStencilState = DepthStencilState.None;
+                    foreach (var collider in level.Objects3D.OfType<Collider>())
+                    {
+                        var transformed = graphics.Viewport.Project(collider.Position, camera.Projection, camera.View, Matrix.Identity);
+                        var distance = (collider.Position - level.Camera.Position).Length();
+                        if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                        {
+                            var sprite = game.Resources.Sprites[Data.Bullet];
+                            var width = 2 * collider.Boundary.Radius * Math.Max(bounds.Width, bounds.Height) / distance;
+                            var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                            if (rectangle.Intersects(graphics.Viewport.Bounds))
+                            {
+                                spriteBatch.Draw(sprite, rectangle, null, new Color(Color.BurlyWood, 8), 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                            }
+                        }
+                    }
+                    spriteBatch.End();
+                }
+
                 var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
                 var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
                 var enemyCountSize = game.Resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
 
                 var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut.HasValue ? fadeOut.Value : 0) * 1.5f - 1, 0, 1));
 
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 //if (fadeIn < 1f)
                 //{
                 //    var timer = (1 - fadeIn) * fadeInTime;
@@ -461,7 +492,8 @@ namespace Far_Off_Wanderer___Classic
                 {
                     spriteBatch.Draw(game.Resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
 
-                    var splash = game.Resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
+                    var splashTexture = game.Resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
+                    var splash = (Width: 1280, Height: 768);
 
                     var screen = Window.ClientBounds;
                     var screenAspect = (float)screen.Width / screen.Height;
@@ -484,7 +516,7 @@ namespace Far_Off_Wanderer___Classic
 
                     if (dead == true || won == true)
                     {
-                        spriteBatch.Draw(splash, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                        spriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
                     }
                 }
                 spriteBatch.End();

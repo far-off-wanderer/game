@@ -66,7 +66,7 @@ namespace Conesoft.Game
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
                 Environment.Sounds[Data.LaserSound].Play(1 / (1 + dst / 5000), 0, 0);
                 var bulletDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, Orientation));
-                var bullet = new Bullet(Position, bulletDirection, Speed * 125 + 2500);
+                var bullet = new Bullet(Position, bulletDirection, Speed * 100 + 6250);
                 bullet.Position += (bullet.Boundary.Radius + Boundary.Radius) * 2 * bulletDirection;
                 yield return bullet;
 
@@ -110,13 +110,13 @@ namespace Conesoft.Game
             var Up = Vector3.Transform(Vector3.Up, Orientation);
             Position += Direction * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
 
-            if (Speed > 0)
+            if(ThrustFlame != null)
             {
-                ThrustFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
-            }
-            else
-            {
-                if (ThrustFlame != null)
+                if (Speed > 0)
+                {
+                    ThrustFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
+                }
+                else
                 {
                     ThrustFlame.DontThrust();
                 }

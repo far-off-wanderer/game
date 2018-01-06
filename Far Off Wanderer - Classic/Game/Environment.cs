@@ -18,7 +18,7 @@ namespace Conesoft.Game
         public Dictionary<string, BoundingSphere> ModelBoundaries { get; set; }
         public IResource<SoundEffect> Sounds { get; set; }
         public Camera ActiveCamera { get; set; }
-        public float Range => 100000;
+        public float Range { get; set; }
 
         public Vector3 RandomDirection()
         {

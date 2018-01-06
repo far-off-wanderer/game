@@ -21,7 +21,7 @@ namespace Conesoft.Game
             if (LastPosition.HasValue && LastDirection.HasValue)
             {
                 var distance = Position - LastPosition.Value;
-                if (distance.LengthSquared() < Environment.Range * Environment.Range)
+                if (distance.LengthSquared() < Math.Pow(Environment.Range / 2, 2))
                 {
                     var count = (Position - LastPosition.Value).Length() / 40;
                     Position -= Vector3.Normalize(Direction) * ThrustBackshift;

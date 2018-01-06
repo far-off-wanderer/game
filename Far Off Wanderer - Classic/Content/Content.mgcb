@@ -20,9 +20,9 @@
 /processorParam:ColorKeyEnabled=True
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:ResizeToPowerOfTwo=True
+/processorParam:MakeSquare=True
+/processorParam:TextureFormat=Compressed
 /build:overlays/gameover.png
 
 #begin overlays/gamewon.png
@@ -32,9 +32,9 @@
 /processorParam:ColorKeyEnabled=True
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:ResizeToPowerOfTwo=True
+/processorParam:MakeSquare=True
+/processorParam:TextureFormat=Compressed
 /build:overlays/gamewon.png
 
 #begin Bullet.png
@@ -94,7 +94,7 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=True
-/processorParam:TextureFormat=Color
+/processorParam:TextureFormat=Compressed
 /build:grass A bump.jpg
 
 #begin vic viper small junctioned.x
@@ -193,7 +193,7 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:TextureFormat=Compressed
 /build:vessels/schiff textur 09.png
 
 #begin vessels/sonde textur 06.png
@@ -205,7 +205,7 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:TextureFormat=Compressed
 /build:vessels/sonde textur 06.png
 
 #begin Font.spritefont
@@ -229,9 +229,9 @@
 /processorParam:ColorKeyEnabled=True
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:ResizeToPowerOfTwo=True
+/processorParam:MakeSquare=True
+/processorParam:TextureFormat=Compressed
 /build:titlescreen-portrait.png
 
 #begin titlescreen-landscape.png
@@ -241,8 +241,8 @@
 /processorParam:ColorKeyEnabled=True
 /processorParam:GenerateMipmaps=False
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
+/processorParam:ResizeToPowerOfTwo=True
+/processorParam:MakeSquare=True
+/processorParam:TextureFormat=Compressed
 /build:titlescreen-landscape.png
 

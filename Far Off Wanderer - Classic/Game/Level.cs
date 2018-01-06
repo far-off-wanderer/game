@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Conesoft.Game
 {
+    using Conesoft.Engine;
     using Far_Off_Wanderer___Classic;
 
     public class DefaultLevel
@@ -49,7 +50,7 @@ namespace Conesoft.Game
                             Id = id,
                             Position = 6400 * (Vector3.Forward * y + Vector3.Right * x) * (float)factor * 2 / 5,
                             Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, x + y),
-                            Speed = id == ids[0] ? 150 : 0,
+                            Speed = id == ids[0] ? 150 : 2,
                             Boundary = environment.ModelBoundaries[id],
                             ThrustFlame = id == ids[1] ? null : new ThrustFlame()
                             {
@@ -118,10 +119,6 @@ namespace Conesoft.Game
                 for (int a = 0; a < collidableObjects.Length; a++)
                 {
                     var objectA = collidableObjects[a];
-                    if (objectA is Explosion)
-                    {
-                        break;
-                    }
                     var sphereA = objectA.Boundary;
                     if (sphereA != Object3D.EmptyBoundary)
                     {
@@ -141,8 +138,10 @@ namespace Conesoft.Game
                                 {
                                     var collisionPoint = (objectA.Position + objectB.Position) / 2;
 
-                                    newObjects.AddRange(objectA.Die(Environment, collisionPoint).Cast<Object3D>());
-                                    newObjects.AddRange(objectB.Die(Environment, collisionPoint).Cast<Object3D>());
+
+
+                                    newObjects.AddRange(objectA.Die(Environment, collisionPoint));
+                                    newObjects.AddRange(objectB.Die(Environment, collisionPoint));
                                 }
                             }
                         }
@@ -170,29 +169,29 @@ namespace Conesoft.Game
                     {
                         return other.Position - center.Position;
                     }
-                    while (distance().X > range)
+                    while (distance().X > range / 2)
                     {
-                        other.Position = other.Position - new Vector3(2 * range, 0, 0);
+                        other.Position = other.Position - new Vector3(range, 0, 0);
                     }
-                    while (distance().X < -range)
+                    while (distance().X < -range / 2)
                     {
-                        other.Position = other.Position + new Vector3(2 * range, 0, 0);
+                        other.Position = other.Position + new Vector3(range, 0, 0);
                     }
-                    while (distance().Y > range)
+                    while (distance().Y > range / 2)
                     {
-                        other.Position = other.Position - new Vector3(0, 2 * range, 0);
+                        other.Position = other.Position - new Vector3(0, range, 0);
                     }
-                    while (distance().Y < -range)
+                    while (distance().Y < -range / 2)
                     {
-                        other.Position = other.Position + new Vector3(0, 2 * range, 0);
+                        other.Position = other.Position + new Vector3(0, range, 0);
                     }
-                    while (distance().Z > range)
+                    while (distance().Z > range / 2)
                     {
-                        other.Position = other.Position - new Vector3(0, 0, 2 * range);
+                        other.Position = other.Position - new Vector3(0, 0, range);
                     }
-                    while (distance().Z < -range)
+                    while (distance().Z < -range / 2)
                     {
-                        other.Position = other.Position + new Vector3(0, 0, 2 * range);
+                        other.Position = other.Position + new Vector3(0, 0, range);
                     }
                 }
             }

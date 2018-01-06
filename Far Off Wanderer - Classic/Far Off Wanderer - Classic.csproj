@@ -107,6 +107,7 @@
     <Compile Include="Engine\Accelerometer\Accelerometer.cs" />
     <Compile Include="Engine\Application\Application.cs" />
     <Compile Include="Engine\CameraModel.cs" />
+    <Compile Include="Engine\Collider.cs" />
     <Compile Include="Engine\Level\Level.cs" />
     <Compile Include="Engine\NavigationService\NavigationService.cs" />
     <Compile Include="Engine\Random\Random.cs" />
@@ -249,10 +250,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.0.2</Version>
+      <Version>6.0.5</Version>
     </PackageReference>
     <PackageReference Include="MonoGame.Framework.WindowsUniversal">
       <Version>3.6.0.1625</Version>
+    </PackageReference>
+    <PackageReference Include="System.ValueTuple">
+      <Version>4.4.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />
