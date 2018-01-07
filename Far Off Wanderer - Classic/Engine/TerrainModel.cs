@@ -16,9 +16,11 @@ namespace Conesoft.Engine
         public Vector3[] DisplaceData { get; private set; }
         public Vector2[] DisplaceTextureData { get; private set; }
         public VertexPositionColorTexture[] Grid { get; private set; }
-        public VertexPositionNormalTexture[] Grid2 { get; private set; }
         public short[] Indicees { get; private set; }
         public List<Collider> Colliders { get; private set; }
+
+        VertexBuffer vertices;
+        IndexBuffer indicees;
 
         public TerrainModel()
         {
@@ -69,7 +71,6 @@ namespace Conesoft.Engine
             }
 
             Grid = new VertexPositionColorTexture[DataWidth * DataWidth];
-            Grid2 = new VertexPositionNormalTexture[DataWidth * DataWidth];
             foreach (var y in Enumerable.Range(0, DataWidth))
             {
                 foreach (var x in Enumerable.Range(0, DataWidth))
@@ -147,9 +148,11 @@ namespace Conesoft.Engine
                     }
 
                     Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
-                    Grid2[x + DataWidth * y] = new VertexPositionNormalTexture(Point, normal, texcoord * 64);
                 }
             }
+
+            vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), Grid.Length, BufferUsage.WriteOnly);
+            vertices.SetData(Grid);
 
             Indicees = new short[(DataWidth + 1) * 2];
             foreach (var i in Enumerable.Range(0, Indicees.Length))
@@ -163,6 +166,9 @@ namespace Conesoft.Engine
                     Indicees[i] = (short)(i - 1);
                 }
             }
+
+            indicees = new IndexBuffer(TerrainTexture.GraphicsDevice, IndexElementSize.SixteenBits, Indicees.Length, BufferUsage.WriteOnly);
+            indicees.SetData(Indicees);
         }
 
         public void DrawFirst(BasicEffect b, Texture2D texture = null)
@@ -179,6 +185,9 @@ namespace Conesoft.Engine
                 Filter = TextureFilter.Anisotropic
             };
 
+            b.GraphicsDevice.SetVertexBuffer(vertices);
+            b.GraphicsDevice.Indices = indicees;
+
             var world = b.World;
 
             b.World *= Matrix.CreateTranslation(Position.X, Position.Y, Position.Z);
@@ -187,94 +196,22 @@ namespace Conesoft.Engine
                 pass.Apply();
                 foreach (var i in Enumerable.Range(0, DataWidth - 1))
                 {
-                    b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
+                    //b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
+
+                    b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, i * DataWidth, 0, DataWidth - 1);
                 }
             }
 
             b.World = world;
         }
 
-        Color[][] sides = new Color[6][];
-
-        Color[] Side(int i)
-        {
-            if(sides[i] == null)
-            {
-                var r = new System.Random(i * 253523);
-                sides[i] = Enumerable.Range(0, 32 * 32).Select(_ =>
-                {
-                    return new Color(new Vector3(0.2f, 0.3f, 0.8f) * (float)r.NextDouble());
-                }).ToArray();
-            }
-            return sides[i];
-        }
-
-        static EnvironmentMapEffect _ee;
-        static Texture2D _t;
-        EnvironmentMapEffect Ee(GraphicsDevice graphics)
-        {
-            if(_ee == null)
-            {
-                _ee = new EnvironmentMapEffect(graphics);
-                _ee.FogEnabled = true;
-                _ee.FogColor = Vector3.Zero;
-                _ee.FogStart = 10f;
-                _ee.FogEnd = 75000f;
-                _ee.EnvironmentMapSpecular = Vector3.Zero;
-                //_ee.EnableDefaultLighting();
-
-                _ee.EnvironmentMapAmount = 1;
-                _ee.FresnelFactor = 25f;
-                _ee.EnvironmentMap = new TextureCube(graphics, 32, true, SurfaceFormat.Color);
-                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveX, Side(0));
-                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeY, Side(1));
-                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveY, Side(2));
-                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeZ, Side(3));
-                _ee.EnvironmentMap.SetData(CubeMapFace.PositiveZ, Side(4));
-                _ee.EnvironmentMap.SetData(CubeMapFace.NegativeX, Side(5));
-
-                _t = new Texture2D(graphics, 1, 1, false, SurfaceFormat.Color);
-                _t.SetData(new[] { Color.Black });
-            }
-            return _ee;
-        }
-
         public void Draw(BasicEffect b, Texture2D texture = null)
         {
+
+            b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            b.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            b.GraphicsDevice.BlendState = BlendState.Opaque;
             DrawFirst(b, texture);
-
-            return;
-
-            var ee = Ee(b.GraphicsDevice);
-
-
-            ee.World = b.World;
-            ee.View = b.View;
-            ee.Projection = b.Projection;
-
-            ee.Texture = _t;
-
-            var world = ee.World;
-
-            ee.World *= Matrix.CreateTranslation(Position.X, Position.Y, Position.Z);
-            foreach (var pass in ee.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                ee.GraphicsDevice.BlendState = new BlendState
-                {
-                    ColorBlendFunction = BlendFunction.Add,
-                    ColorSourceBlend = Blend.Zero,
-                    ColorDestinationBlend = Blend.One,
-                    ColorWriteChannels = ColorWriteChannels.All
-                };
-
-                foreach (var i in Enumerable.Range(0, DataWidth - 1))
-                {
-                    b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid2, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
-                }
-            }
-
-            ee.World = world;
         }
     }
 }

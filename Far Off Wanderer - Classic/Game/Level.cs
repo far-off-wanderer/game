@@ -112,38 +112,33 @@ namespace Conesoft.Game
 
             var collidableObjects = (from object3d in Objects3D
                                      where object3d.Boundary != Object3D.EmptyBoundary
-                                     select object3d).ToArray();
+                                     select
+                                     (
+                                         position: object3d.Position,
+                                         radius: object3d.Boundary.Radius,
+                                         boundingSphere: new BoundingSphere(object3d.Position, object3d.Boundary.Radius),
+                                         object3d: object3d
+                                     )
+                                    ).ToArray();
 
             if (collidableObjects.Length > 1)
             {
                 for (int a = 0; a < collidableObjects.Length; a++)
                 {
                     var objectA = collidableObjects[a];
-                    var sphereA = objectA.Boundary;
-                    if (sphereA != Object3D.EmptyBoundary)
+                    var sphereA = objectA.boundingSphere;
+
+                    for (int b = a + 1; b < collidableObjects.Length; b++)
                     {
-                        sphereA.Center = objectA.Position; // should be += but can't, right now. should be done with proper orientation and all..
+                        var objectB = collidableObjects[b];
+                        var sphereB = objectB.boundingSphere;
 
-                        //sphereA.Radius *= 5;
-                        for (int b = a + 1; b < collidableObjects.Length; b++)
+                        if (sphereA.Intersects(sphereB))
                         {
-                            var objectB = collidableObjects[b];
-                            var sphereB = objectB.Boundary;
-                            if (sphereB != Object3D.EmptyBoundary)
-                            {
-                                sphereB.Center = objectB.Position; // should be += but can't, right now. should be done with proper orientation and all..
-                                //sphereB.Radius *= 5;
+                            var collisionPoint = (objectA.position + objectB.position) / 2;
 
-                                if (sphereA.Intersects(sphereB))
-                                {
-                                    var collisionPoint = (objectA.Position + objectB.Position) / 2;
-
-
-
-                                    newObjects.AddRange(objectA.Die(Environment, collisionPoint));
-                                    newObjects.AddRange(objectB.Die(Environment, collisionPoint));
-                                }
-                            }
+                            newObjects.AddRange(objectA.object3d.Die(Environment, collisionPoint));
+                            newObjects.AddRange(objectB.object3d.Die(Environment, collisionPoint));
                         }
                     }
                 }
@@ -159,11 +154,11 @@ namespace Conesoft.Game
             }
 
             var localPlayers = Players.OfType<LocalPlayer>();
-            if(localPlayers.Any())
+            if (localPlayers.Any())
             {
                 var center = localPlayers.First().ControlledObject;
                 var range = Environment.Range;
-                foreach(var other in Objects3D)
+                foreach (var other in Objects3D)
                 {
                     Vector3 distance()
                     {

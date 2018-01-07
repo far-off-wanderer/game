@@ -119,7 +119,7 @@ namespace Far_Off_Wanderer___Classic
 
                 var terrainModel = new TerrainModel()
                 {
-                    Position = Vector3.Down * 64 * 40,
+                    Position = Vector3.Down * 64 * 20,
                     Size = new Vector3(1024 * 128, 256 * 40, 1024 * 128)
                 };
                 environment.Range = terrainModel.Size.X;
@@ -334,8 +334,6 @@ namespace Far_Off_Wanderer___Classic
             }
             else
             {
-                GraphicsDevice.Clear(Color.MediumOrchid);
-
                 var camera = new CameraModel(level.Camera, new Size(Window.ClientBounds.Width, Window.ClientBounds.Height));
 
                 var basicEffect = new BasicEffect(graphics);
@@ -364,6 +362,8 @@ namespace Far_Off_Wanderer___Classic
                 basicEffect.World = Matrix.Identity;
                 basicEffect.View = camera.View;
                 basicEffect.Projection = camera.Projection;
+
+                graphics.BlendState = BlendState.Opaque;
 
                 foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
                 {

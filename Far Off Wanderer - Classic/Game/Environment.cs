@@ -55,7 +55,7 @@ namespace Conesoft.Game
             if (vibration > 0)
             {
                 vibration -= (float)timeSpan.TotalSeconds * 1.2f;
-                GamePad.SetVibration(PlayerIndex.One, vibration * vibration, vibration * vibration);
+//                GamePad.SetVibration(PlayerIndex.One, vibration * vibration, vibration * vibration);
             } else
             {
                 GamePad.SetVibration(PlayerIndex.One, 0, 0);
@@ -65,6 +65,7 @@ namespace Conesoft.Game
         public void TriggerVibration(float strength)
         {
             vibration += strength;
+            vibration = Math.Max(1, vibration);
         }
     }
 }

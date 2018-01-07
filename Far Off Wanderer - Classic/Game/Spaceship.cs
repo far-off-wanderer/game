@@ -173,7 +173,7 @@ namespace Conesoft.Game
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
                 Environment.Sounds[Data.ExplosionSound].Play(1 / (1 + dst / 5000), 0, 0);
-                Environment.TriggerVibration(1 / (1 + dst / 5000));
+                Environment.TriggerVibration(1 / (1 + dst));
             }
             Alive = false;
             yield return new Explosion(Data.Fireball)
