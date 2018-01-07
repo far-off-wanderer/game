@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace Conesoft.Game
 {
-    using Conesoft.Engine;
     using Far_Off_Wanderer___Classic;
 
     public class DefaultLevel
@@ -121,28 +120,81 @@ namespace Conesoft.Game
                                      )
                                     ).ToArray();
 
-            if (collidableObjects.Length > 1)
+            var min = new Vector3(float.PositiveInfinity);
+            var max = new Vector3(float.NegativeInfinity);
+
+            foreach (var obj in collidableObjects)
             {
-                for (int a = 0; a < collidableObjects.Length; a++)
+                min.X = Math.Min(obj.position.X - obj.radius, min.X);
+                min.Y = Math.Min(obj.position.Y - obj.radius, min.Y);
+                min.Z = Math.Min(obj.position.Z - obj.radius, min.Z);
+                max.X = Math.Max(obj.position.X + obj.radius, max.X);
+                max.Y = Math.Max(obj.position.Y + obj.radius, max.Y);
+                max.Z = Math.Max(obj.position.Z + obj.radius, max.Z);
+            }
+
+            max += Vector3.One;
+            min -= Vector3.One;
+
+            var cellCount = 48;
+            var cellSize = (max - min) / cellCount;
+            var grid = new List<Object3D>[cellCount, cellCount];
+            for (var z = 0; z < cellCount; z++)
+            {
+                for (var x = 0; x < cellCount; x++)
                 {
-                    var objectA = collidableObjects[a];
-                    var sphereA = objectA.boundingSphere;
+                    grid[x, z] = new List<Object3D>();
+                }
+            }
 
-                    for (int b = a + 1; b < collidableObjects.Length; b++)
+            foreach (var obj in collidableObjects)
+            {
+                var minpos = (obj.position - min - new Vector3(obj.radius)) / cellSize;
+                var maxpos = (obj.position - min + new Vector3(obj.radius)) / cellSize;
+
+                int f(float v) => (int)Math.Floor(v);
+
+                for (var z = f(minpos.Z); z <= f(maxpos.Z); z++)
+                {
+                    for (var x = f(minpos.X); x <= f(maxpos.X); x++)
                     {
-                        var objectB = collidableObjects[b];
-                        var sphereB = objectB.boundingSphere;
+                        grid[x, z].Add(obj.object3d);
+                    }
+                }
+            }
 
-                        if (sphereA.Intersects(sphereB))
+
+            for (var z = 0; z < cellCount; z++)
+            {
+                for (var x = 0; x < cellCount; x++)
+                {
+                    var objects = grid[x, z].ToArray();
+
+                    if (objects.Length > 1)
+                    {
+                        for (int a = 0; a < objects.Length; a++)
                         {
-                            var collisionPoint = (objectA.position + objectB.position) / 2;
+                            var objectA = objects[a];
+                            var sphereA = new BoundingSphere(objectA.Position, objectA.Boundary.Radius);
 
-                            newObjects.AddRange(objectA.object3d.Die(Environment, collisionPoint));
-                            newObjects.AddRange(objectB.object3d.Die(Environment, collisionPoint));
+                            for (int b = a + 1; b < objects.Length; b++)
+                            {
+                                var objectB = objects[b];
+                                var sphereB = new BoundingSphere(objectB.Position, objectB.Boundary.Radius);
+
+                                if (sphereA.Intersects(sphereB))
+                                {
+                                    var collisionPoint = (objectA.Position + objectB.Position) / 2;
+
+                                    newObjects.AddRange(objectA.Die(Environment, collisionPoint));
+                                    newObjects.AddRange(objectB.Die(Environment, collisionPoint));
+                                }
+                            }
                         }
                     }
                 }
             }
+
             foreach (var newObject in newObjects)
             {
                 newObject.Update(Environment, ElapsedTime);

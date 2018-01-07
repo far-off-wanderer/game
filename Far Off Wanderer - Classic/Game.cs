@@ -10,6 +10,7 @@ namespace Far_Off_Wanderer___Classic
     using Microsoft.Xna.Framework.Input.Touch;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using Windows.Foundation;
 
@@ -47,7 +48,7 @@ namespace Far_Off_Wanderer___Classic
         {
             manager = new GraphicsDeviceManager(this)
             {
-                IsFullScreen = true
+                IsFullScreen = Debugger.IsAttached == false
             };
 
             Content.RootDirectory = "Content";
@@ -119,7 +120,7 @@ namespace Far_Off_Wanderer___Classic
 
                 var terrainModel = new TerrainModel()
                 {
-                    Position = Vector3.Down * 64 * 20,
+                    Position = Vector3.Down * 64 * 10,
                     Size = new Vector3(1024 * 128, 256 * 40, 1024 * 128)
                 };
                 environment.Range = terrainModel.Size.X;
@@ -457,11 +458,11 @@ namespace Far_Off_Wanderer___Classic
                         if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                         {
                             var sprite = game.Resources.Sprites[Data.Bullet];
-                            var width = 2 * collider.Boundary.Radius * Math.Max(bounds.Width, bounds.Height) / distance;
+                            var width = collider.Boundary.Radius * Math.Max(bounds.Width, bounds.Height) / distance;
                             var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                             if (rectangle.Intersects(graphics.Viewport.Bounds))
                             {
-                                spriteBatch.Draw(sprite, rectangle, null, new Color(Color.BurlyWood, 8), 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                spriteBatch.Draw(sprite, rectangle, null, new Color(Color.LightPink, 8), 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                             }
                         }
                     }
