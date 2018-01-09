@@ -62,7 +62,6 @@ namespace Far_Off_Wanderer___Classic
         {
             level = new DefaultLevel(environment);
             var terrain = game.Resources.Terrains[level.Terrain.Id];
-            level.Objects3D.AddRange(terrain.Colliders);
 
             var spaceShips = level.Objects3D.OfType<Spaceship>();
             if (spaceShips.Count() > 0)
@@ -93,6 +92,8 @@ namespace Far_Off_Wanderer___Classic
             base.Initialize();
 
             graphics = GraphicsDevice;
+
+            graphics.PresentationParameters.PresentationInterval = PresentInterval.Immediate;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -447,27 +448,6 @@ namespace Far_Off_Wanderer___Classic
                     }
                 }
                 spriteBatch.End();
-                if (Keyboard.GetState().IsKeyDown(Keys.D))
-                {
-                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                    GraphicsDevice.DepthStencilState = DepthStencilState.None;
-                    foreach (var collider in level.Objects3D.OfType<Collider>())
-                    {
-                        var transformed = graphics.Viewport.Project(collider.Position, camera.Projection, camera.View, Matrix.Identity);
-                        var distance = (collider.Position - level.Camera.Position).Length();
-                        if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
-                        {
-                            var sprite = game.Resources.Sprites[Data.Bullet];
-                            var width = collider.Boundary.Radius * Math.Max(bounds.Width, bounds.Height) / distance;
-                            var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                            if (rectangle.Intersects(graphics.Viewport.Bounds))
-                            {
-                                spriteBatch.Draw(sprite, rectangle, null, new Color(Color.LightPink, 8), 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
-                            }
-                        }
-                    }
-                    spriteBatch.End();
-                }
 
                 var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
                 var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();

@@ -1,4 +1,5 @@
-﻿using Conesoft.Engine.Resources;
+﻿using Conesoft.Engine;
+using Conesoft.Engine.Resources;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
@@ -19,6 +20,7 @@ namespace Conesoft.Game
         public IResource<SoundEffect> Sounds { get; set; }
         public Camera ActiveCamera { get; set; }
         public float Range { get; set; }
+        public IEnumerable<Collider> StaticColliders { get; set; }
 
         public Vector3 RandomDirection()
         {

@@ -151,6 +151,8 @@ namespace Conesoft.Engine
                 }
             }
 
+            Environment.StaticColliders = Colliders;
+
             vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), Grid.Length, BufferUsage.WriteOnly);
             vertices.SetData(Grid);
 
