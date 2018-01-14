@@ -203,6 +203,13 @@ namespace Far_Off_Wanderer___Classic
                 level.Environment.ActiveCamera = level.Camera;
                 level.Environment.Flipped = false; // Orientation == PageOrientation.LandscapeRight;
 
+                if (level.Camera is SpaceshipFollowingCamera)
+                {
+                    var camera = level.Camera as SpaceshipFollowingCamera;
+                    camera.Yaw = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.X;
+                    camera.Pitch = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y;
+                }
+
                 if (startTime.HasValue == false)
                 {
                     startTime = e.TotalTime;
@@ -453,7 +460,7 @@ namespace Far_Off_Wanderer___Classic
                 var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
                 var enemyCountSize = game.Resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
 
-                var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut.HasValue ? fadeOut.Value : 0) * 1.5f - 1, 0, 1));
+                var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
                 //if (fadeIn < 1f)

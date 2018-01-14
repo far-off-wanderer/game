@@ -1,3 +1,4 @@
+using Far_Off_Wanderer___Classic.Engine;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -50,6 +51,7 @@ namespace Conesoft.Engine
                 for (var x = 0; x < DataWidth; x++)
                 {
                     var sample = colorData[(x % colorWidth) + (y % colorWidth) * colorWidth];
+                    //sample.R = (byte)(SimplexNoise.Singleton.MultiNoise01(2, 1f * (x % colorWidth) / (colorWidth / 8), 1f * (y % colorWidth) / (colorWidth / 8)) * 100);
                     HeightData[x + y * DataWidth] = sample.R;
 
                     if (x < colorWidth && y < colorWidth)

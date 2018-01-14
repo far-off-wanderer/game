@@ -113,6 +113,7 @@
     <Compile Include="Engine\Random\Random.cs" />
     <Compile Include="Engine\ResourceLoader\ResourceLoader.cs" />
     <Compile Include="Engine\Resources\Resources.cs" />
+    <Compile Include="Engine\SimplexNoise.cs" />
     <Compile Include="Engine\TerrainModel.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GamePage.xaml.cs">
@@ -130,7 +131,7 @@
     <Compile Include="Game\Level\LastManStandingLevel.cs" />
     <Compile Include="Game\LocalPlayer.cs" />
     <Compile Include="Game\Object3D.cs" />
-    <Compile Include="Game\ObjectFollowingCamera.cs" />
+    <Compile Include="Game\SpaceshipFollowingCamera.cs" />
     <Compile Include="Game\Player.cs" />
     <Compile Include="Game\Skybox.cs" />
     <Compile Include="Game\Spaceship.cs" />

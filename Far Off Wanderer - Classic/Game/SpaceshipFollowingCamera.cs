@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Conesoft.Game
 {
@@ -10,6 +9,9 @@ namespace Conesoft.Game
         private Vector3 _position = Vector3.Zero;
 
         public Spaceship Ship { get; set; }
+
+        public float Yaw { get; set; }
+        public float Pitch { get; set; }
 
         public override Vector3 Target
         {
@@ -28,7 +30,7 @@ namespace Conesoft.Game
         {
             get
             {
-                _position = Ship != null ? Ship.Position + Vector3.Transform((Vector3.Backward * 100 + Vector3.Up * 60 + Vector3.Right  * 0) * ((float)Math.Sqrt(1 + Math.Abs(Ship.Speed))), Ship.Orientation * Ship.ShipLeaning) : _position;
+                _position = Ship != null ? Ship.Position + Vector3.Transform((Vector3.Backward * 100 + Vector3.Up * 60 + Vector3.Right  * 0) * ((float)Math.Sqrt(1 + Math.Abs(Ship.Speed))), Ship.Orientation * Quaternion.CreateFromYawPitchRoll(Yaw * (float)Math.PI, Pitch, 0) * Ship.ShipLeaning) : _position;
                 return _position;
             }
             set
