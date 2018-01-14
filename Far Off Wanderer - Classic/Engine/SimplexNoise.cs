@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Far_Off_Wanderer___Classic.Engine
+namespace MattiasFagerlund
 {
     // from Mattias Fagerlund's Coding Blog
     // https://lotsacode.wordpress.com/2013/04/10/simplex-noise-in-c/
@@ -377,6 +377,35 @@ namespace Far_Off_Wanderer___Classic.Engine
         private static double Dot(int[] g, double x, double y, double z)
         {
             return g[0] * x + g[1] * y + g[2] * z;
+        }
+    }
+}
+
+namespace Noise
+{
+    using static MattiasFagerlund.SimplexNoise;
+    using Xna = Microsoft.Xna.Framework;
+
+    static class Vector3
+    {
+        public static Xna.Vector3 Get(float x, float y, float shift = 0)
+        {
+            return new Xna.Vector3(
+                (float)Singleton.Noise(x, y, shift + 0),
+                (float)Singleton.Noise(x, y, shift + 1),
+                (float)Singleton.Noise(x, y, shift + 2)
+            );
+        }
+    }
+
+    static class Vector2
+    {
+        public static Xna.Vector2 Get(float x, float y, float shift = 0)
+        {
+            return new Xna.Vector2(
+                (float)Singleton.Noise(x, y, shift + 0),
+                (float)Singleton.Noise(x, y, shift + 1)
+            );
         }
     }
 }

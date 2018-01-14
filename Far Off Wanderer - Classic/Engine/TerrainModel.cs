@@ -1,4 +1,3 @@
-using Far_Off_Wanderer___Classic.Engine;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -56,8 +55,9 @@ namespace Conesoft.Engine
 
                     if (x < colorWidth && y < colorWidth)
                     {
-                        DisplaceData[x + DataWidth * y] = Environment.RandomPointInUnitSphere();
-                        DisplaceTextureData[x + DataWidth * y] = Environment.RandomPointInUnitCircle();
+                        //DisplaceData[x + DataWidth * y] = Environment.RandomPointInUnitSphere();
+                        DisplaceData[x + DataWidth * y] = Noise.Vector3.Get(x / 4, y / 4);
+                        DisplaceTextureData[x + DataWidth * y] = Noise.Vector2.Get(x / 4, y / 4, shift: 3);
                     }
                     else
                     {

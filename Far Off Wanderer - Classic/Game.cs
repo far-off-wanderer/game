@@ -378,7 +378,7 @@ namespace Far_Off_Wanderer___Classic
                 {
                     var model = game.Resources.Models[spaceship.Id];
 
-                    model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                    model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
                 }
 
                 graphics.RasterizerState = RasterizerState.CullCounterClockwise;

@@ -40,6 +40,14 @@ namespace Conesoft.Game
         private float lastShot = 0;
         private float shotTrigger = 0.1f;
 
+        private StrafingDirection? strafe;
+        private float strafingTime = 0.25f;
+        private float strafingIdle = 1 - 0.25f;
+        private float strafingRatio = 2f;
+        private float strafing;
+        public float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing)* 2));
+        public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing));
+
         private void UpdateCanon(TimeSpan ElapsedTime)
         {
             lastShot -= (float)ElapsedTime.TotalSeconds;
@@ -110,9 +118,29 @@ namespace Conesoft.Game
             var Up = Vector3.Transform(Vector3.Up, Orientation);
             Position += Direction * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
 
-            if(ThrustFlame != null)
+            if (strafe.HasValue && strafing < -strafingIdle)
             {
-                if (Speed > 0)
+                strafing = 1;
+            }
+            if (strafing >= -strafingIdle)
+            {
+                var strafeDirection = Vector3.Normalize(Vector3.Cross(Up, Direction));
+                if (strafe == StrafingDirection.Right)
+                {
+                    strafeDirection = -strafeDirection;
+                }
+                Position += strafeDirection * strafingRatio * StrafingAmount * this.Boundary.Radius;
+
+                strafing -= (float)ElapsedTime.TotalSeconds / strafingTime;
+                if(strafing < -strafingIdle)
+                {
+                    strafe = null;
+                }
+            }
+
+            if (ThrustFlame != null)
+            {
+                if (Speed > 0 && strafe.HasValue == false)
                 {
                     ThrustFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
                 }
@@ -132,6 +160,11 @@ namespace Conesoft.Game
         public override void AccelerateAmount(float Amount)
         {
             forwardAcceleration = Amount;
+        }
+
+        public override void Strafe(StrafingDirection direction)
+        {
+            strafe = direction;
         }
 
         public override void Shoot()

@@ -1,12 +1,10 @@
 ﻿using Conesoft.Engine;
 using Conesoft.Engine.Resources;
-using Far_Off_Wanderer___Classic.Engine;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Windows;
 using Windows.Foundation;
 
 namespace Conesoft.Game

@@ -14,32 +14,43 @@ namespace Conesoft.Game
         {
             float turnAngle = 0;
             bool shoot = false;
+            StrafingDirection? strafe = null;
             foreach (var touchPoint in TouchPanel.GetState())
             {
                 if (touchPoint.Position.X < environment.ScreenSize.Width / 3)
                 {
-                    turnAngle += (float)Math.PI / 2;
+                    strafe = StrafingDirection.Left;
+//                    turnAngle += (float)Math.PI / 2;
                 }
                 else if (touchPoint.Position.X > 2 * environment.ScreenSize.Width / 3)
                 {
-                    turnAngle -= (float)Math.PI / 2;
+                    strafe = StrafingDirection.Right;
+//                    turnAngle -= (float)Math.PI / 2;
                 }
                 else
                 {
                     shoot = true;
                 }
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
                 turnAngle += (float)Math.PI / 2;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
                 turnAngle -= (float)Math.PI / 2;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
                 shoot = true;
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Q))
+            {
+                strafe = StrafingDirection.Left;
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.E))
+            {
+                strafe = StrafingDirection.Right;
             }
 
             var pad = GamePad.GetState(PlayerIndex.One);
@@ -60,6 +71,14 @@ namespace Conesoft.Game
                 var stick = pad.ThumbSticks.Left.X;
                 turnAngle -= Math.Sign(stick) * (float)Math.Pow(Math.Abs(stick), 1);
                 turnAngle += (pad.Triggers.Left - pad.Triggers.Right) * (float)Math.PI / 2;
+                if (pad.IsButtonDown(Buttons.LeftShoulder))
+                {
+                    strafe = StrafingDirection.Left;
+                }
+                else if (pad.IsButtonDown(Buttons.RightShoulder))
+                {
+                    strafe = StrafingDirection.Right;
+                }
             }
 
             if (UIViewSettings.GetForCurrentView().UserInteractionMode == UserInteractionMode.Touch && pad.IsConnected == false)
@@ -71,6 +90,10 @@ namespace Conesoft.Game
             if (shoot)
             {
                 spaceShip.Shoot();
+            }
+            if(strafe.HasValue)
+            {
+                spaceShip.Strafe(strafe.Value);
             }
             spaceShip.TurnAngle(turnAngle);
             //spaceShip.AccelerateAmount(0);

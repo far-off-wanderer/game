@@ -135,6 +135,7 @@
     <Compile Include="Game\Player.cs" />
     <Compile Include="Game\Skybox.cs" />
     <Compile Include="Game\Spaceship.cs" />
+    <Compile Include="Game\StrafingDirection.cs" />
     <Compile Include="Game\Terrain.cs" />
     <Compile Include="Game\ThrustFlame.cs" />
     <Compile Include="MainPage.xaml.cs">
