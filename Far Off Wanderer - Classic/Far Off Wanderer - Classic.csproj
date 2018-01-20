@@ -127,6 +127,7 @@
     <Compile Include="Game\Explosion.cs" />
     <Compile Include="Game\FixedCamera.cs" />
     <Compile Include="Game\Game.cs" />
+    <Compile Include="Game\Grid.cs" />
     <Compile Include="Game\Level.cs" />
     <Compile Include="Game\Level\LastManStandingLevel.cs" />
     <Compile Include="Game\LocalPlayer.cs" />

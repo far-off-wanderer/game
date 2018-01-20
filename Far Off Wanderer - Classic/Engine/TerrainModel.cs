@@ -146,7 +146,8 @@ namespace Conesoft.Engine
                     var position = Point + Position - halfWidthOfSmallerStepSize * Vector3.Up;
                     if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
                     {
-                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                        if(x % 2 == 0 && y % 2 == 0)
+                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize * 2));
                     }
 
                     Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);

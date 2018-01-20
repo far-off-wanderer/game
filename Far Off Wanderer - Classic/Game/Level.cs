@@ -16,13 +16,8 @@ namespace Conesoft.Game
         public Camera Camera { get; set; }
         public DefaultEnvironment Environment { get; set; }
 
-
-        int cellCount = 64;
-        float cellSize;
-        (Object3D[] staticColliders, List<Object3D> colliders)[,] grid;
-
-        public (int Max, int EmptyCells, int Missed) GridStats { get; set; }
-
+        Grid grid;
+        
         public DefaultLevel(DefaultEnvironment environment)
         {
             Environment = environment;
@@ -30,7 +25,7 @@ namespace Conesoft.Game
             Players = new List<Player>();
             Objects3D = new List<Object3D>();
             var random = new Random();
-            int factor = 3;
+            int factor = 1;
             Objects3D.Add(new Spaceship()
             {
                 Id = Data.Ship,
@@ -51,6 +46,7 @@ namespace Conesoft.Game
                     {
                         var ids = new string[] { Data.Ship, Data.Drone };
                         var id = ids[environment.Random.Next(0, ids.Length)];
+                        id = ids.First();
                         var spaceship = new Spaceship()
                         {
                             Id = id,
@@ -85,7 +81,7 @@ namespace Conesoft.Game
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
                     FarCutOff = 80000,
-                    Ship = Objects3D.OfType<Spaceship>().First()
+                    Ship = Objects3D.OfType<Spaceship>().Skip(1).First()
                 };
             }
             else
@@ -102,41 +98,11 @@ namespace Conesoft.Game
                 };
             }
 
-            cellSize = Environment.Range / cellCount;
-            grid = new(Object3D[] staticColliders, List<Object3D> colliders)[cellCount, cellCount];
-            for (var z = 0; z < cellCount; z++)
-            {
-                for (var x = 0; x < cellCount; x++)
-                {
-                    grid[x, z] = (null, new List<Object3D>());
-                }
-            }
+            grid = new Grid(Environment.Range);
 
-            foreach (var obj in environment.StaticColliders)
-            {
-                var minpos = (obj.Position - new Vector3(obj.Boundary.Radius)) / cellSize;
-                var maxpos = (obj.Position + new Vector3(obj.Boundary.Radius)) / cellSize;
+            grid.AddStaticColliders(environment.StaticColliders);
 
-                int imod(float a, float b) => (int)Math.Floor(a - b * Math.Floor(a / b));
-
-                for (var z = minpos.Z; z <= maxpos.Z; z++)
-                {
-                    for (var x = minpos.X; x <= maxpos.X; x++)
-                    {
-                        grid[imod(x, cellCount), imod(z, cellCount)].colliders.Add(obj);
-                    }
-                }
-            }
-
-            for (var z = 0; z < cellCount; z++)
-            {
-                for (var x = 0; x < cellCount; x++)
-                {
-                    grid[x, z].staticColliders = grid[x, z].colliders.ToArray();
-                    grid[x, z].colliders.Clear();
-                    grid[x, z].colliders.Capacity = 0;
-                }
-            }
+            environment.Grid = grid;
         }
 
         public void UpdateScene(TimeSpan ElapsedTime)
@@ -163,69 +129,13 @@ namespace Conesoft.Game
                                      )
                                     ).ToArray();
 
-            for (var z = 0; z < cellCount; z++)
+            grid.AddCurrentColliders(collidableObjects);
+
+            grid.CheckCollisions((a, b) =>
             {
-                for (var x = 0; x < cellCount; x++)
-                {
-                    var cell = grid[x, z];
-                    cell.colliders.Clear();
-                }
-            }
-
-            foreach (var obj in collidableObjects)
-            {
-                var minpos = (obj.position - new Vector3(obj.radius)) / cellSize;
-                var maxpos = (obj.position + new Vector3(obj.radius)) / cellSize;
-
-                int imod(float a, float b) => (int)Math.Floor(a - b * Math.Floor(a / b));
-
-                for (var z = minpos.Z; z <= maxpos.Z; z++)
-                {
-                    for (var x = minpos.X; x <= maxpos.X; x++)
-                    {
-                        grid[imod(x, cellCount), imod(z, cellCount)].colliders.Add(obj.object3d);
-                    }
-                }
-            }
-
-
-            Vector3 vmod(Vector3 v, float range) => new Vector3(
-                (float)(v.X - range * Math.Floor(v.X / range)),
-                (float)(v.Y - range * Math.Floor(v.Y / range)),
-                (float)(v.Z - range * Math.Floor(v.Z / range))
-            );
-
-            for (var z = 0; z < cellCount; z++)
-            {
-                for (var x = 0; x < cellCount; x++)
-                {
-                    var objects = grid[x, z].staticColliders.Concat(grid[x, z].colliders).ToArray();
-
-                    if (objects.Length > 1)
-                    {
-                        for (int a = 0; a < objects.Length; a++)
-                        {
-                            var objectA = objects[a];
-                            var sphereA = new BoundingSphere(objectA.Position, objectA.Boundary.Radius);
-
-                            for (int b = a + 1; b < objects.Length; b++)
-                            {
-                                var objectB = objects[b];
-                                var sphereB = new BoundingSphere(objectB.Position, objectB.Boundary.Radius);
-
-                                var distance = sphereB.Center - sphereA.Center;
-                                distance = vmod(distance + new Vector3(Environment.Range / 2), Environment.Range) - new Vector3(Environment.Range / 2);
-
-                                if (distance.LengthSquared() < (sphereA.Radius + sphereB.Radius) * (sphereA.Radius + sphereB.Radius))
-                                {
-                                    newObjects.AddRange(objectA.Die(Environment, sphereA.Center + distance / 2));
-                                    newObjects.AddRange(objectB.Die(Environment, sphereB.Center - distance / 2));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                newObjects.AddRange(a.obj.Die(Environment, a.at));
+                newObjects.AddRange(b.obj.Die(Environment, b.at));
+            });
 
             foreach (var newObject in newObjects)
             {

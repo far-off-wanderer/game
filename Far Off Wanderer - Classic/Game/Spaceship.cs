@@ -14,7 +14,7 @@ namespace Conesoft.Game
         {
             get
             {
-                return Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation);
+                return Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation * 5); // the @buildstarted factor
             }
         }
 

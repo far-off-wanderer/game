@@ -155,7 +155,7 @@ namespace Far_Off_Wanderer___Classic
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 {
-                    Exit();
+                    //Exit();
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
                 {
@@ -235,27 +235,27 @@ namespace Far_Off_Wanderer___Classic
                     started = true;
                 }
 
-                if (level.Objects3D.Contains(localPlayer.ControlledObject) == false)
-                {
-                    if (dead != true)
-                    {
-                        game.Resources.Sounds[Data.GameOverSound].Play();
-                    }
-                    dead = true;
-                    CheckForExitClick();
-                    UpdateFadeout(gameTime);
-                }
-                else if (level.Objects3D.OfType<Spaceship>().Count() == 1 && dead == false)
-                {
-                    if (won != true)
-                    {
-                        game.Resources.Sounds[Data.GoodSound].Play();
-                        //UpdateHighscore();
-                    }
-                    won = true;
-                    CheckForExitClick();
-                    UpdateFadeout(gameTime);
-                }
+                //if (level.Objects3D.Contains(localPlayer.ControlledObject) == false)
+                //{
+                //    if (dead != true)
+                //    {
+                //        game.Resources.Sounds[Data.GameOverSound].Play();
+                //    }
+                //    dead = true;
+                //    CheckForExitClick();
+                //    UpdateFadeout(gameTime);
+                //}
+                //else if (level.Objects3D.OfType<Spaceship>().Count() == 1 && dead == false)
+                //{
+                //    if (won != true)
+                //    {
+                //        game.Resources.Sounds[Data.GoodSound].Play();
+                //        //UpdateHighscore();
+                //    }
+                //    won = true;
+                //    CheckForExitClick();
+                //    UpdateFadeout(gameTime);
+                //}
             }
         }
 
