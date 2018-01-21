@@ -8,7 +8,8 @@ namespace Conesoft.Game
 
     public class Spaceship : ControllableObject3D
     {
-        public ThrustFlame ThrustFlame { get; set; }
+        public ThrustFlame leftFlame;
+        public ThrustFlame rightFlame;
 
         public Quaternion ShipLeaning
         {
@@ -29,7 +30,7 @@ namespace Conesoft.Game
         public float Speed { get; set; }
 
         private float rotation = 0;
-        private float maxRotation = (float)(Math.PI / 2) / 5;
+        private float maxRotation = (float)(Math.PI / 2) / 25;
         private float rotationSpeed = 0.15f;
 
         private float targetRotation = 0;
@@ -45,7 +46,7 @@ namespace Conesoft.Game
         private float strafingIdle = 1 - 0.25f;
         private float strafingRatio = 2f;
         private float strafing;
-        public float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing)* 2));
+        public float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
         public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing));
 
         private void UpdateCanon(TimeSpan ElapsedTime)
@@ -60,7 +61,14 @@ namespace Conesoft.Game
 
         public Spaceship()
         {
-            ThrustFlame = new ThrustFlame();
+            leftFlame = new ThrustFlame
+            {
+                Location = new Vector3(-20, 3, 20)
+            };
+            rightFlame = new ThrustFlame
+            {
+                Location = new Vector3(20, 3, 20)
+            };
             Id = Data.Spaceship;
             lastShot = -shotTrigger;
         }
@@ -132,21 +140,23 @@ namespace Conesoft.Game
                 Position += strafeDirection * strafingRatio * StrafingAmount * this.Boundary.Radius;
 
                 strafing -= (float)ElapsedTime.TotalSeconds / strafingTime;
-                if(strafing < -strafingIdle)
+                if (strafing < -strafingIdle)
                 {
                     strafe = null;
                 }
             }
 
-            if (ThrustFlame != null)
+            if (leftFlame != null && rightFlame != null)
             {
                 if (Speed > 0 && strafe.HasValue == false)
                 {
-                    ThrustFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
+                    leftFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
+                    rightFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
                 }
                 else
                 {
-                    ThrustFlame.DontThrust();
+                    leftFlame.DontThrust();
+                    rightFlame.DontThrust();
                 }
             }
             yield break;
@@ -174,7 +184,7 @@ namespace Conesoft.Game
 
         private IEnumerable<Explosion> GenerateThrust(DefaultEnvironment Environment, TimeSpan ElapsedTime)
         {
-            if (ThrustFlame != null)
+            if (leftFlame != null && rightFlame != null)
             {
                 var LifeTimes = new float[]
                 {
@@ -183,19 +193,31 @@ namespace Conesoft.Game
                     0.2f, 0.2f, 0.3f, 0.3f,
                     1.5f
                 };
-                while (ThrustFlame.Flames.Count > 0)
+                IEnumerable<Explosion> createExplosions(ThrustFlame flame, float scale)
                 {
-                    var position = ThrustFlame.Flames.Dequeue();
-                    var lifeTime = LifeTimes[Environment.Random.Next(LifeTimes.Length)];
-                    yield return new Explosion(Data.Energyball)
+                    var blend = 1f / flame.Flames.Count;
+                    while (flame.Flames.Count > 0)
                     {
-                        Position = position.Position,
-                        EndOfLife = lifeTime,
-                        MinSize = 50 * ((0.1f / lifeTime) * 0.2f + 0.8f),
-                        MaxSize = 0.75f,
-                        StartSpin = 20 * (float)(Environment.Random.NextDouble() * 10 - 5),
-                        Spin = 200
-                    };
+                        var position = flame.Flames.Dequeue();
+                        var lifeTime = LifeTimes[Environment.Random.Next(LifeTimes.Length)];
+                        yield return new Explosion(Data.Sparkle)
+                        {
+                            Position = position.Position,
+                            EndOfLife = lifeTime / 5,
+                            MinSize = scale * MathHelper.Lerp(50, 25, flame.Flames.Count * blend) * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            MaxSize = 10 * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            StartSpin = 20 * (float)(Environment.Random.NextDouble() * 10 - 5),
+                            Spin = 200
+                        };
+                    }
+                }
+                foreach (var explosion in createExplosions(leftFlame, (float)Math.Exp(-10 * rotation)))
+                {
+                    yield return explosion;
+                }
+                foreach (var explosion in createExplosions(rightFlame, (float)Math.Exp(10 * rotation)))
+                {
+                    yield return explosion;
                 }
             }
         }

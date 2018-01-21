@@ -9,6 +9,7 @@
         public static readonly string Spaceship = "vic viper small junctioned";
         public static readonly string Fireball = "Fireball";
         public static readonly string Energyball = "Energyball";
+        public static readonly string Sparkle = "Sparkle";
         public static readonly string Bullet = "Bullet";
         public static readonly string Grass = "grass A bump";
         //public static readonly string TutorialOverlay = "overlays/tutorial";

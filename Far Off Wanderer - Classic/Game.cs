@@ -14,6 +14,8 @@ namespace Far_Off_Wanderer___Classic
     using System.Linq;
     using Windows.Foundation;
 
+    //    using Windows.Foundation;
+
     internal class Game : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager manager;
@@ -43,6 +45,9 @@ namespace Far_Off_Wanderer___Classic
         bool startPlayingKeyup;
         bool startPlayingButtonup;
         bool startPlayingTouchup;
+
+        RenderTarget2D leftEye;
+        RenderTarget2D rightEye;
 
         public Game()
         {
@@ -109,7 +114,7 @@ namespace Far_Off_Wanderer___Classic
             game.Resources.Load((to, from) =>
             {
                 to.Models.Add(from.Load<Model>(Data.Ship, Data.Drone, Data.Spaceship));
-                to.Sprites.Add(from.Load<Texture2D>(Data.Fireball, Data.Energyball, Data.Bullet, Data.Grass, /*Data.TutorialOverlay, */Data.GameWonOverlay, Data.GameOverOverlay));
+                to.Sprites.Add(from.Load<Texture2D>(Data.Fireball, Data.Energyball, Data.Bullet, Data.Sparkle, Data.Grass, /*Data.TutorialOverlay, */Data.GameWonOverlay, Data.GameOverOverlay));
 
                 var texture = new Texture2D(graphics, 1, 1);
                 texture.SetData(new Color[] { Color.Black });
@@ -140,6 +145,25 @@ namespace Far_Off_Wanderer___Classic
             });
 
             environment.Sounds = game.Resources.Sounds;
+
+            leftEye = new RenderTarget2D(graphics,
+                graphics.DisplayMode.Width,
+                graphics.DisplayMode.Height,
+                false,
+                graphics.PresentationParameters.BackBufferFormat,
+                graphics.PresentationParameters.DepthStencilFormat,
+                graphics.PresentationParameters.MultiSampleCount,
+                RenderTargetUsage.PlatformContents
+            );
+            rightEye = new RenderTarget2D(graphics,
+                graphics.DisplayMode.Width,
+                graphics.DisplayMode.Height,
+                false,
+                graphics.PresentationParameters.BackBufferFormat,
+                graphics.PresentationParameters.DepthStencilFormat,
+                graphics.PresentationParameters.MultiSampleCount,
+                RenderTargetUsage.PlatformContents
+            );
         }
 
         protected override void LoadContent()
@@ -314,205 +338,230 @@ namespace Far_Off_Wanderer___Classic
 
         protected override void Draw(GameTime gameTime)
         {
-            if (!playing)
+            var views = new[] {
+                (
+                    target: leftEye,
+//                    area: new Rectangle(0, 0, graphics.Viewport.Width / 2, graphics.Viewport.Height),
+                    area: new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height / 2),
+                    eye: -30f
+                ),
+                (
+                    target: rightEye,
+//                    area: new Rectangle(graphics.Viewport.Width - graphics.Viewport.Width / 2, 0, graphics.Viewport.Width / 2, graphics.Viewport.Height),
+                    area: new Rectangle(0, graphics.Viewport.Height - graphics.Viewport.Height / 2, graphics.Viewport.Width, graphics.Viewport.Height / 2),
+                    eye: 30f
+                )
+            };
+            foreach(var view in views)
             {
-                GraphicsDevice.Clear(Color.Black);
-                spriteBatch.Begin();
-                var screen = Window.ClientBounds;
-                var screenAspect = (float)screen.Width / screen.Height;
-                var output = new Rectangle();
-                var titleTexture = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
-                var title = screenAspect > 1 ? (Width: 1836, Height: 1200) : (Width: 1080, Height: 1920);
-                var titleAspect = (float)title.Width / title.Height;
-                if (titleAspect > screenAspect)
+                graphics.SetRenderTarget(view.target);
+                if (!playing)
                 {
-                    output.Width = title.Width * screen.Height / title.Height;
-                    output.Height = screen.Height;
-                    output.X = -(output.Width - screen.Width) / 2;
-                    output.Y = 0;
-                }
-                else
-                {
-                    output.Width = screen.Width;
-                    output.Height = title.Height * screen.Width / title.Width;
-                    output.X = 0;
-                    output.Y = -(output.Height - screen.Height) / 2;
-                }
-                spriteBatch.Draw(titleTexture, output, Color.White);
-                spriteBatch.End();
-            }
-            else
-            {
-                var camera = new CameraModel(level.Camera, new Size(Window.ClientBounds.Width, Window.ClientBounds.Height));
-
-                var basicEffect = new BasicEffect(graphics);
-
-                graphics.Clear(level.Skybox.Color);
-
-                graphics.BlendState = BlendState.Opaque;
-                graphics.DepthStencilState = DepthStencilState.Default;
-
-                basicEffect.EnableDefaultLighting();
-
-                basicEffect.LightingEnabled = true;
-                basicEffect.TextureEnabled = true;
-                basicEffect.VertexColorEnabled = false;
-                basicEffect.FogEnabled = true;
-                basicEffect.FogColor = new Vector3(0.2f, 0.3f, 0.8f);
-                basicEffect.FogStart = 10f;
-                basicEffect.FogEnd = 75000f;
-
-                basicEffect.DirectionalLight0.Enabled = true;
-                basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
-                basicEffect.DirectionalLight0.Direction = new Vector3(0, 1, 0);
-                basicEffect.DirectionalLight0.SpecularColor = new Vector3(0, 0, 0);
-                graphics.RasterizerState = RasterizerState.CullNone;
-
-                basicEffect.World = Matrix.Identity;
-                basicEffect.View = camera.View;
-                basicEffect.Projection = camera.Projection;
-
-                graphics.BlendState = BlendState.Opaque;
-
-                foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
-                {
-                    var model = game.Resources.Models[spaceship.Id];
-
-                    model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
-                }
-
-                graphics.RasterizerState = RasterizerState.CullCounterClockwise;
-
-                var terrain = game.Resources.Terrains[level.Terrain.Id];
-                var terrainPosition = terrain.Position;
-
-                var position = localPlayer.ControlledObject.Position;
-                while (terrainPosition.X > position.X + terrain.Size.X / 2)
-                {
-                    terrainPosition -= new Vector3(terrain.Size.X, 0, 0);
-                }
-                while (terrainPosition.Z > position.Z + terrain.Size.Z / 2)
-                {
-                    terrainPosition -= new Vector3(0, 0, terrain.Size.Z);
-                }
-                while (terrainPosition.X < position.X - terrain.Size.X / 2)
-                {
-                    terrainPosition += new Vector3(terrain.Size.X, 0, 0);
-                }
-                while (terrainPosition.Z < position.Z - terrain.Size.Z / 2)
-                {
-                    terrainPosition += new Vector3(0, 0, terrain.Size.Z);
-                }
-
-                var forward = Vector3.Transform(Vector3.Forward, localPlayer.ControlledObject.Orientation);
-
-                var range = 1;
-                for (var z = -range; z <= range; z++)
-                {
-                    for (var x = -range; x <= range; x++)
-                    {
-                        terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
-                        terrain.Draw(basicEffect, game.Resources.Sprites[Data.Grass]);
-                    }
-                }
-                terrain.Position = terrainPosition;
-
-                var bounds = graphics.Viewport.Bounds;
-
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-                foreach (var explosion in level.Objects3D.OfType<Explosion>())
-                {
-                    var transformed = graphics.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
-                    var distance = (explosion.Position - level.Camera.Position).Length();
-                    if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
-                    {
-                        var sprite = game.Resources.Sprites[explosion.Id];
-                        var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
-                        var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                        if (rectangle.Intersects(graphics.Viewport.Bounds))
-                        {
-                            spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
-                        }
-                    }
-                }
-                spriteBatch.End();
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-                foreach (var bullet in level.Objects3D.OfType<Bullet>())
-                {
-                    var transformed = graphics.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
-                    var distance = (bullet.Position - level.Camera.Position).Length();
-                    if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
-                    {
-                        var sprite = game.Resources.Sprites[bullet.Id];
-                        var width = Math.Max(bounds.Width, bounds.Height) * bullet.Boundary.Radius / distance;
-                        var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                        if (rectangle.Intersects(graphics.Viewport.Bounds))
-                        {
-                            spriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
-                        }
-                    }
-                }
-                spriteBatch.End();
-
-                var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
-                var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
-                var enemyCountSize = game.Resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
-
-                var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
-
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                //if (fadeIn < 1f)
-                //{
-                //    var timer = (1 - fadeIn) * fadeInTime;
-                //    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
-                //    var msgSize = game.Resources.Fonts[Data.Font].MeasureString(msg).X;
-                //    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
-                //    spriteBatch.Draw(game.Resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
-                //}
-                //else
-                {
-                    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
-                }
-
-                if (fadeOut.HasValue)
-                {
-                    spriteBatch.Draw(game.Resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
-
-                    var splashTexture = game.Resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
-                    var splash = (Width: 1280, Height: 768);
-
+                    GraphicsDevice.Clear(Color.Black);
+                    spriteBatch.Begin();
                     var screen = Window.ClientBounds;
                     var screenAspect = (float)screen.Width / screen.Height;
                     var output = new Rectangle();
-                    var titleAspect = (float)splash.Width / splash.Height;
-                    //if (titleAspect > screenAspect)
+                    var titleTexture = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
+                    var title = screenAspect > 1 ? (Width: 1836, Height: 1200) : (Width: 1080, Height: 1920);
+                    var titleAspect = (float)title.Width / title.Height;
+                    if (titleAspect > screenAspect)
                     {
-                        output.Width = splash.Width * screen.Height / splash.Height;
+                        output.Width = title.Width * screen.Height / title.Height;
                         output.Height = screen.Height;
                         output.X = -(output.Width - screen.Width) / 2;
                         output.Y = 0;
                     }
-                    //else
+                    else
                     {
                         output.Width = screen.Width;
-                        output.Height = splash.Height * screen.Width / splash.Width;
+                        output.Height = title.Height * screen.Width / title.Width;
                         output.X = 0;
                         output.Y = -(output.Height - screen.Height) / 2;
                     }
-
-                    if (dead == true || won == true)
-                    {
-                        spriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
-                    }
+                    spriteBatch.Draw(titleTexture, output, Color.White);
+                    spriteBatch.End();
                 }
-                spriteBatch.End();
+                else
+                {
+                    var camera = new CameraModel(level.Camera, view.eye, new Size(Window.ClientBounds.Width, Window.ClientBounds.Height));
 
+                    var basicEffect = new BasicEffect(graphics);
 
+                    graphics.Clear(level.Skybox.Color);
 
-                base.Draw(gameTime);
+                    graphics.BlendState = BlendState.Opaque;
+                    graphics.DepthStencilState = DepthStencilState.Default;
+
+                    basicEffect.EnableDefaultLighting();
+
+                    basicEffect.LightingEnabled = true;
+                    basicEffect.TextureEnabled = true;
+                    basicEffect.VertexColorEnabled = false;
+                    basicEffect.FogEnabled = true;
+                    basicEffect.FogColor = new Vector3(0.2f, 0.3f, 0.8f);
+                    basicEffect.FogStart = 10f;
+                    basicEffect.FogEnd = 75000f;
+
+                    basicEffect.DirectionalLight0.Enabled = true;
+                    basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
+                    basicEffect.DirectionalLight0.Direction = new Vector3(0, 1, 0);
+                    basicEffect.DirectionalLight0.SpecularColor = new Vector3(0, 0, 0);
+                    graphics.RasterizerState = RasterizerState.CullNone;
+
+                    basicEffect.World = Matrix.Identity;
+                    basicEffect.View = camera.View;
+                    basicEffect.Projection = camera.Projection;
+
+                    graphics.BlendState = BlendState.Opaque;
+
+                    foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
+                    {
+                        var model = game.Resources.Models[spaceship.Id];
+
+                        model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                    }
+
+                    graphics.RasterizerState = RasterizerState.CullCounterClockwise;
+
+                    var terrain = game.Resources.Terrains[level.Terrain.Id];
+                    var terrainPosition = terrain.Position;
+
+                    var position = localPlayer.ControlledObject.Position;
+                    while (terrainPosition.X > position.X + terrain.Size.X / 2)
+                    {
+                        terrainPosition -= new Vector3(terrain.Size.X, 0, 0);
+                    }
+                    while (terrainPosition.Z > position.Z + terrain.Size.Z / 2)
+                    {
+                        terrainPosition -= new Vector3(0, 0, terrain.Size.Z);
+                    }
+                    while (terrainPosition.X < position.X - terrain.Size.X / 2)
+                    {
+                        terrainPosition += new Vector3(terrain.Size.X, 0, 0);
+                    }
+                    while (terrainPosition.Z < position.Z - terrain.Size.Z / 2)
+                    {
+                        terrainPosition += new Vector3(0, 0, terrain.Size.Z);
+                    }
+
+                    var forward = Vector3.Transform(Vector3.Forward, localPlayer.ControlledObject.Orientation);
+
+                    var range = 1;
+                    for (var z = -range; z <= range; z++)
+                    {
+                        for (var x = -range; x <= range; x++)
+                        {
+                            terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
+                            terrain.Draw(basicEffect, game.Resources.Sprites[Data.Grass]);
+                        }
+                    }
+                    terrain.Position = terrainPosition;
+
+                    var bounds = graphics.Viewport.Bounds;
+
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                    GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                    foreach (var explosion in level.Objects3D.OfType<Explosion>())
+                    {
+                        var transformed = graphics.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
+                        var distance = (explosion.Position - level.Camera.Position).Length();
+                        if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                        {
+                            var sprite = game.Resources.Sprites[explosion.Id];
+                            var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
+                            var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                            if (rectangle.Intersects(graphics.Viewport.Bounds))
+                            {
+                                spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                            }
+                        }
+                    }
+                    spriteBatch.End();
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                    GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                    foreach (var bullet in level.Objects3D.OfType<Bullet>())
+                    {
+                        var transformed = graphics.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
+                        var distance = (bullet.Position - level.Camera.Position).Length();
+                        if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                        {
+                            var sprite = game.Resources.Sprites[bullet.Id];
+                            var width = Math.Max(bounds.Width, bounds.Height) * bullet.Boundary.Radius / distance;
+                            var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                            if (rectangle.Intersects(graphics.Viewport.Bounds))
+                            {
+                                spriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                            }
+                        }
+                    }
+                    spriteBatch.End();
+
+                    var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
+                    var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
+                    var enemyCountSize = game.Resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
+
+                    var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
+
+                    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                    //if (fadeIn < 1f)
+                    //{
+                    //    var timer = (1 - fadeIn) * fadeInTime;
+                    //    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
+                    //    var msgSize = game.Resources.Fonts[Data.Font].MeasureString(msg).X;
+                    //    spriteBatch.DrawString(game.Resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
+                    //    spriteBatch.Draw(game.Resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
+                    //}
+                    //else
+                    {
+                        spriteBatch.DrawString(game.Resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+                    }
+
+                    if (fadeOut.HasValue)
+                    {
+                        spriteBatch.Draw(game.Resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
+
+                        var splashTexture = game.Resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
+                        var splash = (Width: 1280, Height: 768);
+
+                        var screen = Window.ClientBounds;
+                        var screenAspect = (float)screen.Width / screen.Height;
+                        var output = new Rectangle();
+                        var titleAspect = (float)splash.Width / splash.Height;
+                        //if (titleAspect > screenAspect)
+                        {
+                            output.Width = splash.Width * screen.Height / splash.Height;
+                            output.Height = screen.Height;
+                            output.X = -(output.Width - screen.Width) / 2;
+                            output.Y = 0;
+                        }
+                        //else
+                        {
+                            output.Width = screen.Width;
+                            output.Height = splash.Height * screen.Width / splash.Width;
+                            output.X = 0;
+                            output.Y = -(output.Height - screen.Height) / 2;
+                        }
+
+                        if (dead == true || won == true)
+                        {
+                            spriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                        }
+                    }
+                    spriteBatch.End();
+                }
             }
+
+            graphics.SetRenderTarget(null);
+
+            spriteBatch.Begin();
+            foreach (var view in views)
+            {
+                spriteBatch.Draw(view.target, view.area, Color.White);
+            }
+            spriteBatch.End();
+
+            base.Draw(gameTime);
         }
 
 

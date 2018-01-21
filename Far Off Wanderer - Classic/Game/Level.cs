@@ -32,11 +32,7 @@ namespace Conesoft.Game
                 Position = Vector3.Zero,
                 Orientation = Quaternion.Identity,
                 Speed = 150,
-                Boundary = environment.ModelBoundaries[Data.Ship],
-                ThrustFlame = new ThrustFlame()
-                {
-                    ThrustBackshift = 150
-                }
+                Boundary = environment.ModelBoundaries[Data.Ship]
             });
             for (int y = -factor; y <= factor; y++)
             {
@@ -53,11 +49,7 @@ namespace Conesoft.Game
                             Position = 6400 * (Vector3.Forward * y + Vector3.Right * x) * (float)factor * 2 / 5,
                             Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, x + y),
                             Speed = id == ids[0] ? 150 : 2,
-                            Boundary = environment.ModelBoundaries[id],
-                            ThrustFlame = id == ids[1] ? null : new ThrustFlame()
-                            {
-                                ThrustBackshift = 150
-                            }
+                            Boundary = environment.ModelBoundaries[id]
                         };
                         Players.Add(new ComputerPlayer()
                         {
@@ -81,7 +73,7 @@ namespace Conesoft.Game
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
                     FarCutOff = 80000,
-                    Ship = Objects3D.OfType<Spaceship>().Skip(1).First()
+                    Ship = Objects3D.OfType<Spaceship>().First()
                 };
             }
             else

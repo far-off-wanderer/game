@@ -9,7 +9,7 @@ namespace Conesoft.Game
         private Queue<Flame> flames;
         private Vector3? LastPosition;
         private Vector3? LastDirection;
-        public float ThrustBackshift { get; set; }
+        public Vector3 Location { get; set; }
 
         public ThrustFlame()
         {
@@ -23,8 +23,15 @@ namespace Conesoft.Game
                 var distance = Position - LastPosition.Value;
                 if (distance.LengthSquared() < Math.Pow(Environment.Range / 2, 2))
                 {
-                    var count = (Position - LastPosition.Value).Length() / 40;
-                    Position -= Vector3.Normalize(Direction) * ThrustBackshift;
+                    var count = (Position - LastPosition.Value).Length() / 5;
+
+                    var forward = Vector3.Normalize(Direction);
+                    var up = Vector3.Normalize(Up);
+                    var left = Vector3.Normalize(Vector3.Cross(up, forward));
+                    Position += forward * Location.Z;
+                    Position += -left * Location.X;
+                    Position += up * Location.Y;
+
                     if (count > 4)
                     {
                         for (int i = 0; i < count; i++)
