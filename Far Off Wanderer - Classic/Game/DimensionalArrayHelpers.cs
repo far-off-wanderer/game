@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Conesoft.Engine
+namespace Far_Off_Wanderer
 {
     public static class DimensionalArrayHelpers
     {

@@ -1,14 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Windows.Foundation;
 
-namespace Conesoft.Engine
+namespace Far_Off_Wanderer
 {
     public class CameraModel
     {
         public Matrix View { get; private set; }
         public Matrix Projection { get; private set; }
 
-        public CameraModel(Game.Camera camera, float eyeShift, Size screenSize)
+        public CameraModel(Camera camera, float eyeShift, Size screenSize)
         {
             Projection = Matrix.CreatePerspectiveFieldOfView(camera.FieldOFView, (float)screenSize.Width / (float)screenSize.Height, camera.NearCutOff, camera.FarCutOff);
 

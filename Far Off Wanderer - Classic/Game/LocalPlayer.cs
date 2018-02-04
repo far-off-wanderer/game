@@ -4,13 +4,13 @@ using Microsoft.Xna.Framework.Input.Touch;
 using System;
 using Windows.UI.ViewManagement;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class LocalPlayer : Player
     {
         public static float deadZone = (float)Math.Sin(MathHelper.ToRadians(1));
 
-        public override void UpdateThinking(TimeSpan timeSpan, DefaultEnvironment environment)
+        public override void UpdateThinking(TimeSpan timeSpan, Environment environment)
         {
             float turnAngle = 0;
             bool shoot = false;

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class Skybox : Object3D
     {

@@ -1,12 +1,11 @@
-﻿using Conesoft.Game;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Windows.Storage;
 
-namespace Conesoft.Engine
+namespace Far_Off_Wanderer
 {
     public class InfiniteTerrainDistanceField
     {
@@ -26,18 +25,18 @@ namespace Conesoft.Engine
 
         Vector3 Vmod2(Vector3 v) => Vmod(v + size / 2) - size / 2;
 
-        public InfiniteTerrainDistanceField(TerrainModel model)
+        public InfiniteTerrainDistanceField(Terrain terrain)
         {
-            this.position = model.Position;
-            this.size = model.Size;
-            this.cells = new float[model.DataWidth, 16, model.DataWidth];
+            this.position = terrain.Position;
+            this.size = terrain.Size;
+            this.cells = new float[terrain.DataWidth, 16, terrain.DataWidth];
             this.cells.Set(float.MaxValue);
 
             if (LoadFromCache() == false)
             {
 
                 var grid = new Grid(size.X);
-                grid.AddStaticColliders(model.Colliders);
+                grid.AddStaticColliders(terrain.Colliders);
 
                 this.cells.SetInParallel((value, x, y, z) =>
                 {
@@ -142,9 +141,9 @@ namespace Conesoft.Engine
         {
             var p = Vmod(position - MinCorner) / size;
 
-            var i = Floor(p * cells.Lengths());
+            var (x, y, z) = Floor(p * cells.Lengths());
 
-            return cells[i.x, i.y, i.z];
+            return cells[x, y, z];
         }
     }
 }

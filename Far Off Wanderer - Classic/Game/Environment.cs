@@ -1,20 +1,18 @@
-﻿using Conesoft.Engine;
-using Conesoft.Engine.Resources;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
-    public class DefaultEnvironment
+    public class Environment
     {
         public Vector3 Acceleration { get; set; }
         public Size ScreenSize { get; set; }
         public bool Flipped { get; set; }
-        public System.Random Random { get; set; }
+        public Random Random { get; set; }
         public Dictionary<string, BoundingSphere> ModelBoundaries { get; set; }
         public IResource<SoundEffect> Sounds { get; set; }
         public Camera ActiveCamera { get; set; }

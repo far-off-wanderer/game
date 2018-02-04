@@ -3,10 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
-    using Conesoft.Engine;
-
     public class Grid
     {
         float range;
@@ -48,7 +46,7 @@ namespace Conesoft.Game
                 {
                     for (var x = minpos.X; x <= maxpos.X; x++)
                     {
-                        grid[imod(x), imod(z)].colliders.Add(obj);
+                        grid[Imod(x), Imod(z)].colliders.Add(obj);
                     }
                 }
             }
@@ -70,29 +68,29 @@ namespace Conesoft.Game
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    var cell = grid[x, z];
-                    cell.colliders.Clear();
+                    var (staticColliders, colliders) = grid[x, z];
+                    colliders.Clear();
                 }
             }
 
-            foreach (var obj in collidableObjects)
+            foreach (var (position, radius, boundingSphere, object3d) in collidableObjects)
             {
-                var minpos = (obj.position - new Vector3(obj.radius)) / cellSize;
-                var maxpos = (obj.position + new Vector3(obj.radius)) / cellSize;
+                var minpos = (position - new Vector3(radius)) / cellSize;
+                var maxpos = (position + new Vector3(radius)) / cellSize;
 
                 for (var z = minpos.Z; z <= maxpos.Z; z++)
                 {
                     for (var x = minpos.X; x <= maxpos.X; x++)
                     {
-                        grid[imod(x), imod(z)].colliders.Add(obj.object3d);
+                        grid[Imod(x), Imod(z)].colliders.Add(object3d);
                     }
                 }
             }
         }
 
-        int imod(float a) => (int)Math.Floor(a - cellCount * Math.Floor(a / cellCount));
+        int Imod(float a) => (int)Math.Floor(a - cellCount * Math.Floor(a / cellCount));
 
-        Vector3 vmod(Vector3 v) => new Vector3(
+        Vector3 Vmod(Vector3 v) => new Vector3(
             (float)(v.X - range * Math.Floor(v.X / range)),
             (float)(v.Y - range * Math.Floor(v.Y / range)),
             (float)(v.Z - range * Math.Floor(v.Z / range))
@@ -127,7 +125,7 @@ namespace Conesoft.Game
                                 var sphereB = new BoundingSphere(objectB.Position, objectB.Boundary.Radius);
 
                                 var distance = sphereB.Center - sphereA.Center;
-                                distance = vmod(distance + new Vector3(range / 2)) - new Vector3(range / 2);
+                                distance = Vmod(distance + new Vector3(range / 2)) - new Vector3(range / 2);
 
                                 if (distance.LengthSquared() < (sphereA.Radius + sphereB.Radius) * (sphereA.Radius + sphereB.Radius))
                                 {
@@ -154,7 +152,7 @@ namespace Conesoft.Game
             {
                 for (var x = minpos.X; x <= maxpos.X; x++)
                 {
-                    colliders.AddRange(grid[imod(x), imod(z)].staticColliders.OfType<Collider>());
+                    colliders.AddRange(grid[Imod(x), Imod(z)].staticColliders.OfType<Collider>());
                 }
             }
 

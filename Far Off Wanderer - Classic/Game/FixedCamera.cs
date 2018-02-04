@@ -1,4 +1,4 @@
-﻿namespace Conesoft.Game
+﻿namespace Far_Off_Wanderer
 {
     public class FixedCamera : Camera
     {

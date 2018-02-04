@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public abstract class Camera : Object3D
     {

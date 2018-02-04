@@ -3,30 +3,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
-    using Far_Off_Wanderer___Classic;
-
-    public class DefaultLevel
+    public class Level
     {
-        public List<Player> Players { get; set; }
-        public List<Object3D> Objects3D { get; set; }
-        public Terrain Terrain { get; set; }
-        public Skybox Skybox { get; set; }
-        public Camera Camera { get; set; }
-        public DefaultEnvironment Environment { get; set; }
+        public Camera Camera => camera;
+        public Skybox Skybox => skybox;
+        public IEnumerable<Object3D> Objects3D => objects3D;
 
+        Environment environment;
         Grid grid;
-        
-        public DefaultLevel(DefaultEnvironment environment)
-        {
-            Environment = environment;
+        Camera camera;
+        List<Player> players;
+        List<Object3D> objects3D;
+        Skybox skybox;
 
-            Players = new List<Player>();
-            Objects3D = new List<Object3D>();
+        public Level(Environment environment)
+        {
+            this.environment = environment;
+
+            players = new List<Player>();
+            objects3D = new List<Object3D>();
             var random = new Random();
             int factor = 1;
-            Objects3D.Add(new Spaceship()
+            objects3D.Add(new Spaceship()
             {
                 Id = Data.Ship,
                 Position = Vector3.Zero,
@@ -51,35 +51,34 @@ namespace Conesoft.Game
                             Speed = id == ids[0] ? 150 : 2,
                             Boundary = environment.ModelBoundaries[id]
                         };
-                        Players.Add(new ComputerPlayer()
+                        players.Add(new ComputerPlayer()
                         {
                             ControlledObject = spaceship
                         });
-                        Objects3D.Add(spaceship);
+                        objects3D.Add(spaceship);
                     }
                 }
             }
             //Objects3D.RemoveRange(2, Objects3D.Count - 2);
-            Terrain = new Terrain();
-            Skybox = new Skybox()
+            skybox = new Skybox()
             {
                 Color = new Color(0.2f, 0.3f, 0.8f)
             };
-            if (Objects3D.Count > 0)
+            if (objects3D.Count > 0)
             {
-                Camera = new SpaceshipFollowingCamera()
+                camera = new SpaceshipFollowingCamera()
                 {
                     Orientation = Quaternion.Identity,
                     Up = Vector3.Up,
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
                     FarCutOff = 80000,
-                    Ship = Objects3D.OfType<Spaceship>().Skip(1).First()
+                    Ship = objects3D.OfType<Spaceship>().Skip(1).First()
                 };
             }
             else
             {
-                Camera = new FixedCamera()
+                camera = new FixedCamera()
                 {
                     Orientation = Quaternion.Identity,
                     Up = Vector3.Up,
@@ -90,8 +89,13 @@ namespace Conesoft.Game
                     Target = Vector3.Zero
                 };
             }
+            players.Add(new LocalPlayer()
+            {
+                ControlledObject = objects3D.OfType<Spaceship>().First()
+            });
 
-            grid = new Grid(Environment.Range);
+
+            grid = new Grid(this.environment.Range);
 
             grid.AddStaticColliders(environment.StaticColliders);
             grid.AddDistanceField(environment.DistanceField);
@@ -99,20 +103,28 @@ namespace Conesoft.Game
             environment.Grid = grid;
         }
 
-        public void UpdateScene(TimeSpan ElapsedTime)
+        public void UpdateScene(TimeSpan ElapsedTime, float Yaw, float Pitch, bool ZoomIn)
         {
+            if (camera is SpaceshipFollowingCamera)
+            {
+                var camera = this.camera as SpaceshipFollowingCamera;
+                camera.Yaw = Yaw;
+                camera.Pitch = Pitch;
+                camera.ZoomIn = ZoomIn;
+            }
+
             var newObjects = new List<Object3D>();
-            foreach (var objects3d in Objects3D)
+            foreach (var objects3d in objects3D)
             {
-                newObjects.AddRange(objects3d.Update(Environment, ElapsedTime));
+                newObjects.AddRange(objects3d.Update(environment, ElapsedTime));
             }
 
-            foreach (var player in Players)
+            foreach (var player in players)
             {
-                player.UpdateThinking(ElapsedTime, Environment);
+                player.UpdateThinking(ElapsedTime, environment);
             }
 
-            var collidableObjects = (from object3d in Objects3D
+            var collidableObjects = (from object3d in objects3D
                                      where object3d.Boundary != Object3D.EmptyBoundary
                                      select
                                      (
@@ -127,26 +139,26 @@ namespace Conesoft.Game
 
             grid.CheckCollisions((a, b) =>
             {
-                newObjects.AddRange(a.obj.Die(Environment, a.at));
-                newObjects.AddRange(b.obj.Die(Environment, b.at));
+                newObjects.AddRange(a.obj.Die(environment, a.at));
+                newObjects.AddRange(b.obj.Die(environment, b.at));
             });
 
             foreach (var newObject in newObjects)
             {
-                newObject.Update(Environment, ElapsedTime);
+                newObject.Update(environment, ElapsedTime);
             }
-            Objects3D.AddRange(newObjects);
-            foreach (var deadObject3d in (from object3d in Objects3D where object3d.Alive == false select object3d).ToArray())
+            objects3D.AddRange(newObjects);
+            foreach (var deadObject3d in (from object3d in objects3D where object3d.Alive == false select object3d).ToArray())
             {
-                Objects3D.Remove(deadObject3d);
+                objects3D.Remove(deadObject3d);
             }
 
-            var localPlayers = Players.OfType<LocalPlayer>();
+            var localPlayers = players.OfType<LocalPlayer>();
             if (localPlayers.Any())
             {
-                var center = Camera;
-                var range = Environment.Range;
-                foreach (var other in Objects3D)
+                var center = camera;
+                var range = environment.Range;
+                foreach (var other in objects3D)
                 {
                     Vector3 distance()
                     {

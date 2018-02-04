@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class ThrustFlame
     {
@@ -16,7 +16,7 @@ namespace Conesoft.Game
             flames = new Queue<Flame>();
         }
 
-        public void UpdateThrust(Vector3 Position, Vector3 Direction, Vector3 Up, TimeSpan ElapsedTime, DefaultEnvironment Environment)
+        public void UpdateThrust(Vector3 Position, Vector3 Direction, Vector3 Up, TimeSpan ElapsedTime, Environment Environment)
         {
             if (LastPosition.HasValue && LastDirection.HasValue)
             {

@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
-    using Far_Off_Wanderer___Classic;
-
     public class Spaceship : ControllableObject3D
     {
         public ThrustFlame leftFlame;
@@ -75,7 +73,7 @@ namespace Conesoft.Game
             lastShot = -shotTrigger;
         }
 
-        public override IEnumerable<Object3D> Update(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             UpdateCanon(ElapsedTime);
 
@@ -201,7 +199,7 @@ namespace Conesoft.Game
             Shooting = true;
         }
 
-        private IEnumerable<Explosion> GenerateThrust(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        private IEnumerable<Explosion> GenerateThrust(Environment Environment, TimeSpan ElapsedTime)
         {
             if (leftFlame != null && rightFlame != null)
             {
@@ -241,7 +239,7 @@ namespace Conesoft.Game
             }
         }
 
-        public override IEnumerable<Explosion> Die(DefaultEnvironment Environment, Vector3 CollisionPoint)
+        public override IEnumerable<Explosion> Die(Environment Environment, Vector3 CollisionPoint)
         {
             if (Alive == true)
             {

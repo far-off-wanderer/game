@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class Explosion : Object3D
     {
@@ -24,7 +24,7 @@ namespace Conesoft.Game
             }
         }
 
-        public override IEnumerable<Object3D> Update(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             Age += (float)ElapsedTime.TotalSeconds;
             if (Age > EndOfLife)

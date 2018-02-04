@@ -1,11 +1,4 @@
-﻿using Conesoft.Engine.Application;
-using Conesoft.Engine.Level;
-using Conesoft.Engine.NavigationService;
-using Conesoft.Engine.NavigationService.Implementation;
-using Conesoft.Engine.ResourceLoader;
-using Conesoft.Engine.ResourceLoader.Implementation;
-using Microsoft.Xna.Framework.Content;
-using System;
+﻿using System;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation.Metadata;
@@ -15,7 +8,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
-namespace Far_Off_Wanderer___Classic
+namespace Far_Off_Wanderer
 {
     sealed partial class App : Application
     {
@@ -26,10 +19,8 @@ namespace Far_Off_Wanderer___Classic
 
             if (IsXbox && ApiInformation.IsPropertyPresent("Windows.UI.Xaml.Application", "RequiresPointerMode"))
             {
-                Application.Current.RequiresPointerMode = ApplicationRequiresPointerMode.WhenRequested;
+                Current.RequiresPointerMode = ApplicationRequiresPointerMode.WhenRequested;
             }
-
-            SetupIoC();
         }
 
         public static bool IsXbox => AnalyticsInfo.VersionInfo.DeviceFamily == "Windows.Xbox";
@@ -39,13 +30,13 @@ namespace Far_Off_Wanderer___Classic
             ApplicationView.GetForCurrentView().SetDesiredBoundsMode(ApplicationViewBoundsMode.UseCoreWindow);
 
 #if DEBUG
-            if(System.Diagnostics.Debugger.IsAttached)
+            if (System.Diagnostics.Debugger.IsAttached)
             {
                 this.DebugSettings.EnableFrameRateCounter = true;
             }
 #endif
 
-            Frame rootFrame = Window.Current.Content as Frame;
+            var rootFrame = Window.Current.Content as Frame;
             if (rootFrame == null)
             {
                 rootFrame = new Frame();
@@ -75,30 +66,6 @@ namespace Far_Off_Wanderer___Classic
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             deferral.Complete();
-        }
-
-        public static new App Current { get { return Application.Current as App; } }
-
-        public IApplication Appl { get; private set; }
-
-        public ContentManager Content { get; set; }
-        public bool FirstTime { get; internal set; }
-
-        public void SetupIoC()
-        {
-            var container = TinyIoC.TinyIoCContainer.Current;
-
-            container.AutoRegister();
-
-            container.Register<IResourceLoader>(new ResourceLoader()
-            {
-                Manager = () => Current.Content
-            });
-
-            container.Register<INavigationService<ILevel>>(new NavigationService<ILevel>());
-
-            Appl = container.Resolve<IApplication>();
-
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class SpaceshipFollowingCamera : Camera
     {

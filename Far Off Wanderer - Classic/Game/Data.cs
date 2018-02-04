@@ -1,4 +1,4 @@
-﻿namespace Far_Off_Wanderer___Classic
+﻿namespace Far_Off_Wanderer
 {
     public sealed class Data
     {

@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
-    using Far_Off_Wanderer___Classic;
-
     public class Bullet : Object3D
     {
         public Vector3 Direction { get; set; }
@@ -24,7 +22,7 @@ namespace Conesoft.Game
             this.Direction = Direction;
         }
 
-        public override IEnumerable<Object3D> Update(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             Position += Direction * (float)ElapsedTime.TotalSeconds * Speed;
             Age += ElapsedTime.TotalSeconds;
@@ -35,7 +33,7 @@ namespace Conesoft.Game
             yield break;
         }
 
-        public override IEnumerable<Explosion> Die(DefaultEnvironment Environment, Vector3 CollisionPoint)
+        public override IEnumerable<Explosion> Die(Environment Environment, Vector3 CollisionPoint)
         {
             if(Alive == true)
             {

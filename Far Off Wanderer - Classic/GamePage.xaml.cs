@@ -1,7 +1,7 @@
 ﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-namespace Far_Off_Wanderer___Classic
+namespace Far_Off_Wanderer
 {
     public sealed partial class GamePage : Page
     {

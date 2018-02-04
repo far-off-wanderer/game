@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public class ComputerPlayer : Player
     {
@@ -14,7 +14,7 @@ namespace Conesoft.Game
 
         float visibleRange = 175000;
 
-        private (float lean, StrafingDirection? strafe) Look(DefaultEnvironment environment)
+        private (float lean, StrafingDirection? strafe) Look(Environment environment)
         {
             var my = ControlledObject;
 
@@ -135,7 +135,7 @@ namespace Conesoft.Game
             //return (lean: interpretation, strafe: null);
         }
 
-        public override void UpdateThinking(TimeSpan timeSpan, DefaultEnvironment environment)
+        public override void UpdateThinking(TimeSpan timeSpan, Environment environment)
         {
             if (shootTime == float.NegativeInfinity)
             {

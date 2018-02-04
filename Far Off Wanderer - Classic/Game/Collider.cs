@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using Conesoft.Game;
-using Microsoft.Xna.Framework;
 
-namespace Conesoft.Engine
+namespace Far_Off_Wanderer
 {
     public class Collider : Object3D
     {
@@ -25,12 +24,12 @@ namespace Conesoft.Engine
             }
         }
 
-        public override IEnumerable<Object3D> Update(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             yield break;
         }
 
-        public override IEnumerable<Explosion> Die(DefaultEnvironment Environment, Vector3 CollisionPoint)
+        public override IEnumerable<Explosion> Die(Environment Environment, Vector3 CollisionPoint)
         {
             yield break;
         }

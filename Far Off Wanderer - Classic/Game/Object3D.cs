@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 
-namespace Conesoft.Game
+namespace Far_Off_Wanderer
 {
     public abstract class Object3D
     {
@@ -18,12 +18,12 @@ namespace Conesoft.Game
             Alive = true;
         }
 
-        public virtual IEnumerable<Object3D> Update(DefaultEnvironment Environment, TimeSpan ElapsedTime)
+        public virtual IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             yield break;
         }
 
-        public virtual IEnumerable<Explosion> Die(DefaultEnvironment Environment, Vector3 CollisionPoint)
+        public virtual IEnumerable<Explosion> Die(Environment Environment, Vector3 CollisionPoint)
         {
             Alive = false;
             yield break;
