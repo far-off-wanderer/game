@@ -202,8 +202,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ApplicationIcon.png" />
-    <Content Include="Background.png" />
     <Content Include="Codename - Far Off Wanderer.csproj" />
     <Content Include="Content\8bit explosion.wav" />
     <Content Include="Content\8bit gameover.wav" />
