@@ -97,13 +97,15 @@ namespace Far_Off_Wanderer
                 {
                     for(var i = 0f; i < 1f; i+= .05f)
                     {
-                        yield return new Explosion(Data.Sparkle)
-                        {
-                            Position = Vector3.Lerp(Position, point, i),
-                            EndOfLife = 0.001f,
-                            MinSize = 100f,
-                            MaxSize = 100f
-                        };
+                        yield return new Explosion(
+                            id: Data.Sparkle,
+                            position: Vector3.Lerp(Position, point, i),
+                            endOfLife: 0.001f,
+                            minSize: 100,
+                            maxSize: 100,
+                            startSpin: 0,
+                            spin: 0
+                        );
                     }
                 }
             }
@@ -213,15 +215,15 @@ namespace Far_Off_Wanderer
                     {
                         var position = flame.Flames.Dequeue();
                         var lifeTime = LifeTimes[Environment.Random.Next(LifeTimes.Length)];
-                        yield return new Explosion(Data.Sparkle)
-                        {
-                            Position = position.Position,
-                            EndOfLife = lifeTime / 5,
-                            MinSize = scale * MathHelper.Lerp(50, 25, flame.Flames.Count * blend) * ((0.1f / lifeTime) * 0.2f + 0.8f),
-                            MaxSize = 10 * ((0.1f / lifeTime) * 0.2f + 0.8f),
-                            StartSpin = 20 * (float)(Environment.Random.NextDouble() * 10 - 5),
-                            Spin = 200
-                        };
+                        yield return new Explosion(
+                            id: Data.Sparkle,
+                            position: position.Position,
+                            endOfLife: lifeTime / 5,
+                            minSize: scale * MathHelper.Lerp(50, 25, flame.Flames.Count * blend) * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            maxSize: 10 * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            startSpin: 20 * (float)(Environment.Random.NextDouble() * 10 - 5),
+                            spin: 200
+                        );
                     }
                 }
                 foreach (var explosion in createExplosions(leftFlame, (float)Math.Exp(-10 * rotation)))
@@ -244,14 +246,15 @@ namespace Far_Off_Wanderer
                 Environment.TriggerVibration(1 / (1 + dst));
             }
             Alive = false;
-            yield return new Explosion(Data.Fireball)
-            {
-                Position = CollisionPoint,
-                EndOfLife = 5,
-                MinSize = 50,
-                MaxSize = 500,
-                Spin = (float)Environment.Random.NextDouble() * 2 - 1
-            };
+            yield return new Explosion(
+                id: Data.Fireball,
+                position: CollisionPoint,
+                endOfLife: 5,
+                minSize: 50,
+                maxSize: 500,
+                startSpin: 0,
+                spin: (float)Environment.Random.NextDouble() * 2 - 1
+            );
             for (int i = 0; i < 20; i++)
             {
                 var position = new Vector3();
@@ -265,14 +268,15 @@ namespace Far_Off_Wanderer
                 position *= Radius * 2;
                 position += Position;
 
-                yield return new Explosion(Data.Fireball)
-                {
-                    EndOfLife = (1 - distance) * 10 + 2.5f,
-                    MaxSize = (1 - distance) * 750 + 250,
-                    MinSize = (1 - distance) * 150 + 62.5f,
-                    Position = position,
-                    Spin = (float)Environment.Random.NextDouble() * 2 - 1
-                };
+                yield return new Explosion(
+                    id: Data.Fireball,
+                    position: position,
+                    endOfLife: (1 - distance) * 10 + 2.5f,
+                    minSize: (1 - distance) * 150 + 62.5f,
+                    maxSize: (1 - distance) * 750 + 250,
+                    startSpin: 0,
+                    spin: (float)Environment.Random.NextDouble() * 2 - 1
+                );
             }
         }
     }

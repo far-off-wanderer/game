@@ -44,14 +44,15 @@ namespace Far_Off_Wanderer
             }
             Alive = false;
 
-            yield return new Explosion(Data.Fireball)
-            {
-                Position = Position,
-                EndOfLife = 5,
-                MinSize = 50,
-                MaxSize = 500,
-                Spin = (float)Environment.Random.NextDouble() * 2 - 1
-            };
+            yield return new Explosion(
+                id: Data.Fireball,
+                position: Position,
+                endOfLife: 5,
+                minSize: 50,
+                maxSize: 500,
+                startSpin: 0,
+                spin: (float)Environment.Random.NextDouble() * 2 - 1
+            );
             for (int i = 0; i < 20; i++)
             {
                 var position = new Vector3();
@@ -65,14 +66,15 @@ namespace Far_Off_Wanderer
                 position *= Radius * 2;
                 position += Position;
 
-                yield return new Explosion(Data.Fireball)
-                {
-                    EndOfLife = (1 - distance) * 10 + 2.5f,
-                    MaxSize = (1 - distance) * 750 + 250,
-                    MinSize = (1 - distance) * 150 + 62.5f,
-                    Position = position,
-                    Spin = (float)Environment.Random.NextDouble() * 2 - 1
-                };
+                yield return new Explosion(
+                    id: Data.Fireball,
+                    position: position,
+                    endOfLife: (1 - distance) * 10 + 2.5f,
+                    minSize: (1 - distance) * 150 + 62.5f,
+                    maxSize: (1 - distance) * 750 + 250,
+                    startSpin: 0,
+                    spin: (float)Environment.Random.NextDouble() * 2 - 1
+                );
             }
         }
     }

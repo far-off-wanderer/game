@@ -58,10 +58,9 @@ namespace Far_Off_Wanderer
                 }
             }
             //Objects3D.RemoveRange(2, Objects3D.Count - 2);
-            skybox = new Skybox()
-            {
-                Color = new Color(0.2f, 0.3f, 0.8f)
-            };
+            skybox = new Skybox(
+                color: new Color(0.2f, 0.3f, 0.8f)
+            );
             if (objects3D.Count > 0)
             {
                 camera = new SpaceshipFollowingCamera()

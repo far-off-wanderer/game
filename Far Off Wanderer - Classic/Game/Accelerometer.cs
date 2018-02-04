@@ -23,7 +23,7 @@ namespace Far_Off_Wanderer
             }
         }
 
-        private void Acc_ReadingChanged(Windows.Devices.Sensors.Accelerometer sender, AccelerometerReadingChangedEventArgs args)
+        void Acc_ReadingChanged(Windows.Devices.Sensors.Accelerometer sender, AccelerometerReadingChangedEventArgs args)
         {
             reading = args.Reading;
         }

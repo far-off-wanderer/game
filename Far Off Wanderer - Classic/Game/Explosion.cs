@@ -6,28 +6,41 @@ namespace Far_Off_Wanderer
 {
     public class Explosion : Object3D
     {
-        public Explosion(string Id)
+        float endOfLife;
+        float maxSize;
+        float minSize;
+        float age;
+        float spin;
+        float startSpin;
+
+        public float Age => age;
+        public float Spin => spin;
+        public float StartSpin => startSpin;
+
+        public Explosion(string id, Vector3 position, float endOfLife, float minSize, float maxSize, float startSpin, float spin)
         {
-            this.Id = Id;
+            this.Id = id;
+
+            this.Position = position;
+            this.endOfLife = endOfLife;
+            this.minSize = minSize;
+            this.maxSize = maxSize;
+            this.startSpin = startSpin;
+            this.spin = spin;
         }
-        public float EndOfLife { get; set; }
-        public float MaxSize { get; set; }
-        public float MinSize { get; set; }
-        public float Age { get; set; }
-        public float Spin { get; set; }
-        public float StartSpin { get; set; }
+
         public float CurrentSize
         {
             get
             {
-                return MathHelper.Lerp(MinSize, MaxSize, Age / EndOfLife);
+                return MathHelper.Lerp(minSize, maxSize, age / endOfLife);
             }
         }
 
         public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
-            Age += (float)ElapsedTime.TotalSeconds;
-            if (Age > EndOfLife)
+            age += (float)ElapsedTime.TotalSeconds;
+            if (age > endOfLife)
             {
                 Alive = false;
             }
