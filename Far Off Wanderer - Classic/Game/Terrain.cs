@@ -8,39 +8,45 @@ namespace Far_Off_Wanderer
 {
     public class Terrain : Object3D
     {
-        public Vector3 Size { get; set; }
 
-        public int DataWidth { get; private set; }
-        public byte[] HeightData { get; private set; }
-        public Vector3[] DisplaceData { get; private set; }
-        public Vector2[] DisplaceTextureData { get; private set; }
-        public VertexPositionColorTexture[] Grid { get; private set; }
-        public short[] Indicees { get; private set; }
-        public List<Collider> Colliders { get; private set; }
-        public InfiniteTerrainDistanceField DistanceField { get; set; }
-
+        int dataWidth;
+        Vector3 size;
         VertexBuffer vertices;
         IndexBuffer indicees;
+        List<Collider> colliders;
+        InfiniteTerrainDistanceField distanceField;
 
-        public Terrain()
+        public int DataWidth => dataWidth;
+        public Vector3 Size => size;
+        public IEnumerable<Collider> Colliders => colliders;
+        public InfiniteTerrainDistanceField DistanceField => distanceField;
+
+        public Terrain(Vector3 position, Vector3 size)
         {
-            DataWidth = 0;
-            HeightData = null;
-            Colliders = new List<Collider>();
+            this.Position = position;
+
+            this.dataWidth = 0;
+            this.size = size;
+            this.vertices = null;
+            this.indicees = null;
+            this.colliders = null;
+            this.distanceField = null;
         }
 
-        public void LoadFromTexture2D(Texture2D TerrainTexture, Far_Off_Wanderer.Environment Environment)
+        public void LoadFromTexture2D(Texture2D TerrainTexture, Environment Environment)
         {
             if (TerrainTexture.Width != TerrainTexture.Height)
             {
                 throw new Exception("Terrain has to be Square in Size");
             }
-            DataWidth = TerrainTexture.Width + 1;
+            this.dataWidth = TerrainTexture.Width + 1;
+            this.colliders = new List<Collider>();
+
             var colorWidth = DataWidth - 1;
 
-            HeightData = new byte[DataWidth * DataWidth];
-            DisplaceData = new Vector3[DataWidth * DataWidth];
-            DisplaceTextureData = new Vector2[DataWidth * DataWidth];
+            var heightData = new byte[DataWidth * DataWidth];
+            var displaceData = new Vector3[DataWidth * DataWidth];
+            var displaceTextureData = new Vector2[DataWidth * DataWidth];
 
             var colorData = new Color[colorWidth * colorWidth];
             TerrainTexture.GetData(colorData);
@@ -50,29 +56,27 @@ namespace Far_Off_Wanderer
                 for (var x = 0; x < DataWidth; x++)
                 {
                     var sample = colorData[(x % colorWidth) + (y % colorWidth) * colorWidth];
-                    //sample.R = (byte)(SimplexNoise.Singleton.MultiNoise01(2, 1f * (x % colorWidth) / (colorWidth / 8), 1f * (y % colorWidth) / (colorWidth / 8)) * 100);
-                    HeightData[x + y * DataWidth] = sample.R;
+                    heightData[x + y * DataWidth] = sample.R;
 
                     if (x < colorWidth && y < colorWidth)
                     {
-                        //DisplaceData[x + DataWidth * y] = Environment.RandomPointInUnitSphere();
-                        DisplaceData[x + DataWidth * y] = Noise.Vector3.Get(x / 4, y / 4);
-                        DisplaceTextureData[x + DataWidth * y] = Noise.Vector2.Get(x / 4, y / 4, shift: 3);
+                        displaceData[x + DataWidth * y] = Noise.Vector3.Get(x / 4, y / 4);
+                        displaceTextureData[x + DataWidth * y] = Noise.Vector2.Get(x / 4, y / 4, shift: 3);
                     }
                     else
                     {
-                        DisplaceData[x + DataWidth * y] = DisplaceData[(x % colorWidth) + (y % colorWidth) * DataWidth];
-                        DisplaceTextureData[x + DataWidth * y] = DisplaceTextureData[(x % colorWidth) + (y % colorWidth) * DataWidth];
+                        displaceData[x + DataWidth * y] = displaceData[(x % colorWidth) + (y % colorWidth) * DataWidth];
+                        displaceTextureData[x + DataWidth * y] = displaceTextureData[(x % colorWidth) + (y % colorWidth) * DataWidth];
                     }
 
-                    DisplaceTextureData[x + DataWidth * y] =
-                        -Vector2.UnitX * DisplaceData[x + DataWidth * y].X
+                    displaceTextureData[x + DataWidth * y] =
+                        -Vector2.UnitX * displaceData[x + DataWidth * y].X
                         +
-                        -Vector2.UnitY * DisplaceData[x + DataWidth * y].Z;
+                        -Vector2.UnitY * displaceData[x + DataWidth * y].Z;
                 }
             }
 
-            Grid = new VertexPositionColorTexture[DataWidth * DataWidth];
+            var grid = new VertexPositionColorTexture[DataWidth * DataWidth];
 
             var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
 
@@ -82,7 +86,7 @@ namespace Far_Off_Wanderer
             {
                 foreach (var x in Enumerable.Range(0, DataWidth))
                 {
-                    var Height = HeightData[x + DataWidth * y];
+                    var Height = heightData[x + DataWidth * y];
                     var Point = new Vector3(x / (float)(DataWidth - 1), Height / 256f, y / (float)(DataWidth - 1));
                     Point = 2 * Point - new Vector3(1, 1, 1);
 
@@ -97,19 +101,19 @@ namespace Far_Off_Wanderer
 
 
 
-                    Point += DisplaceData[x + DataWidth * y] * new Vector3(1, 1.41f, 1) * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.1f);
+                    Point += displaceData[x + DataWidth * y] * new Vector3(1, 1.41f, 1) * halfWidthOfSmallerStepSize * (float)Math.Pow(c, 0.1f);
 
                     var dx =
                         (
-                            HeightData[((x + DataWidth - 1) % (DataWidth - 1)) + DataWidth * y]
+                            heightData[((x + DataWidth - 1) % (DataWidth - 1)) + DataWidth * y]
                             -
-                            HeightData[((x + 1) % (DataWidth - 1)) + DataWidth * y]
+                            heightData[((x + 1) % (DataWidth - 1)) + DataWidth * y]
                         ) / 256f;
                     var dy =
                         (
-                            HeightData[x + DataWidth * ((y + DataWidth - 1) % (DataWidth - 1))]
+                            heightData[x + DataWidth * ((y + DataWidth - 1) % (DataWidth - 1))]
                             -
-                            HeightData[x + DataWidth * ((y + 1) % (DataWidth - 1))]
+                            heightData[x + DataWidth * ((y + 1) % (DataWidth - 1))]
                         ) / 256f;
 
                     var dxVector = new Vector3(Size.X * 2 / DataWidth, dx * Size.Y, 0);
@@ -142,7 +146,7 @@ namespace Far_Off_Wanderer
 
                     color *= 1.3f;
                     var texcoord = new Vector2(0.5f * Point.X / Size.X + 0.5f, 0.5f * Point.Z / Size.Z + 0.5f);
-                    texcoord += 0.3f * DisplaceTextureData[x + DataWidth * y] / (Math.Max(TerrainTexture.Width, TerrainTexture.Height) * 2 * 1.414f);
+                    texcoord += 0.3f * displaceTextureData[x + DataWidth * y] / (Math.Max(TerrainTexture.Width, TerrainTexture.Height) * 2 * 1.414f);
 
                     Point += (2 * Height / 255f - 1) * normal * new Vector3(1, Height / 255f, 1) * 2500;
 
@@ -150,48 +154,48 @@ namespace Far_Off_Wanderer
 
                     if (hasCache) // optimizing for now
                     {
-                        if(Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
+                        if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
                         {
-                            Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                            colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
                         }
                     }
                     else
                     {
-                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                        colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
                     }
 
-                    Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
+                    grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
                 }
             }
 
             // optimizing.. for now
             Environment.StaticColliders = hasCache ? Colliders.ToArray() : Colliders.Where(c => Math.Abs(c.Position.Y) <= halfWidthOfSmallerStepSize).ToArray();
 
-            vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), Grid.Length, BufferUsage.WriteOnly);
-            vertices.SetData(Grid);
+            vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), grid.Length, BufferUsage.WriteOnly);
+            vertices.SetData(grid);
 
-            Indicees = new short[(DataWidth + 1) * 2];
-            foreach (var i in Enumerable.Range(0, Indicees.Length))
+            var indexList = new short[(DataWidth + 1) * 2];
+            foreach (var i in Enumerable.Range(0, indexList.Length))
             {
                 if (i % 2 == 0)
                 {
-                    Indicees[i] = (short)(i + DataWidth);
+                    indexList[i] = (short)(i + DataWidth);
                 }
                 else
                 {
-                    Indicees[i] = (short)(i - 1);
+                    indexList[i] = (short)(i - 1);
                 }
             }
 
-            indicees = new IndexBuffer(TerrainTexture.GraphicsDevice, IndexElementSize.SixteenBits, Indicees.Length, BufferUsage.WriteOnly);
-            indicees.SetData(Indicees);
+            indicees = new IndexBuffer(TerrainTexture.GraphicsDevice, IndexElementSize.SixteenBits, indexList.Length, BufferUsage.WriteOnly);
+            indicees.SetData(indexList);
 
-            DistanceField = new InfiniteTerrainDistanceField(this);
+            this.distanceField = new InfiniteTerrainDistanceField(this);
 
             Environment.DistanceField = DistanceField;
         }
 
-        public void DrawFirst(BasicEffect b, Texture2D texture = null)
+        void DrawFirst(BasicEffect b, Texture2D texture = null)
         {
             b.LightingEnabled = false;
             b.TextureEnabled = texture != null;

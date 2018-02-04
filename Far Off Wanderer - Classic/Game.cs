@@ -109,11 +109,10 @@
 
                 to.Fonts.Add(from.Load<SpriteFont>(Data.Font, Data.SmallFont));
 
-                var terrain = new Terrain()
-                {
-                    Position = Vector3.Down * 64 * 10,
-                    Size = new Vector3(1024 * 128, 256 * 40, 1024 * 128)
-                };
+                var terrain = new Terrain(
+                    position: Vector3.Down * 64 * 10,
+                    size: new Vector3(1024 * 128, 256 * 40, 1024 * 128)
+                );
                 environment.Range = terrain.Size.X;
                 terrain.LoadFromTexture2D(from.Load<Texture2D>(Data.LandscapeGround), environment);
                 to.Terrains.Add(Data.Landscape, terrain);
