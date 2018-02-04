@@ -27,6 +27,8 @@ namespace Conesoft.Game
             }
         }
 
+        public Vector3[] SensorPoints { get; set; }
+
         public float Speed { get; set; }
 
         private float rotation = 0;
@@ -93,6 +95,23 @@ namespace Conesoft.Game
             foreach (var thrustParticle in GenerateThrust(Environment, ElapsedTime))
             {
                 yield return thrustParticle;
+            }
+
+            if(SensorPoints != null)
+            {
+                foreach (var point in SensorPoints)
+                {
+                    for(var i = 0f; i < 1f; i+= .05f)
+                    {
+                        yield return new Explosion(Data.Sparkle)
+                        {
+                            Position = Vector3.Lerp(Position, point, i),
+                            EndOfLife = 0.001f,
+                            MinSize = 100f,
+                            MaxSize = 100f
+                        };
+                    }
+                }
             }
 
             Speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;

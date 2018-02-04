@@ -18,6 +18,7 @@ namespace Conesoft.Engine
         public VertexPositionColorTexture[] Grid { get; private set; }
         public short[] Indicees { get; private set; }
         public List<Collider> Colliders { get; private set; }
+        public InfiniteTerrainDistanceField DistanceField { get; set; }
 
         VertexBuffer vertices;
         IndexBuffer indicees;
@@ -73,6 +74,11 @@ namespace Conesoft.Engine
             }
 
             Grid = new VertexPositionColorTexture[DataWidth * DataWidth];
+
+            var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
+
+            var hasCache = InfiniteTerrainDistanceField.HasCache;
+
             foreach (var y in Enumerable.Range(0, DataWidth))
             {
                 foreach (var x in Enumerable.Range(0, DataWidth))
@@ -82,8 +88,6 @@ namespace Conesoft.Engine
                     Point = 2 * Point - new Vector3(1, 1, 1);
 
                     Point = Point * Size / 2 + Position;
-
-                    var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
 
                     var c = Height / 255f;
                     var color = new Color();
@@ -144,17 +148,25 @@ namespace Conesoft.Engine
                     Point += (2 * Height / 255f - 1) * normal * new Vector3(1, Height / 255f, 1) * 2500;
 
                     var position = Point + Position - halfWidthOfSmallerStepSize * Vector3.Up;
-                    if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
+
+                    if (hasCache) // optimizing for now
                     {
-                        if(x % 2 == 0 && y % 2 == 0)
-                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize * 2));
+                        if(Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
+                        {
+                            Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                        }
+                    }
+                    else
+                    {
+                        Colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
                     }
 
                     Grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
                 }
             }
 
-            Environment.StaticColliders = Colliders;
+            // optimizing.. for now
+            Environment.StaticColliders = hasCache ? Colliders.ToArray() : Colliders.Where(c => Math.Abs(c.Position.Y) <= halfWidthOfSmallerStepSize).ToArray();
 
             vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), Grid.Length, BufferUsage.WriteOnly);
             vertices.SetData(Grid);
@@ -174,6 +186,10 @@ namespace Conesoft.Engine
 
             indicees = new IndexBuffer(TerrainTexture.GraphicsDevice, IndexElementSize.SixteenBits, Indicees.Length, BufferUsage.WriteOnly);
             indicees.SetData(Indicees);
+
+            DistanceField = new InfiniteTerrainDistanceField(this);
+
+            Environment.DistanceField = DistanceField;
         }
 
         public void DrawFirst(BasicEffect b, Texture2D texture = null)

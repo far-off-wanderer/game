@@ -14,6 +14,7 @@ namespace Conesoft.Game
         int cellCount = 64;
         float cellSize;
         (Object3D[] staticColliders, List<Object3D> colliders)[,] grid;
+        InfiniteTerrainDistanceField distanceField;
 
         public Grid(float range)
         {
@@ -29,6 +30,11 @@ namespace Conesoft.Game
                 }
             }
 
+        }
+
+        public void AddDistanceField(InfiniteTerrainDistanceField distanceField)
+        {
+            this.distanceField = distanceField;
         }
 
         public void AddStaticColliders(IEnumerable<Collider> staticColliders)
@@ -98,14 +104,22 @@ namespace Conesoft.Game
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    var objects = grid[x, z].staticColliders.Concat(grid[x, z].colliders).ToArray();
+//                    var objects = grid[x, z].staticColliders.Concat(grid[x, z].colliders).ToArray();
 
-                    if (objects.Length > 1)
+                    var objects = grid[x, z].colliders.ToArray();
+
+                    if (objects.Length >= 1)
                     {
                         for (int a = 0; a < objects.Length; a++)
                         {
                             var objectA = objects[a];
                             var sphereA = new BoundingSphere(objectA.Position, objectA.Boundary.Radius);
+
+                            if(distanceField.DistanceAt(sphereA.Center) < sphereA.Radius)
+                            {
+                                interact((objectA, sphereA.Center), (objectA, sphereA.Center));
+                                continue;
+                            }
 
                             for (int b = a + 1; b < objects.Length; b++)
                             {
@@ -117,10 +131,10 @@ namespace Conesoft.Game
 
                                 if (distance.LengthSquared() < (sphereA.Radius + sphereB.Radius) * (sphereA.Radius + sphereB.Radius))
                                 {
-                                    interact(
-                                        (objectA, sphereA.Center + distance / 2),
-                                        (objectB, sphereB.Center - distance / 2)
-                                    );
+                                    //interact(
+                                    //    (objectA, sphereA.Center + distance / 2),
+                                    //    (objectB, sphereB.Center - distance / 2)
+                                    //);
                                 }
                             }
                         }
@@ -134,16 +148,17 @@ namespace Conesoft.Game
             var minpos = (position - new Vector3(radius)) / cellSize;
             var maxpos = (position + new Vector3(radius)) / cellSize;
 
+            var colliders = new List<Collider>();
+
             for (var z = minpos.Z; z <= maxpos.Z; z++)
             {
                 for (var x = minpos.X; x <= maxpos.X; x++)
                 {
-                    foreach(var c in grid[imod(x), imod(z)].staticColliders.OfType<Collider>())
-                    {
-                        yield return c;
-                    }
+                    colliders.AddRange(grid[imod(x), imod(z)].staticColliders.OfType<Collider>());
                 }
             }
+
+            return colliders.Distinct();
         }
     }
 }

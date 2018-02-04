@@ -14,8 +14,6 @@ namespace Far_Off_Wanderer___Classic
     using System.Linq;
     using Windows.Foundation;
 
-    //    using Windows.Foundation;
-
     internal class Game : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager manager;
@@ -232,6 +230,7 @@ namespace Far_Off_Wanderer___Classic
                     var camera = level.Camera as SpaceshipFollowingCamera;
                     camera.Yaw = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.X;
                     camera.Pitch = GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y;
+                    camera.ZoomIn = GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp);
                 }
 
                 if (startTime.HasValue == false)
@@ -352,7 +351,15 @@ namespace Far_Off_Wanderer___Classic
                     eye: 30f
                 )
             };
-            foreach(var view in views)
+            views = new[]
+            {
+                (
+                    target: leftEye,
+                    area: new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height),
+                    eye: 0f
+                )
+            };
+            foreach (var view in views)
             {
                 graphics.SetRenderTarget(view.target);
                 if (!playing)
@@ -427,7 +434,7 @@ namespace Far_Off_Wanderer___Classic
                     var terrain = game.Resources.Terrains[level.Terrain.Id];
                     var terrainPosition = terrain.Position;
 
-                    var position = localPlayer.ControlledObject.Position;
+                    var position = level.Camera.Position;
                     while (terrainPosition.X > position.X + terrain.Size.X / 2)
                     {
                         terrainPosition -= new Vector3(terrain.Size.X, 0, 0);

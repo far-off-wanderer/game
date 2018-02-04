@@ -47,7 +47,7 @@ namespace Conesoft.Game
                         {
                             Id = id,
                             Position = 6400 * (Vector3.Forward * y + Vector3.Right * x) * (float)factor * 2 / 5,
-                            Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, x + y),
+                            Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
                             Speed = id == ids[0] ? 150 : 2,
                             Boundary = environment.ModelBoundaries[id]
                         };
@@ -59,6 +59,7 @@ namespace Conesoft.Game
                     }
                 }
             }
+            //Objects3D.RemoveRange(2, Objects3D.Count - 2);
             Terrain = new Terrain();
             Skybox = new Skybox()
             {
@@ -73,7 +74,7 @@ namespace Conesoft.Game
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
                     FarCutOff = 80000,
-                    Ship = Objects3D.OfType<Spaceship>().First()
+                    Ship = Objects3D.OfType<Spaceship>().Skip(1).First()
                 };
             }
             else
@@ -93,6 +94,7 @@ namespace Conesoft.Game
             grid = new Grid(Environment.Range);
 
             grid.AddStaticColliders(environment.StaticColliders);
+            grid.AddDistanceField(environment.DistanceField);
 
             environment.Grid = grid;
         }
@@ -142,7 +144,7 @@ namespace Conesoft.Game
             var localPlayers = Players.OfType<LocalPlayer>();
             if (localPlayers.Any())
             {
-                var center = localPlayers.First().ControlledObject;
+                var center = Camera;
                 var range = Environment.Range;
                 foreach (var other in Objects3D)
                 {

@@ -1,10 +1,8 @@
-﻿using Conesoft.Engine;
-using Conesoft.Engine.Accelerometer;
+﻿using Conesoft.Engine.Accelerometer;
 using Conesoft.Engine.Level;
 using Conesoft.Engine.NavigationService;
 using Conesoft.Engine.Resources;
 using System;
-using System.Collections.Generic;
 
 namespace Conesoft.Game
 {

@@ -12,9 +12,6 @@ namespace Far_Off_Wanderer___Classic
             this.InitializeComponent();
 
             game = MonoGame.Framework.XamlGame<Game>.Create(string.Empty, Window.Current.CoreWindow, swapChainPanel);
-
-
-
             Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += GamePage_BackRequested;
         }
 

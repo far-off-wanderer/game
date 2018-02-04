@@ -12,12 +12,20 @@ namespace Conesoft.Game
 
         public float Yaw { get; set; }
         public float Pitch { get; set; }
+        public bool ZoomIn { get; set; }
 
         public override Vector3 Target
         {
             get
             {
-                _target = Ship != null ? Ship.Position + Vector3.Transform(Vector3.Forward * 250f, Ship.Orientation) : _target;
+                if(Ship != null)
+                {
+                    _target = Ship.Position;
+                    if (ZoomIn == false)
+                    {
+                        _target += Vector3.Transform(Vector3.Forward * 250f, Ship.Orientation);
+                    }
+                }
                 return _target;
             }
             set
@@ -30,7 +38,20 @@ namespace Conesoft.Game
         {
             get
             {
-                _position = Ship != null ? Ship.Position + Vector3.Transform((Vector3.Backward * 100 + Vector3.Up * 60 + Vector3.Right  * 0) * ((float)Math.Sqrt(1 + Math.Abs(Ship.Speed))), Ship.Orientation * Quaternion.CreateFromYawPitchRoll(Yaw * (float)Math.PI, Pitch, 0) * Ship.ShipLeaning) : _position;
+                if(Ship != null)
+                {
+                    var bla = Ship.Speed;
+                    _position = Ship.Position
+                        + Vector3.Transform(
+                            (ZoomIn ? 0.3f : 1f)
+                            * (Vector3.Backward * 100 + Vector3.Up * 60 + Vector3.Right * 0)
+                            * ((float)Math.Sqrt(1 + 75 + Math.Abs(Ship.Speed / 2)))
+                            ,
+                            Ship.Orientation
+                            * Quaternion.CreateFromYawPitchRoll(Yaw * (float)Math.PI, Pitch, 0)
+                            * Ship.ShipLeaning
+                        );
+                }
                 return _position;
             }
             set

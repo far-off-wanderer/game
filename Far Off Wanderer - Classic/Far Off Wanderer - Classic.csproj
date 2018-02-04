@@ -108,6 +108,8 @@
     <Compile Include="Engine\Application\Application.cs" />
     <Compile Include="Engine\CameraModel.cs" />
     <Compile Include="Engine\Collider.cs" />
+    <Compile Include="Engine\DimensionalArrayHelpers.cs" />
+    <Compile Include="Engine\InfiniteTerrainDistanceField.cs" />
     <Compile Include="Engine\Level\Level.cs" />
     <Compile Include="Engine\NavigationService\NavigationService.cs" />
     <Compile Include="Engine\Random\Random.cs" />

@@ -20,6 +20,7 @@ namespace Conesoft.Game
         public Camera ActiveCamera { get; set; }
         public float Range { get; set; }
         public IEnumerable<Collider> StaticColliders { get; set; }
+        public InfiniteTerrainDistanceField DistanceField { get; set; }
         public Grid Grid { get; set; }
 
         public Vector3 RandomDirection()
