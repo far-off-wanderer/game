@@ -6,89 +6,85 @@ namespace Far_Off_Wanderer
 {
     public class Spaceship : ControllableObject3D
     {
-        public ThrustFlame leftFlame;
-        public ThrustFlame rightFlame;
+        ThrustFlame leftFlame;
+        ThrustFlame rightFlame;
 
-        public Quaternion ShipLeaning
-        {
-            get
-            {
-                return Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation * 5); // the @buildstarted factor
-            }
-        }
+        float speed;
 
-        public Quaternion Rotation
-        {
-            get
-            {
-                return Quaternion.CreateFromAxisAngle(Vector3.Up, rotation);
-            }
-        }
+        float rotation;
+        float maxRotation = (float)(Math.PI / 2) / 25;
+        float rotationSpeed = 0.15f;
 
+        float targetRotation;
+        float forwardAcceleration;
+
+        bool readyToShoot;
+        bool shooting;
+        float lastShot;
+        float shotTrigger = 0.1f;
+
+        StrafingDirection? strafe;
+        float strafingTime = 0.25f;
+        float strafingIdle = 1 - 0.25f;
+        float strafingRatio = 2f;
+        float strafing;
+        
         public Vector3[] SensorPoints { get; set; }
 
-        public float Speed { get; set; }
-
-        private float rotation = 0;
-        private float maxRotation = (float)(Math.PI / 2) / 25;
-        private float rotationSpeed = 0.15f;
-
-        private float targetRotation = 0;
-        private float forwardAcceleration = 0;
-
-        private bool ReadyToShoot { get; set; }
-        public bool Shooting { get; set; }
-        private float lastShot = 0;
-        private float shotTrigger = 0.1f;
-
-        private StrafingDirection? strafe;
-        private float strafingTime = 0.25f;
-        private float strafingIdle = 1 - 0.25f;
-        private float strafingRatio = 2f;
-        private float strafing;
-        public float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
+        public float Speed => speed;
+        public Quaternion ShipLeaning => Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation * 5); // the @buildstarted factor
         public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing));
 
-        private void UpdateCanon(TimeSpan ElapsedTime)
+        float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
+        Quaternion Rotation => Quaternion.CreateFromAxisAngle(Vector3.Up, rotation);
+
+        void UpdateCanon(TimeSpan ElapsedTime)
         {
             lastShot -= (float)ElapsedTime.TotalSeconds;
             if (lastShot < -shotTrigger)
             {
                 lastShot = 0;
-                ReadyToShoot = true;
+                readyToShoot = true;
             }
         }
 
-        public Spaceship()
+        public Spaceship(string id, Vector3 position, Quaternion orientation, float speed, float radius)
         {
-            leftFlame = new ThrustFlame
+            this.Id = id;
+            this.Position = position;
+            this.Orientation = orientation;
+            this.speed = speed;
+            this.Radius = radius;
+
+            this.lastShot = -shotTrigger;
+
+            this.leftFlame = new ThrustFlame
             {
                 Location = new Vector3(-20, 3, 20)
             };
-            rightFlame = new ThrustFlame
+            this.rightFlame = new ThrustFlame
             {
                 Location = new Vector3(20, 3, 20)
             };
-            Id = Data.Spaceship;
-            lastShot = -shotTrigger;
+
         }
 
         public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
             UpdateCanon(ElapsedTime);
 
-            if (ReadyToShoot && Shooting)
+            if (readyToShoot && shooting)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
                 Environment.Sounds[Data.LaserSound].Play(1 / (1 + dst / 5000), 0, 0);
                 var bulletDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, Orientation));
                 var bullet = new Bullet(Position, bulletDirection, Speed * 100 + 6250);
-                bullet.Position += (bullet.Boundary.Radius + Boundary.Radius) * 2 * bulletDirection;
+                bullet.Position += (bullet.Radius + Radius) * 2 * bulletDirection;
                 yield return bullet;
 
-                ReadyToShoot = false;
+                readyToShoot = false;
             }
-            Shooting = false;
+            shooting = false;
 
             foreach (var thrustParticle in GenerateThrust(Environment, ElapsedTime))
             {
@@ -112,7 +108,7 @@ namespace Far_Off_Wanderer
                 }
             }
 
-            Speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
+            speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
             if (targetRotation > rotation)
             {
                 rotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
@@ -154,7 +150,7 @@ namespace Far_Off_Wanderer
                 {
                     strafeDirection = -strafeDirection;
                 }
-                Position += strafeDirection * strafingRatio * StrafingAmount * this.Boundary.Radius;
+                Position += strafeDirection * strafingRatio * StrafingAmount * this.Radius;
 
                 strafing -= (float)ElapsedTime.TotalSeconds / strafingTime;
                 if (strafing < -strafingIdle)
@@ -196,7 +192,7 @@ namespace Far_Off_Wanderer
 
         public override void Shoot()
         {
-            Shooting = true;
+            shooting = true;
         }
 
         private IEnumerable<Explosion> GenerateThrust(Environment Environment, TimeSpan ElapsedTime)
@@ -266,7 +262,7 @@ namespace Far_Off_Wanderer
                     position.Z = (float)Environment.Random.NextDouble() * 2f - 1f;
                 } while (position.LengthSquared() > 1);
                 var distance = position.Length();
-                position *= Boundary.Radius * 2;
+                position *= Radius * 2;
                 position += Position;
 
                 yield return new Explosion(Data.Fireball)

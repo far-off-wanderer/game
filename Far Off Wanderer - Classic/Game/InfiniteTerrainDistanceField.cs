@@ -74,7 +74,7 @@ namespace Far_Off_Wanderer
 
                     var distance = list.Min(c =>
                     {
-                        return p.Min(p_ => Vmod2(c.Position - p_).Length() - c.Boundary.Radius);
+                        return p.Min(p_ => Vmod2(c.Position - p_).Length() - c.Radius);
                     });
 
                     list = grid.GetNearby(p[0], distance);
@@ -84,7 +84,7 @@ namespace Far_Off_Wanderer
                     {
                         finalDistance = list.Min(c =>
                         {
-                            return p.Min(p_ => Vmod2(c.Position - p_).Length() - c.Boundary.Radius);
+                            return p.Min(p_ => Vmod2(c.Position - p_).Length() - c.Radius);
                         });
                     }
 

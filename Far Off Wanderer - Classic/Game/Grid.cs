@@ -39,8 +39,8 @@ namespace Far_Off_Wanderer
         {
             foreach (var obj in staticColliders)
             {
-                var minpos = (obj.Position - new Vector3(obj.Boundary.Radius)) / cellSize;
-                var maxpos = (obj.Position + new Vector3(obj.Boundary.Radius)) / cellSize;
+                var minpos = (obj.Position - new Vector3(obj.Radius)) / cellSize;
+                var maxpos = (obj.Position + new Vector3(obj.Radius)) / cellSize;
                 
                 for (var z = minpos.Z; z <= maxpos.Z; z++)
                 {
@@ -111,7 +111,7 @@ namespace Far_Off_Wanderer
                         for (int a = 0; a < objects.Length; a++)
                         {
                             var objectA = objects[a];
-                            var sphereA = new BoundingSphere(objectA.Position, objectA.Boundary.Radius);
+                            var sphereA = new BoundingSphere(objectA.Position, objectA.Radius);
 
                             if(distanceField.DistanceAt(sphereA.Center) < sphereA.Radius)
                             {
@@ -122,7 +122,7 @@ namespace Far_Off_Wanderer
                             for (int b = a + 1; b < objects.Length; b++)
                             {
                                 var objectB = objects[b];
-                                var sphereB = new BoundingSphere(objectB.Position, objectB.Boundary.Radius);
+                                var sphereB = new BoundingSphere(objectB.Position, objectB.Radius);
 
                                 var distance = sphereB.Center - sphereA.Center;
                                 distance = Vmod(distance + new Vector3(range / 2)) - new Vector3(range / 2);

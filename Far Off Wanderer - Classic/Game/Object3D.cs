@@ -9,7 +9,7 @@ namespace Far_Off_Wanderer
         public string Id { get; set; }
         public virtual Vector3 Position { get; set; }
         public Quaternion Orientation { get; set; }
-        public BoundingSphere Boundary { get; set; }
+        public float Radius { get; set; }
 
         public bool Alive { get; protected set; }
 
@@ -27,15 +27,6 @@ namespace Far_Off_Wanderer
         {
             Alive = false;
             yield break;
-        }
-
-        private static BoundingSphere emptyBoundary = new BoundingSphere();
-        public static BoundingSphere EmptyBoundary
-        {
-            get
-            {
-                return emptyBoundary;
-            }
         }
     }
 }

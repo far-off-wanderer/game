@@ -40,7 +40,7 @@ namespace Far_Off_Wanderer
                 while (sensor.distance < sensor.range)
                 {
                     var d = field.DistanceAt(sensor.collision);
-                    if (d < my.Boundary.Radius * 10)
+                    if (d < my.Radius * 10)
                     {
                         break;
                     }

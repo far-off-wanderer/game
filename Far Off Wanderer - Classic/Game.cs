@@ -447,7 +447,7 @@
                         if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                         {
                             var sprite = resources.Sprites[bullet.Id];
-                            var width = Math.Max(bounds.Width, bounds.Height) * bullet.Boundary.Radius / distance;
+                            var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
                             var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                             if (rectangle.Intersects(graphics.Viewport.Bounds))
                             {
@@ -464,18 +464,8 @@
                     var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
                     spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-                    //if (fadeIn < 1f)
-                    //{
-                    //    var timer = (1 - fadeIn) * fadeInTime;
-                    //    var msg = timer < 0.5 ? "go" : Math.Ceiling(timer).ToString();
-                    //    var msgSize = resources.Fonts[Data.Font].MeasureString(msg).X;
-                    //    spriteBatch.DrawString(resources.Fonts[Data.Font], msg, new Vector2(graphics.Viewport.Width - msgSize - 20, 10), osdBlend);
-                    //    spriteBatch.Draw(resources.Sprites[Data.TutorialOverlay], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(1f, 1f, 1f) * MathHelper.Clamp(4 * (1 - fadeIn), 0, 1));
-                    //}
-                    //else
-                    {
-                        spriteBatch.DrawString(resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
-                    }
+
+                    spriteBatch.DrawString(resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
 
                     if (fadeOut.HasValue)
                     {

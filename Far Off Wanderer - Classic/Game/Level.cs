@@ -26,14 +26,13 @@ namespace Far_Off_Wanderer
             objects3D = new List<Object3D>();
             var random = new Random();
             int factor = 1;
-            objects3D.Add(new Spaceship()
-            {
-                Id = Data.Ship,
-                Position = Vector3.Zero,
-                Orientation = Quaternion.Identity,
-                Speed = 150,
-                Boundary = environment.ModelBoundaries[Data.Ship]
-            });
+            objects3D.Add(new Spaceship(
+                id: Data.Ship,
+                position: Vector3.Zero,
+                orientation: Quaternion.Identity,
+                speed: 150,
+                radius: environment.ModelBoundaries[Data.Ship].Radius
+            ));
             for (int y = -factor; y <= factor; y++)
             {
                 for (int x = -factor; x <= factor; x++)
@@ -43,14 +42,13 @@ namespace Far_Off_Wanderer
                         var ids = new string[] { Data.Ship, Data.Drone };
                         var id = ids[environment.Random.Next(0, ids.Length)];
                         id = ids.First();
-                        var spaceship = new Spaceship()
-                        {
-                            Id = id,
-                            Position = 6400 * (Vector3.Forward * y + Vector3.Right * x) * (float)factor * 2 / 5,
-                            Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
-                            Speed = id == ids[0] ? 150 : 2,
-                            Boundary = environment.ModelBoundaries[id]
-                        };
+                        var spaceship = new Spaceship(
+                            id: id,
+                            position: (6400 * (Vector3.Forward * y + Vector3.Right * x) * factor) * 2 / 5,
+                            orientation: Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
+                            speed: id == ids[0] ? 150 : 2,
+                            radius: environment.ModelBoundaries[id].Radius
+                        );
                         players.Add(new ComputerPlayer()
                         {
                             ControlledObject = spaceship
@@ -125,12 +123,12 @@ namespace Far_Off_Wanderer
             }
 
             var collidableObjects = (from object3d in objects3D
-                                     where object3d.Boundary != Object3D.EmptyBoundary
+                                     where object3d.Radius > 0
                                      select
                                      (
                                          position: object3d.Position,
-                                         radius: object3d.Boundary.Radius,
-                                         boundingSphere: new BoundingSphere(object3d.Position, object3d.Boundary.Radius),
+                                         radius: object3d.Radius,
+                                         boundingSphere: new BoundingSphere(object3d.Position, object3d.Radius),
                                          object3d: object3d
                                      )
                                     ).ToArray();

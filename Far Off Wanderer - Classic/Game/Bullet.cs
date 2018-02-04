@@ -6,27 +6,28 @@ namespace Far_Off_Wanderer
 {
     public class Bullet : Object3D
     {
-        public Vector3 Direction { get; set; }
-        public float Speed { get; set; }
-        public double Age { get; set; }
+        Vector3 direction;
+        float speed;
+        double age;
 
         public Bullet(Vector3 Position, Vector3 Direction, float Speed)
         {
-            this.Id = Data.Bullet;
             this.Position = Position;
-            this.Orientation = Quaternion.Identity;
-            this.Boundary = new BoundingSphere(Vector3.Zero, 100);
-            this.Speed = Speed;
-            this.Age = 0;
 
-            this.Direction = Direction;
+            Id = Data.Bullet;
+            Orientation = Quaternion.Identity;
+            Radius = 100;
+            speed = Speed;
+            age = 0;
+
+            direction = Direction;
         }
 
         public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
         {
-            Position += Direction * (float)ElapsedTime.TotalSeconds * Speed;
-            Age += ElapsedTime.TotalSeconds;
-            if (Age > 5)
+            Position += direction * (float)ElapsedTime.TotalSeconds * speed;
+            age += ElapsedTime.TotalSeconds;
+            if (age > 5)
             {
                 Alive = false;
             }
@@ -61,7 +62,7 @@ namespace Far_Off_Wanderer
                     position.Z = (float)Environment.Random.NextDouble() * 2f - 1f;
                 } while (position.LengthSquared() > 1);
                 var distance = position.Length();
-                position *= Boundary.Radius * 2;
+                position *= Radius * 2;
                 position += Position;
 
                 yield return new Explosion(Data.Fireball)
