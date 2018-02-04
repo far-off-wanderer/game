@@ -258,3 +258,6 @@
 /processorParam:TextureFormat=Color
 /build:Sparkle.png
 
+#begin distancefield.cache
+/copy:distancefield.cache
+

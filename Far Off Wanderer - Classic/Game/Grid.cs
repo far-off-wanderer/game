@@ -9,7 +9,7 @@ namespace Far_Off_Wanderer
     {
         float range;
 
-        int cellCount = 64;
+        int cellCount = 16;
         float cellSize;
         (Object3D[] staticColliders, List<Object3D> colliders)[,] grid;
         InfiniteTerrainDistanceField distanceField;
@@ -62,21 +62,24 @@ namespace Far_Off_Wanderer
             }
         }
 
-        public void AddCurrentColliders((Vector3 position, float radius, BoundingSphere boundingSphere, Object3D object3d)[] collidableObjects)
+        public void AddCurrentColliders(IEnumerable<Object3D> collidableObjects)
         {
+            if(Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T))
+            {
+                var b = 0;
+            }
             for (var z = 0; z < cellCount; z++)
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    var (staticColliders, colliders) = grid[x, z];
-                    colliders.Clear();
+                    grid[x, z].colliders.Clear();
                 }
             }
 
-            foreach (var (position, radius, boundingSphere, object3d) in collidableObjects)
+            foreach (var object3d in collidableObjects)
             {
-                var minpos = (position - new Vector3(radius)) / cellSize;
-                var maxpos = (position + new Vector3(radius)) / cellSize;
+                var minpos = (object3d.Position - new Vector3(object3d.Radius)) / cellSize;
+                var maxpos = (object3d.Position + new Vector3(object3d.Radius)) / cellSize;
 
                 for (var z = minpos.Z; z <= maxpos.Z; z++)
                 {
@@ -102,37 +105,33 @@ namespace Far_Off_Wanderer
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-//                    var objects = grid[x, z].staticColliders.Concat(grid[x, z].colliders).ToArray();
-
                     var objects = grid[x, z].colliders.ToArray();
 
-                    if (objects.Length >= 1)
+                    if (objects.Length > 0)
                     {
                         for (int a = 0; a < objects.Length; a++)
                         {
                             var objectA = objects[a];
-                            var sphereA = new BoundingSphere(objectA.Position, objectA.Radius);
 
-                            if(distanceField.DistanceAt(sphereA.Center) < sphereA.Radius)
+                            if(distanceField.DistanceAt(objectA.Position) < objectA.Radius)
                             {
-                                interact((objectA, sphereA.Center), (objectA, sphereA.Center));
+                                interact((objectA, objectA.Position), (objectA, objectA.Position));
                                 continue;
                             }
 
                             for (int b = a + 1; b < objects.Length; b++)
                             {
                                 var objectB = objects[b];
-                                var sphereB = new BoundingSphere(objectB.Position, objectB.Radius);
 
-                                var distance = sphereB.Center - sphereA.Center;
+                                var distance = objectB.Position - objectA.Position;
                                 distance = Vmod(distance + new Vector3(range / 2)) - new Vector3(range / 2);
 
-                                if (distance.LengthSquared() < (sphereA.Radius + sphereB.Radius) * (sphereA.Radius + sphereB.Radius))
+                                if (distance.LengthSquared() < (objectA.Radius + objectB.Radius) * (objectA.Radius + objectB.Radius))
                                 {
-                                    //interact(
-                                    //    (objectA, sphereA.Center + distance / 2),
-                                    //    (objectB, sphereB.Center - distance / 2)
-                                    //);
+                                    interact(
+                                        (objectA, objectA.Position + distance / 2),
+                                        (objectB, objectB.Position - distance / 2)
+                                    );
                                 }
                             }
                         }

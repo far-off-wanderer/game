@@ -10,6 +10,7 @@ namespace Far_Off_Wanderer
         public Camera Camera => camera;
         public Skybox Skybox => skybox;
         public IEnumerable<Object3D> Objects3D => objects3D;
+        public LocalPlayer LocalPlayer => players.OfType<LocalPlayer>().First();
 
         Environment environment;
         Grid grid;
@@ -25,7 +26,7 @@ namespace Far_Off_Wanderer
             players = new List<Player>();
             objects3D = new List<Object3D>();
             var random = new Random();
-            int factor = 1;
+            int factor = 2;
             objects3D.Add(new Spaceship(
                 id: Data.Ship,
                 position: Vector3.Zero,
@@ -41,10 +42,9 @@ namespace Far_Off_Wanderer
                     {
                         var ids = new string[] { Data.Ship, Data.Drone };
                         var id = ids[environment.Random.Next(0, ids.Length)];
-                        id = ids.First();
                         var spaceship = new Spaceship(
                             id: id,
-                            position: (6400 * (Vector3.Forward * y + Vector3.Right * x) * factor) * 2 / 5,
+                            position: (9400 * (Vector3.Forward * y + Vector3.Right * x) * factor) * 2 / 5,
                             orientation: Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
                             speed: id == ids[0] ? 150 : 2,
                             radius: environment.ModelBoundaries[id].Radius
@@ -70,7 +70,7 @@ namespace Far_Off_Wanderer
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
                     FarCutOff = 80000,
-                    Ship = objects3D.OfType<Spaceship>().Skip(1).First()
+                    Ship = objects3D.OfType<Spaceship>().First()
                 };
             }
             else
@@ -123,14 +123,7 @@ namespace Far_Off_Wanderer
 
             var collidableObjects = (from object3d in objects3D
                                      where object3d.Radius > 0
-                                     select
-                                     (
-                                         position: object3d.Position,
-                                         radius: object3d.Radius,
-                                         boundingSphere: new BoundingSphere(object3d.Position, object3d.Radius),
-                                         object3d: object3d
-                                     )
-                                    ).ToArray();
+                                     select object3d);
 
             grid.AddCurrentColliders(collidableObjects);
 
@@ -150,42 +143,36 @@ namespace Far_Off_Wanderer
                 objects3D.Remove(deadObject3d);
             }
 
-            var localPlayers = players.OfType<LocalPlayer>();
-            if (localPlayers.Any())
+            var center = camera.Position;
+            var range = environment.Range;
+            foreach (var other in objects3D)
             {
-                var center = camera;
-                var range = environment.Range;
-                foreach (var other in objects3D)
+                var position = other.Position;
+                while (position.X - center.X > range / 2)
                 {
-                    Vector3 distance()
-                    {
-                        return other.Position - center.Position;
-                    }
-                    while (distance().X > range / 2)
-                    {
-                        other.Position = other.Position - new Vector3(range, 0, 0);
-                    }
-                    while (distance().X < -range / 2)
-                    {
-                        other.Position = other.Position + new Vector3(range, 0, 0);
-                    }
-                    while (distance().Y > range / 2)
-                    {
-                        other.Position = other.Position - new Vector3(0, range, 0);
-                    }
-                    while (distance().Y < -range / 2)
-                    {
-                        other.Position = other.Position + new Vector3(0, range, 0);
-                    }
-                    while (distance().Z > range / 2)
-                    {
-                        other.Position = other.Position - new Vector3(0, 0, range);
-                    }
-                    while (distance().Z < -range / 2)
-                    {
-                        other.Position = other.Position + new Vector3(0, 0, range);
-                    }
+                    position.X -= range;
                 }
+                while (position.X - center.X < -range / 2)
+                {
+                    position.X += range;
+                }
+                while (position.Y - center.Y > range / 2)
+                {
+                    position.Y -= range;
+                }
+                while (position.Y - center.Y < -range / 2)
+                {
+                    position.Y += range;
+                }
+                while (position.Z - center.Z > range / 2)
+                {
+                    position.Z -= range;
+                }
+                while (position.Z - center.Z < -range / 2)
+                {
+                    position.Z += range;
+                }
+                other.Position = position;
             }
         }
     }

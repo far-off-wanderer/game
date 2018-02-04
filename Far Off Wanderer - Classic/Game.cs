@@ -234,6 +234,28 @@
                     resources.Sounds[Data.GoSound].Play();
                 }
                 started = true;
+
+                if (level.Objects3D.Contains(level.LocalPlayer.ControlledObject) == false && won != true)
+                {
+                    if (dead != true)
+                    {
+                        resources.Sounds[Data.GameOverSound].Play();
+                    }
+                    dead = true;
+                    CheckForExitClick();
+                    UpdateFadeout(gameTime);
+                }
+                else if (level.Objects3D.OfType<Spaceship>().Count() == 1 && dead == false)
+                {
+                    if (won != true)
+                    {
+                        resources.Sounds[Data.GoodSound].Play();
+                        //UpdateHighscore();
+                    }
+                    won = true;
+                    CheckForExitClick();
+                    UpdateFadeout(gameTime);
+                }
             }
         }
 
@@ -470,7 +492,7 @@
                     {
                         spriteBatch.Draw(resources.Sprites[Data.BlackBackground], new Rectangle(0, 0, graphics.Viewport.Width, graphics.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
 
-                        var splashTexture = resources.Sprites[dead ? Data.GameOverOverlay : Data.GameWonOverlay];
+                        var splashTexture = resources.Sprites[won ? Data.GameWonOverlay : Data.GameOverOverlay];
                         var (Width, Height) = (1280, 768);
 
                         var screen = Window.ClientBounds;

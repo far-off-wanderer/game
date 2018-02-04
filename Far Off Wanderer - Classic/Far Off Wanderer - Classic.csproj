@@ -192,6 +192,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
+    <None Include="Content\distancefield.cache" />
     <None Include="Content\vessels\schiff V37.obj" />
     <None Include="Content\vessels\sonde V29.obj" />
     <None Include="Content\vic viper small junctioned.x" />

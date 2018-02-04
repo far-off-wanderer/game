@@ -12,11 +12,12 @@ namespace Far_Off_Wanderer
         double shootTime = float.NegativeInfinity;
         bool shoot = false;
 
-        float visibleRange = 175000;
+        float defaultVisibleRange = 17500;
 
         private (float lean, StrafingDirection? strafe) Look(Environment environment)
         {
-            var my = ControlledObject;
+            var my = ControlledObject as Spaceship;
+            var visibleRange = defaultVisibleRange * my.Speed / 150;
 
             var forward = Vector3.Normalize(Vector3.Transform(Vector3.Forward, my.Orientation));
             var left = Vector3.Normalize(Vector3.Cross(Vector3.Up, forward));

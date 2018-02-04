@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Windows.ApplicationModel;
 using Windows.Storage;
 
 namespace Far_Off_Wanderer
@@ -40,12 +41,6 @@ namespace Far_Off_Wanderer
 
                 this.cells.SetInParallel((value, x, y, z) =>
                 {
-                //var p_ = new Vector3(
-                //    MathHelper.Lerp(MinCorner.X, MaxCorner.X, 1f * x / cells.LengthX()),
-                //    MathHelper.Lerp(MinCorner.Y, MaxCorner.Y, 1f * y / cells.LengthY()),
-                //    MathHelper.Lerp(MinCorner.Z, MaxCorner.Z, 1f * z / cells.LengthZ())
-                //);
-
                     var p = new Vector3[8];
                     for (var dz = 0; dz <= 1; dz++)
                     {
@@ -116,11 +111,13 @@ namespace Far_Off_Wanderer
 
         private bool LoadFromCache()
         {
-            var cachePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "distancefield.cache");
-            if(File.Exists(cachePath) == false)
-            {
-                return false;
-            }
+            //var cachePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "distancefield.cache");
+            //if(File.Exists(cachePath) == false)
+            //{
+            //    return false;
+            //}
+
+            var cachePath = Path.Combine(Package.Current.InstalledLocation.Path, "Content", "distancefield.cache");
 
             var cache = new Queue<float>();
 
