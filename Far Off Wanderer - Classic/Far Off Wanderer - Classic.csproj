@@ -109,6 +109,7 @@
     <Compile Include="Game\Collider.cs" />
     <Compile Include="Game\DimensionalArrayHelpers.cs" />
     <Compile Include="Game\InfiniteTerrainDistanceField.cs" />
+    <Compile Include="Game\Orbit.cs" />
     <Compile Include="Game\ResourceLoader.cs" />
     <Compile Include="Game\Resources.cs" />
     <Compile Include="Game\SimplexNoise.cs" />

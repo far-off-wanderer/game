@@ -482,11 +482,17 @@
                     var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
                     var enemyCountSize = resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
 
+                    var objectCount = level.Objects3D.OfType<Orbit>().Count();
+                    var objectCountText = objectCount.ToString();
+                    var objectCountSize = resources.Fonts[Data.Font].MeasureString(objectCountText).X;
+
                     var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
                     spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
 
                     spriteBatch.DrawString(resources.Fonts[Data.Font], enemyCountText, new Vector2(graphics.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+
+                    spriteBatch.DrawString(resources.Fonts[Data.Font], objectCountText, new Vector2(graphics.Viewport.Width - objectCountSize - 20, 110), osdBlend);
 
                     if (fadeOut.HasValue)
                     {

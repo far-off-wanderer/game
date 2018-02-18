@@ -26,7 +26,7 @@ namespace Far_Off_Wanderer
             players = new List<Player>();
             objects3D = new List<Object3D>();
             var random = new Random();
-            int factor = 2;
+            int factor = 3;
             objects3D.Add(new Spaceship(
                 id: Data.Ship,
                 position: Vector3.Zero,
@@ -138,10 +138,7 @@ namespace Far_Off_Wanderer
                 newObject.Update(environment, ElapsedTime);
             }
             objects3D.AddRange(newObjects);
-            foreach (var deadObject3d in (from object3d in objects3D where object3d.Alive == false select object3d).ToArray())
-            {
-                objects3D.Remove(deadObject3d);
-            }
+            objects3D = objects3D.Where(obj => obj.Alive == true).ToList();
 
             var center = camera.Position;
             var range = environment.Range;

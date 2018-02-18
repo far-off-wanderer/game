@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Far_Off_Wanderer
 {
@@ -23,6 +24,7 @@ namespace Far_Off_Wanderer
         float lastShot;
         float shotTrigger = 0.1f;
 
+        bool beginStrafing;
         StrafingDirection? strafe;
         float strafingTime = 0.25f;
         float strafingIdle = 1 - 0.25f;
@@ -33,7 +35,11 @@ namespace Far_Off_Wanderer
 
         public float Speed => speed;
         public Quaternion ShipLeaning => Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation * 5); // the @buildstarted factor
-        public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing));
+        public float StrafingAngle => (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing);
+        public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, StrafingAngle);
+        public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
+        public Vector3 Up => Vector3.Transform(Vector3.Up, ShipLeaning * Strafing);
+        public Vector3 Right => Vector3.Cross(Forward, Up);
 
         float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
         Quaternion Rotation => Quaternion.CreateFromAxisAngle(Vector3.Up, rotation);
@@ -86,11 +92,6 @@ namespace Far_Off_Wanderer
             }
             shooting = false;
 
-            foreach (var thrustParticle in GenerateThrust(Environment, ElapsedTime))
-            {
-                yield return thrustParticle;
-            }
-
             if(SensorPoints != null)
             {
                 foreach (var point in SensorPoints)
@@ -141,11 +142,17 @@ namespace Far_Off_Wanderer
             var Up = Vector3.Transform(Vector3.Up, Orientation);
             Position += Direction * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
 
+            if(beginStrafing == true)
+            {
+                beginStrafing = false;
+            }
+
             if (strafe.HasValue && strafing < -strafingIdle)
             {
                 strafing = 1;
+                beginStrafing = true;
             }
-            if (strafing >= -strafingIdle)
+            else if (strafing >= -strafingIdle)
             {
                 var strafeDirection = Vector3.Normalize(Vector3.Cross(Up, Direction));
                 if (strafe == StrafingDirection.Right)
@@ -160,6 +167,12 @@ namespace Far_Off_Wanderer
                     strafe = null;
                 }
             }
+
+            foreach (var thrustParticle in GenerateThrust(Environment, ElapsedTime))
+            {
+                yield return thrustParticle;
+            }
+
 
             if (leftFlame != null && rightFlame != null)
             {
@@ -197,7 +210,7 @@ namespace Far_Off_Wanderer
             shooting = true;
         }
 
-        private IEnumerable<Explosion> GenerateThrust(Environment Environment, TimeSpan ElapsedTime)
+        private IEnumerable<Object3D> GenerateThrust(Environment Environment, TimeSpan ElapsedTime)
         {
             if (leftFlame != null && rightFlame != null)
             {
@@ -208,7 +221,7 @@ namespace Far_Off_Wanderer
                     0.2f, 0.2f, 0.3f, 0.3f,
                     1.5f
                 };
-                IEnumerable<Explosion> createExplosions(ThrustFlame flame, float scale)
+                IEnumerable<Explosion> createThrustFlames(ThrustFlame flame, float scale)
                 {
                     var blend = 1f / flame.Flames.Count;
                     while (flame.Flames.Count > 0)
@@ -226,13 +239,40 @@ namespace Far_Off_Wanderer
                         );
                     }
                 }
-                foreach (var explosion in createExplosions(leftFlame, (float)Math.Exp(-10 * rotation)))
+                IEnumerable<Object3D> createRollFlames()
+                {
+                    var rollFlames = MathHelper.Lerp(150, -50, StrafingAmount);
+                    var rollSpeed = MathHelper.Lerp(1, 50, StrafingAmount);
+                    for (var i = 0; i < rollFlames; i++)
+                    {
+                        var lifeTime = LifeTimes[Environment.Random.Next(LifeTimes.Length)];
+                        var explosion = new Explosion(
+                            id: Data.Sparkle,
+                            position: Position + Environment.RandomDirection() * Radius * .8f,
+                            endOfLife: lifeTime * .125f,
+                            minSize: MathHelper.Lerp(40, 25, i / rollFlames) * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            maxSize: MathHelper.Lerp(40, 25, i / rollFlames) * ((0.1f / lifeTime) * 0.2f + 0.8f),
+                            startSpin: 20 * (float)(Environment.Random.NextDouble() * 10 - 5),
+                            spin: 200
+                        );
+                        yield return explosion;
+                        yield return new Orbit(this, explosion, strafe == StrafingDirection.Left ? -rollSpeed : rollSpeed);
+                    }
+                }
+                foreach (var explosion in createThrustFlames(leftFlame, (float)Math.Exp(-10 * rotation)))
                 {
                     yield return explosion;
                 }
-                foreach (var explosion in createExplosions(rightFlame, (float)Math.Exp(10 * rotation)))
+                foreach (var explosion in createThrustFlames(rightFlame, (float)Math.Exp(10 * rotation)))
                 {
                     yield return explosion;
+                }
+                if (strafe.HasValue)
+                {
+                    foreach (var object3d in createRollFlames())
+                    {
+                        yield return object3d;
+                    }
                 }
             }
         }

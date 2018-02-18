@@ -71,7 +71,7 @@ namespace Far_Off_Wanderer
             //leftishness = distanceForward > visibleRange * .99f ? 0 : leftishness;
 
             var ship = ControlledObject as Spaceship;
-//            ship.SensorPoints = sensors.Select(s => s.collision).ToArray();
+            //            ship.SensorPoints = sensors.Select(s => s.collision).ToArray();
 
             //leftishness *= 1 - distanceForward / visibleRange;
 
