@@ -156,8 +156,6 @@
     <None Include="Content\vic viper small junctioned.x" />
     <None Include="Package\Far Off Wanderer - Classic_StoreKey.pfx" />
     <None Include="Package\Far Off Wanderer - Classic_TemporaryKey.pfx" />
-    <None Include="LICENSE" />
-    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Codename - Far Off Wanderer.csproj" />
