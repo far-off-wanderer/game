@@ -147,7 +147,7 @@
     <AppxManifest Include="Package\Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="Assets\**\*" />
+    <Content Include="Package\Assets\**\*" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="Content\distancefield.cache" />
     <Content Include="Content\Scenes\**\*" />
@@ -205,9 +205,7 @@
       <Version>4.4.0</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Package\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
