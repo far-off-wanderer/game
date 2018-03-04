@@ -2,18 +2,17 @@
 {
     using Microsoft.Xna.Framework;
     using Microsoft.Xna.Framework.Audio;
+    using Microsoft.Xna.Framework.Content;
     using Microsoft.Xna.Framework.Graphics;
     using Microsoft.Xna.Framework.Input;
     using Microsoft.Xna.Framework.Input.Touch;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using Windows.Foundation;
 
-    internal class Game : Microsoft.Xna.Framework.Game
+    internal class TheClassicGame
     {
-        GraphicsDeviceManager manager;
         IResources resources;
         IAccelerometer accelerometer;
 
@@ -45,20 +44,24 @@
         RenderTarget2D leftEye;
         RenderTarget2D rightEye;
 
-        public Game()
+        GraphicsDeviceManager graphicsDeviceManager;
+        ContentManager contentManager;
+        Action exitCallback;
+        private GraphicsDevice GraphicsDevice => graphicsDeviceManager.GraphicsDevice;
+        private ContentManager Content => contentManager;
+        private Action Exit => exitCallback;
+
+        internal TheClassicGame(GraphicsDeviceManager graphicsDeviceManager, ContentManager contentManager, Action exitCallback)
         {
-            manager = new GraphicsDeviceManager(this)
-            {
-                IsFullScreen = Debugger.IsAttached == false
-            };
+            this.graphicsDeviceManager = graphicsDeviceManager;
+            this.contentManager = contentManager;
+            this.exitCallback = exitCallback;
 
-            Content.RootDirectory = "Content";
-
-            resources = new Resources(new ResourceLoader(Content));
+            resources = new Resources(new ResourceLoader(contentManager));
             accelerometer = new Accelerometer();
         }
 
-        public void StartGame()
+        internal void StartGame()
         {
             level = new Level(environment);
 
@@ -77,10 +80,8 @@
             playing = true;
         }
 
-        protected override void Initialize()
+        internal void Initialize()
         {
-            base.Initialize();
-
             graphics = GraphicsDevice;
 
             graphics.PresentationParameters.PresentationInterval = PresentInterval.Immediate;
@@ -150,12 +151,7 @@
             );
         }
 
-        protected override void LoadContent()
-        {
-            base.LoadContent();
-        }
-
-        protected override void Update(GameTime gameTime)
+        internal void Update(GameTime gameTime)
         {
             environment.Update(gameTime.ElapsedGameTime);
 
@@ -204,10 +200,9 @@
                     TotalTime = gameTime.TotalGameTime,
                     ElapsedTime = gameTime.ElapsedGameTime
                 };
-
-                base.Update(gameTime);
+                
                 environment.Acceleration = accelerometer.Acceleration;
-                environment.ScreenSize = new Size(Window.ClientBounds.Width, Window.ClientBounds.Height);
+                environment.ScreenSize = new Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
                 environment.ActiveCamera = level.Camera;
                 environment.Flipped = false; // Orientation == PageOrientation.LandscapeRight;
 
@@ -289,7 +284,7 @@
             }
         }
 
-        public void OnGameOver()
+        private void OnGameOver()
         {
             playing = false;
         }
@@ -311,7 +306,7 @@
             }
         }
 
-        protected override void Draw(GameTime gameTime)
+        internal void Draw(GameTime gameTime)
         {
             var views = new[] {
                 (
@@ -342,7 +337,7 @@
                 {
                     GraphicsDevice.Clear(Color.Black);
                     spriteBatch.Begin();
-                    var screen = Window.ClientBounds;
+                    var screen = GraphicsDevice.Viewport;
                     var screenAspect = (float)screen.Width / screen.Height;
                     var output = new Rectangle();
                     var titleTexture = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
@@ -367,7 +362,7 @@
                 }
                 else
                 {
-                    var camera = new CameraModel(level.Camera, eye, new Size(Window.ClientBounds.Width, Window.ClientBounds.Height));
+                    var camera = new CameraModel(level.Camera, eye, new Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
 
                     var basicEffect = new BasicEffect(graphics);
 
@@ -382,14 +377,16 @@
                     basicEffect.TextureEnabled = true;
                     basicEffect.VertexColorEnabled = false;
                     basicEffect.FogEnabled = true;
-                    basicEffect.FogColor = new Vector3(0.2f, 0.3f, 0.8f);
+                    basicEffect.FogColor = level.Skybox.Color.ToVector3();
                     basicEffect.FogStart = 10f;
                     basicEffect.FogEnd = 75000f;
 
                     basicEffect.DirectionalLight0.Enabled = true;
                     basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
-                    basicEffect.DirectionalLight0.Direction = new Vector3(0, 1, 0);
+                    basicEffect.DirectionalLight0.Direction = new Vector3(1, 0, 0);
                     basicEffect.DirectionalLight0.SpecularColor = new Vector3(0, 0, 0);
+
+                    basicEffect.PreferPerPixelLighting = true;
                     graphics.RasterizerState = RasterizerState.CullNone;
 
                     basicEffect.World = Matrix.Identity;
@@ -449,12 +446,17 @@
                         var distance = (explosion.Position - level.Camera.Position).Length();
                         if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                         {
-                            var sprite = resources.Sprites[explosion.Id];
+                            var sprite = resources.Sprites[Data.Sparkle];
                             var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
+                            width *= 4f;
+                            if(explosion.Id == Data.Fireball)
+                            {
+                                width *= 2f;
+                            }
                             var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                             if (rectangle.Intersects(graphics.Viewport.Bounds))
                             {
-                                spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                spriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age / 2, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                             }
                         }
                     }
@@ -469,6 +471,7 @@
                         {
                             var sprite = resources.Sprites[bullet.Id];
                             var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
+                            width *= 8f;
                             var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
                             if (rectangle.Intersects(graphics.Viewport.Bounds))
                             {
@@ -482,7 +485,7 @@
                     var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
                     var enemyCountSize = resources.Fonts[Data.Font].MeasureString(enemyCountText).X;
 
-                    var objectCount = level.Objects3D.OfType<Orbit>().Count();
+                    var objectCount = level.Objects3D.Count();
                     var objectCountText = objectCount.ToString();
                     var objectCountSize = resources.Fonts[Data.Font].MeasureString(objectCountText).X;
 
@@ -501,7 +504,7 @@
                         var splashTexture = resources.Sprites[won ? Data.GameWonOverlay : Data.GameOverOverlay];
                         var (Width, Height) = (1280, 768);
 
-                        var screen = Window.ClientBounds;
+                        var screen = GraphicsDevice.Viewport;
                         var screenAspect = (float)screen.Width / screen.Height;
                         var output = new Rectangle();
                         var titleAspect = (float)Width / Height;
@@ -537,10 +540,7 @@
                 spriteBatch.Draw(target, area, Color.White);
             }
             spriteBatch.End();
-
-            base.Draw(gameTime);
         }
-
 
         internal void GoBack()
         {

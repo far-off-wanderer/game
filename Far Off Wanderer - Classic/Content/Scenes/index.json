@@ -1,0 +1,9 @@
+﻿{
+  "type": "menu",
+  "background": [ "titlescreen-portrait", "titlescreen-landscape" ],
+  "next": {
+    "start": "level",
+    "settings": "settings",
+    "exit": "exit"
+  }
+}

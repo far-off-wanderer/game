@@ -14,7 +14,7 @@ namespace Far_Off_Wanderer
         {
             this.Position = Position;
 
-            Id = Data.Bullet;
+            Id = Data.Sparkle;
             Orientation = Quaternion.Identity;
             Radius = 100;
             speed = Speed;
@@ -45,15 +45,15 @@ namespace Far_Off_Wanderer
             Alive = false;
 
             yield return new Explosion(
-                id: Data.Fireball,
+                id: Data.Sparkle,
                 position: Position,
                 endOfLife: 5,
-                minSize: 50,
-                maxSize: 500,
+                minSize: 10,
+                maxSize: 50,
                 startSpin: 0,
                 spin: (float)Environment.Random.NextDouble() * 2 - 1
             );
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 5; i++)
             {
                 var position = new Vector3();
                 do
@@ -63,15 +63,15 @@ namespace Far_Off_Wanderer
                     position.Z = (float)Environment.Random.NextDouble() * 2f - 1f;
                 } while (position.LengthSquared() > 1);
                 var distance = position.Length();
-                position *= Radius * 2;
+                position *= Radius / 2;
                 position += Position;
 
                 yield return new Explosion(
-                    id: Data.Fireball,
+                    id: Data.Sparkle,
                     position: position,
                     endOfLife: (1 - distance) * 10 + 2.5f,
-                    minSize: (1 - distance) * 150 + 62.5f,
-                    maxSize: (1 - distance) * 750 + 250,
+                    minSize: (1 - distance) * 15 + 62.5f,
+                    maxSize: (1 - distance) * 75 + 250,
                     startSpin: 0,
                     spin: (float)Environment.Random.NextDouble() * 2 - 1
                 );

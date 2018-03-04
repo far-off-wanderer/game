@@ -44,6 +44,8 @@ namespace Far_Off_Wanderer
         float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
         Quaternion Rotation => Quaternion.CreateFromAxisAngle(Vector3.Up, rotation);
 
+        public bool IsStafing => strafe.HasValue;
+
         void UpdateCanon(TimeSpan ElapsedTime)
         {
             lastShot -= (float)ElapsedTime.TotalSeconds;
@@ -91,25 +93,6 @@ namespace Far_Off_Wanderer
                 readyToShoot = false;
             }
             shooting = false;
-
-            if(SensorPoints != null)
-            {
-                foreach (var point in SensorPoints)
-                {
-                    for(var i = 0f; i < 1f; i+= .05f)
-                    {
-                        yield return new Explosion(
-                            id: Data.Sparkle,
-                            position: Vector3.Lerp(Position, point, i),
-                            endOfLife: 0.001f,
-                            minSize: 100,
-                            maxSize: 100,
-                            startSpin: 0,
-                            spin: 0
-                        );
-                    }
-                }
-            }
 
             speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
             if (targetRotation > rotation)
@@ -165,6 +148,26 @@ namespace Far_Off_Wanderer
                 if (strafing < -strafingIdle)
                 {
                     strafe = null;
+                }
+            }
+
+
+            if (SensorPoints != null)
+            {
+                foreach (var point in SensorPoints)
+                {
+                    for (var i = 0f; i < 1f; i += .05f)
+                    {
+                        yield return new Explosion(
+                            id: Data.Sparkle,
+                            position: Vector3.Lerp(Position, point, i),
+                            endOfLife: 0.001f,
+                            minSize: 100,
+                            maxSize: 100,
+                            startSpin: 0,
+                            spin: 0
+                        );
+                    }
                 }
             }
 

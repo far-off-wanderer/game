@@ -125,6 +125,7 @@ namespace Far_Off_Wanderer
                     var shade = Vector3.Dot(normal, light);
                     var snowColor = new Vector3(1, 1, 1);
                     var grassColor = new Vector3(0.1f, 0.4f, 0.01f);
+                    grassColor = new Vector3(0.01f, 0.01f, 0.01f);
                     {
                         c -= 0.7f;
                         c *= 2f;

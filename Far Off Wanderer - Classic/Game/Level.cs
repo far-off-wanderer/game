@@ -59,7 +59,8 @@ namespace Far_Off_Wanderer
             }
             //Objects3D.RemoveRange(2, Objects3D.Count - 2);
             skybox = new Skybox(
-                color: new Color(0.2f, 0.3f, 0.8f)
+//                color: new Color(0.2f, 0.3f, 0.8f)
+                color: new Color(0.9f, 0.7f, 0.4f)
             );
             if (objects3D.Count > 0)
             {

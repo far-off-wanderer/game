@@ -64,10 +64,6 @@ namespace Far_Off_Wanderer
 
         public void AddCurrentColliders(IEnumerable<Object3D> collidableObjects)
         {
-            if(Microsoft.Xna.Framework.Input.Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T))
-            {
-                var b = 0;
-            }
             for (var z = 0; z < cellCount; z++)
             {
                 for (var x = 0; x < cellCount; x++)

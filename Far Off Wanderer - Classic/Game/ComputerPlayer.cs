@@ -8,11 +8,11 @@ namespace Far_Off_Wanderer
     {
         double time = 0;
         float[] directions = { -0.3f, 0.3f, 0.2f, -0.2f, -0.1f, 0.1f, 0, 0, 0, 0, 0, 0.2f, -0.2f, -0.1f, 0.1f, 0, 0, 0, 0, 0, 0.2f, -0.2f, -0.1f, 0.1f, 0, 0, 0, 0, 0, 0.2f, -0.2f, -0.1f, 0.1f, 0, 0, 0, 0, 0 };
-        int direction = 0;
+        int direction = 7;
         double shootTime = float.NegativeInfinity;
         bool shoot = false;
 
-        float defaultVisibleRange = 17500;
+        float defaultVisibleRange = 67500;
 
         private (float lean, StrafingDirection? strafe) Look(Environment environment)
         {
@@ -28,7 +28,7 @@ namespace Far_Off_Wanderer
             var sensors = Enumerable.Range(0, sensorCount).Select(i =>
             {
                 var l = (i * 2) / (sensorCount - 1f) - 1;
-                l = Math.Sign(l) * (float)Math.Pow(Math.Abs(l), 1);
+                l = Math.Sign(l) * (float)Math.Pow(Math.Abs(l), 4);
                 l *= .5f;
                 return (distance: 0f, collision: my.Position, range: 0f, leftishness: l);
             }).ToArray();
@@ -36,12 +36,12 @@ namespace Far_Off_Wanderer
             for(var i = 0; i < sensors.Length; i++)
             {
                 var sensor = sensors[i];
-                sensor.range = visibleRange * (float)Math.Exp(-Math.Abs(sensor.leftishness * 2));
+                sensor.range = visibleRange * (float)Math.Exp(-Math.Abs(sensor.leftishness * 5));
                 var direction = Vector3.Normalize(forward + sensor.leftishness * left);
                 while (sensor.distance < sensor.range)
                 {
                     var d = field.DistanceAt(sensor.collision);
-                    if (d < my.Radius * 10)
+                    if (d < my.Radius)
                     {
                         break;
                     }
@@ -66,74 +66,21 @@ namespace Far_Off_Wanderer
                 leftishness = -(1 - nearest.distance / nearest.range) * nearest.leftishness;
             }
             else leftishness = 0;
+           
+            //var ship = ControlledObject as Spaceship;
+            //ship.SensorPoints = sensors.Select(s => s.collision).ToArray();
+           
+            var panic = sensors.Any(s => s.distance < s.range / 10);
 
 
-            //leftishness = distanceForward > visibleRange * .99f ? 0 : leftishness;
-
-            var ship = ControlledObject as Spaceship;
-            //            ship.SensorPoints = sensors.Select(s => s.collision).ToArray();
-
-            //leftishness *= 1 - distanceForward / visibleRange;
-
-            //leftishness = Math.Min(1, leftishness);
-
-            //leftishness = Math.Sign(leftishness) * (float)Math.Pow(Math.Abs(leftishness), 2);
-
-
-            if (sensors.Where(s => s.leftishness > 0).Any(s => s.distance < s.range / 10))
+            if (panic)
             {
-                return (lean: 0f, strafe: StrafingDirection.Right);
-            }
-            else if (sensors.Where(s => s.leftishness < 0).Any(s => s.distance < s.range / 10))
-            {
-                return (lean: 0f, strafe: StrafingDirection.Left);
+                return (lean: 0f, strafe: leftishness > 0 ? StrafingDirection.Left : StrafingDirection.Right);
             }
             else
             {
                 return (lean: -leftishness, strafe: null);
             }
-
-            //var nearby = environment.Grid.GetNearby(my.Position, visibleRange);
-
-            //var range = environment.Range;
-            //Vector3 vmod(Vector3 v) => new Vector3(
-            //    (float)(v.X - range * Math.Floor(v.X / range)),
-            //    (float)(v.Y - range * Math.Floor(v.Y / range)),
-            //    (float)(v.Z - range * Math.Floor(v.Z / range))
-            //);
-
-            //var classification = nearby.Select(o =>
-            //{
-            //    var to = o.Position - my.Position;
-            //    to = vmod(to + new Vector3(range / 2)) - new Vector3(range / 2);
-
-            //    var distance = to.Length();
-            //    var direction = to / distance;
-            //    var inView = Vector3.Dot(forward, direction) > 0.3;
-            //    var leftishness = Vector3.Dot(left, direction);
-
-            //    return new
-            //    {
-            //        to,
-            //        distance = distance - (my.Boundary.Radius - o.Boundary.Radius),
-            //        direction,
-            //        inView,
-            //        leftishness
-            //    };
-            //});
-
-            //var interpretation = classification
-            //    .Where(element => element.inView && element.distance < visibleRange)
-            //    .Sum(element => element.leftishness * 1 / element.distance);
-
-            //if (classification.Any(element => element.distance < visibleRange / 3))
-            //{
-            //    // panic mode
-            //    var nearest = classification.OrderBy(element => element.distance).First();
-            //    return (lean: 0f, strafe: nearest.leftishness > 0 ? StrafingDirection.Right : StrafingDirection.Left);
-            //}
-
-            //return (lean: interpretation, strafe: null);
         }
 
         public override void UpdateThinking(TimeSpan timeSpan, Environment environment)
@@ -144,7 +91,7 @@ namespace Far_Off_Wanderer
             }
             time += timeSpan.TotalSeconds;
             shootTime += timeSpan.TotalSeconds;
-            var next = environment.Random.NextDouble() * direction + 0.5;
+            var next = environment.Random.NextDouble() * 4 + 2.5;
             if (time > next)
             {
                 time -= next;
@@ -163,21 +110,21 @@ namespace Far_Off_Wanderer
             }
 
             var decision = Look(environment);
-            if (decision.strafe.HasValue)
+            if (decision.strafe.HasValue && !spaceShip.IsStafing)
             {
                 spaceShip.Strafe(decision.strafe.Value);
             }
-            else
+            else if(spaceShip.IsStafing == false)
             {
                 var lean = decision.lean;
-                //if (Math.Abs(lean) > 0.0001)
+                if (Math.Abs(lean) > 0.0001)
                 {
                     spaceShip.TurnAngle(-lean * 15);
                 }
-                //else
-                //{
-                //    spaceShip.TurnAngle(directions[direction]);
-                //}
+                else
+                {
+                    spaceShip.TurnAngle(directions[direction] / 4);
+                }
             }
         }
     }
