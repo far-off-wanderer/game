@@ -144,7 +144,7 @@
     <Compile Include="TheClassicGame.cs" />
   </ItemGroup>
   <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
+    <AppxManifest Include="Package\Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
     <Content Include="Assets\**\*" />
@@ -154,10 +154,9 @@
     <None Include="Content\vessels\schiff V37.obj" />
     <None Include="Content\vessels\sonde V29.obj" />
     <None Include="Content\vic viper small junctioned.x" />
-    <None Include="Far Off Wanderer - Classic_StoreKey.pfx" />
-    <None Include="Far Off Wanderer - Classic_TemporaryKey.pfx" />
+    <None Include="Package\Far Off Wanderer - Classic_StoreKey.pfx" />
+    <None Include="Package\Far Off Wanderer - Classic_TemporaryKey.pfx" />
     <None Include="LICENSE" />
-    <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
@@ -179,7 +178,7 @@
     <Content Include="Content\titlescreen-portrait.png" />
     <Content Include="Content\vessels\schiff textur 09.png" />
     <Content Include="Content\vessels\sonde textur 06.png" />
-    <None Include="Package.StoreAssociation.xml" />
+    <None Include="Package\Package.StoreAssociation.xml" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -206,7 +205,9 @@
       <Version>4.4.0</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Package\" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
