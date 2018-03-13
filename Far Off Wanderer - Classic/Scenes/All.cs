@@ -14,6 +14,8 @@ namespace Far_Off_Wanderer
                 this.scenes = new ReadOnlyDictionary<string, Scene>(scenes);
             }
 
+            public IEnumerable<Scene> Scenes => scenes.Values;
+
             public Scene Index => scenes["index"];
 
             public static All Load() => Loader.GetAll();

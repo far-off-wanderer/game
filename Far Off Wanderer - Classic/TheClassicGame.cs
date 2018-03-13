@@ -157,37 +157,38 @@
 
             if (!playing)
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                {
-                    //Exit();
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
-                {
-                    startPlayingKeyup = true;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) && startPlayingKeyup == true)
-                {
-                    startPlayingKeyup = false;
-                    StartGame();
-                }
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
-                {
-                    startPlayingButtonup = true;
-                }
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) && startPlayingKeyup == true)
-                {
-                    startPlayingButtonup = false;
-                    StartGame();
-                }
-                if (TouchPanel.GetState().Count == 0)
-                {
-                    startPlayingTouchup = true;
-                }
-                if (TouchPanel.GetState().Count > 0 && startPlayingTouchup == true)
-                {
-                    startPlayingTouchup = false;
-                    StartGame();
-                }
+                StartGame();
+                //if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                //{
+                //    //Exit();
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
+                //{
+                //    startPlayingKeyup = true;
+                //}
+                //if (Keyboard.GetState().IsKeyDown(Keys.Space) && startPlayingKeyup == true)
+                //{
+                //    startPlayingKeyup = false;
+                //    StartGame();
+                //}
+                //if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
+                //{
+                //    startPlayingButtonup = true;
+                //}
+                //if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) && startPlayingKeyup == true)
+                //{
+                //    startPlayingButtonup = false;
+                //    StartGame();
+                //}
+                //if (TouchPanel.GetState().Count == 0)
+                //{
+                //    startPlayingTouchup = true;
+                //}
+                //if (TouchPanel.GetState().Count > 0 && startPlayingTouchup == true)
+                //{
+                //    startPlayingTouchup = false;
+                //    StartGame();
+                //}
             }
             else
             {
@@ -333,34 +334,7 @@
             foreach (var (target, area, eye) in views)
             {
                 graphics.SetRenderTarget(target);
-                if (!playing)
-                {
-                    GraphicsDevice.Clear(Color.Black);
-                    spriteBatch.Begin();
-                    var screen = GraphicsDevice.Viewport;
-                    var screenAspect = (float)screen.Width / screen.Height;
-                    var output = new Rectangle();
-                    var titleTexture = screenAspect > 1 ? titleScreenLandscape : titleScreenPortrait;
-                    var (Width, Height) = screenAspect > 1 ? (1836, 1200) : (1080, 1920);
-                    var titleAspect = (float)Width / Height;
-                    if (titleAspect > screenAspect)
-                    {
-                        output.Width = Width * screen.Height / Height;
-                        output.Height = screen.Height;
-                        output.X = -(output.Width - screen.Width) / 2;
-                        output.Y = 0;
-                    }
-                    else
-                    {
-                        output.Width = screen.Width;
-                        output.Height = Height * screen.Width / Width;
-                        output.X = 0;
-                        output.Y = -(output.Height - screen.Height) / 2;
-                    }
-                    spriteBatch.Draw(titleTexture, output, Color.White);
-                    spriteBatch.End();
-                }
-                else
+                if (playing)
                 {
                     var camera = new CameraModel(level.Camera, eye, new Size(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
 

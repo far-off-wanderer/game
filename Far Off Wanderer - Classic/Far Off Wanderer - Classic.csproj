@@ -103,6 +103,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MenuHandler.cs" />
+    <Compile Include="Graphics.cs" />
+    <Compile Include="Scenes\Handler.cs" />
+    <Compile Include="Scenes\Handlers.cs" />
     <Compile Include="Scenes\All.cs" />
     <Compile Include="Scenes\Loader.cs" />
     <Compile Include="Game\Data.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,21 +8,27 @@ namespace Far_Off_Wanderer
 {
     namespace Scenes
     {
-        public static class Loader
+        static class Loader
         {
-            public static TypeInfo[] SceneTypes = typeof(Scene).GetTypeInfo().Assembly.DefinedTypes
+            static TypeInfo[] SceneTypes = typeof(Scene).GetTypeInfo().Assembly.DefinedTypes
                        .Where(t => t.IsSubclassOf(typeof(Scene))).ToArray();
 
-            public static Scene GetScene(string name)
+            class BaseScene : Scene
+            {
+            }
+
+            static Scene GetScene(string name)
             {
                 var path = Path.Combine(Package.Current.InstalledLocation.Path, "Content", "Scenes", $"{name}.json");
                 var content = File.ReadAllText(path);
 
-                var scene = Newtonsoft.Json.JsonConvert.DeserializeObject<Scene>(content);
+                var scene = Newtonsoft.Json.JsonConvert.DeserializeObject<BaseScene>(content);
                 var foundTypes = SceneTypes.Where(t => string.Equals(t.Name, scene.Type, StringComparison.OrdinalIgnoreCase));
                 if (foundTypes.Any())
                 {
-                    return (Scene)Newtonsoft.Json.JsonConvert.DeserializeObject(content, foundTypes.First().AsType());
+                    var loaded = (Scene)Newtonsoft.Json.JsonConvert.DeserializeObject(content, foundTypes.First().AsType());
+                    loaded.Name = name;
+                    return loaded;
                 }
                 else
                 {

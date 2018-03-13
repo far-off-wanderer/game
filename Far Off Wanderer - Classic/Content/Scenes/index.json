@@ -1,9 +1,17 @@
 ﻿{
   "type": "menu",
-  "background": [ "titlescreen-portrait", "titlescreen-landscape" ],
-  "next": {
-    "start": "level",
-    "settings": "settings",
-    "exit": "exit"
-  }
+  "background": {
+    "portrait": {
+      "name": "titlescreen-portrait",
+      "width": 1080,
+      "height": 1920
+    },
+    "landscape": {
+      "name": "titlescreen-landscape",
+      "width": 1836,
+      "height": 1200
+    }
+  },
+  "nextScene": "level",
+  "timeout": 0
 }
