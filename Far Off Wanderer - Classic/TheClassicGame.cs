@@ -37,9 +37,6 @@
         Texture2D titleScreenLandscape;
         Texture2D titleScreenPortrait;
         bool playing;
-        bool startPlayingKeyup;
-        bool startPlayingButtonup;
-        bool startPlayingTouchup;
 
         RenderTarget2D leftEye;
         RenderTarget2D rightEye;
@@ -87,9 +84,6 @@
             graphics.PresentationParameters.PresentationInterval = PresentInterval.Immediate;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            titleScreenLandscape = Content.Load<Texture2D>("titlescreen-landscape");
-            titleScreenPortrait = Content.Load<Texture2D>("titlescreen-portrait");
 
             environment = new Environment()
             {
@@ -158,37 +152,6 @@
             if (!playing)
             {
                 StartGame();
-                //if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                //{
-                //    //Exit();
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
-                //{
-                //    startPlayingKeyup = true;
-                //}
-                //if (Keyboard.GetState().IsKeyDown(Keys.Space) && startPlayingKeyup == true)
-                //{
-                //    startPlayingKeyup = false;
-                //    StartGame();
-                //}
-                //if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
-                //{
-                //    startPlayingButtonup = true;
-                //}
-                //if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) && startPlayingKeyup == true)
-                //{
-                //    startPlayingButtonup = false;
-                //    StartGame();
-                //}
-                //if (TouchPanel.GetState().Count == 0)
-                //{
-                //    startPlayingTouchup = true;
-                //}
-                //if (TouchPanel.GetState().Count > 0 && startPlayingTouchup == true)
-                //{
-                //    startPlayingTouchup = false;
-                //    StartGame();
-                //}
             }
             else
             {

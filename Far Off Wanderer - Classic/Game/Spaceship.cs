@@ -84,7 +84,7 @@ namespace Far_Off_Wanderer
             if (readyToShoot && shooting)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
-                Environment.Sounds[Data.LaserSound].Play(1 / (1 + dst / 5000), 0, 0);
+                //Environment.Sounds[Data.LaserSound].Play(1 / (1 + dst / 5000), 0, 0);
                 var bulletDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, Orientation));
                 var bullet = new Bullet(Position, bulletDirection, Speed * 100 + 6250);
                 bullet.Position += (bullet.Radius + Radius) * 2 * bulletDirection;
@@ -285,8 +285,8 @@ namespace Far_Off_Wanderer
             if (Alive == true)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
-                Environment.Sounds[Data.ExplosionSound].Play(1 / (1 + dst / 5000), 0, 0);
-                Environment.TriggerVibration(1 / (1 + dst));
+                //Environment.Sounds[Data.ExplosionSound].Play(1 / (1 + dst / 5000), 0, 0);
+                //Environment.TriggerVibration(1 / (1 + dst));
             }
             Alive = false;
             yield return new Explosion(

@@ -1,4 +1,6 @@
-﻿namespace Far_Off_Wanderer
+﻿using System;
+
+namespace Far_Off_Wanderer
 {
     namespace Scenes
     {
@@ -17,8 +19,8 @@
             public class BackgroundLayoutImage
             {
                 public string Name { get; set; }
-                public int Width { get; set; }
-                public int Height { get; set; }
+                public int? Width { get; set; }
+                public int? Height { get; set; }
             }
         }
     }

@@ -2,7 +2,10 @@
 {
     using Far_Off_Wanderer.Scenes;
     using Microsoft.Xna.Framework;
+    using System;
     using System.Diagnostics;
+    using System.Linq;
+    using System.Reflection;
 
     internal class Startup : Game
     {
@@ -23,7 +26,15 @@
             
             handlers = new Handlers();
 
-            handlers.Add(new MenuHandler());
+            var handlerTypes = typeof(Handler).GetTypeInfo().Assembly.DefinedTypes
+                       .Where(t => t.IsSubclassOf(typeof(Handler)) && t.IsGenericType == false && t.BaseType.GetTypeInfo().IsGenericType);
+
+            foreach(var handler in handlerTypes)
+            {
+                var generic = handler.BaseType.GetTypeInfo().GenericTypeArguments.First();
+                var instance = Activator.CreateInstance(handler.AsType()) as Handler;
+                handlers.Add(generic, instance);
+            }
 
             handlers.Run(All.Load());
 
@@ -52,7 +63,7 @@
             base.Update(gameTime);
             if(handlers.IsActive)
             {
-                handlers.Update(gameTime);
+                handlers.Update(gameTime, graphics);
             }
             else
             {

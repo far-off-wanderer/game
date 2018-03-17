@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
@@ -12,23 +13,53 @@ namespace Far_Off_Wanderer
 
         public Texture2D GetTexture(string textureName)
         {
-            if (Textures.ContainsKey(textureName) == false)
+            if (textures.ContainsKey(textureName) == false)
             {
-                Textures[textureName] = ContentManager.Load<Texture2D>(textureName);
+                textures[textureName] = ContentManager.Load<Texture2D>(textureName);
             }
-            return Textures[textureName];
+            return textures[textureName];
         }
 
         public Model GetModel(string modelName)
         {
-            if (Models.ContainsKey(modelName) == false)
+            if (models.ContainsKey(modelName) == false)
             {
-                Models[modelName] = ContentManager.Load<Model>(modelName);
+                models[modelName] = ContentManager.Load<Model>(modelName);
             }
-            return Models[modelName];
+            return models[modelName];
         }
 
-        Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>();
-        Dictionary<string, Model> Models = new Dictionary<string, Model>();
+        public SoundEffect GetSoundEffect(string soundEffectName)
+        {
+            if(soundEffects.ContainsKey(soundEffectName) == false)
+            {
+                soundEffects[soundEffectName] = ContentManager.Load<SoundEffect>(soundEffectName);
+            }
+            return soundEffects[soundEffectName];
+        }
+
+        public SpriteFont GetSpriteFont(string spriteFontName)
+        {
+            if(spriteFonts.ContainsKey(spriteFontName) == false)
+            {
+                spriteFonts[spriteFontName] = ContentManager.Load<SpriteFont>(spriteFontName);
+            }
+            return spriteFonts[spriteFontName];
+        }
+
+        public Terrain GetTerrain(string terrainName)
+        {
+            if(terrains.ContainsKey(terrainName) == false)
+            {
+                //terrains[terrainName] = something;
+            }
+            return terrains[terrainName];
+        }
+
+        Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        Dictionary<string, Model> models = new Dictionary<string, Model>();
+        Dictionary<string, SoundEffect> soundEffects = new Dictionary<string, SoundEffect>();
+        Dictionary<string, SpriteFont> spriteFonts = new Dictionary<string, SpriteFont>();
+        Dictionary<string, Terrain> terrains = new Dictionary<string, Terrain>();
     }
 }

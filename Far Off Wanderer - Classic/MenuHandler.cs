@@ -56,7 +56,7 @@ namespace Far_Off_Wanderer
                 var output = new Rectangle();
                 var image = screenAspect > 1 ? scene.Background.Landscape : scene.Background.Portrait;
                 var texture = graphics.GetTexture(image.Name);
-                var (Width, Height) = (image.Width, image.Height);
+                var (Width, Height) = (image.Width ?? texture.Width, image.Height ?? texture.Height);
                 var titleAspect = (float)Width / Height;
                 if (titleAspect > screenAspect)
                 {

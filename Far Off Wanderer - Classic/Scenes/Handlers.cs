@@ -11,14 +11,20 @@
         All all;
         Scene current;
         bool active = true;
+        bool begin = true;
 
         public bool IsActive => active;
 
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, Graphics graphics)
         {
             if (SceneHandlers.ContainsKey(current.GetType()))
             {
-                SceneHandlers[current.GetType()]?.Update?.Invoke(current, gameTime);
+                if (begin)
+                {
+                    SceneHandlers[current.GetType()].Begin?.Invoke(current, graphics);
+                    begin = false;
+                }
+                SceneHandlers[current.GetType()].Update?.Invoke(current, gameTime);
             }
             else
             {
@@ -28,7 +34,10 @@
 
         public void Draw(Graphics graphics)
         {
-            SceneHandlers[current.GetType()]?.Draw?.Invoke(current, graphics);
+            if(SceneHandlers.ContainsKey(current.GetType()) && !begin)
+            {
+                SceneHandlers[current.GetType()].Draw?.Invoke(current, graphics);
+            }
         }
 
         public void Add<T>(Handler<T> handler) where T : Scene
@@ -54,6 +63,7 @@
         public void RunNext(string scene)
         {
             current = all.Scenes.FirstOrDefault(s => s.Name == scene);
+            begin = true;
         }
 
         public void Run(All all)
