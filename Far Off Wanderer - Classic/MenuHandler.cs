@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
+using System.Collections.Generic;
 
 namespace Far_Off_Wanderer
 {
@@ -11,6 +13,15 @@ namespace Far_Off_Wanderer
             var startPlayingKeyup = false;
             var startPlayingButtonup = false;
             var startPlayingTouchup = false;
+
+            var textures = new Dictionary<string, Texture2D>();
+
+            Begin = (scene, content) =>
+            {
+                var bg = scene.Background;
+                textures.Add(bg.Portrait.Name, content.GetTexture(bg.Portrait.Name));
+                textures.Add(bg.Landscape.Name, content.GetTexture(bg.Landscape.Name));
+            };
 
             Update = (scene, gameTime) =>
             {
@@ -55,7 +66,7 @@ namespace Far_Off_Wanderer
                 var screenAspect = (float)screen.Width / screen.Height;
                 var output = new Rectangle();
                 var image = screenAspect > 1 ? scene.Background.Landscape : scene.Background.Portrait;
-                var texture = graphics.GetTexture(image.Name);
+                var texture = textures[image.Name];
                 var (Width, Height) = (image.Width ?? texture.Width, image.Height ?? texture.Height);
                 var titleAspect = (float)Width / Height;
                 if (titleAspect > screenAspect)

@@ -13,7 +13,6 @@ namespace Far_Off_Wanderer
     {
         public LevelHandler()
         {
-            var startTime = default(TimeSpan?);
             var dead = false;
             var won = false;
             var started = false;
@@ -24,7 +23,7 @@ namespace Far_Off_Wanderer
             var fadeIn = 0f;
             var fadeInTime = 0.25f;
             var playing = true;
-            var sinceStart = default(TimeSpan);
+            var runtime = default(TimeSpan);
             var environment = new Environment()
             {
                 Random = new Random(),
@@ -34,6 +33,9 @@ namespace Far_Off_Wanderer
             var accelerometer = new Accelerometer();
             var terrain = default(Terrain);
 
+            var models = new Dictionary<string, Model>();
+            var textures = new Dictionary<string, Texture2D>();
+            var spriteFonts = new Dictionary<string, SpriteFont>();
 
             var leftEye = default(RenderTarget2D);
             var rightEye = default(RenderTarget2D);
@@ -42,7 +44,7 @@ namespace Far_Off_Wanderer
             {
                 level = new Level(environment);
 
-                startTime = null;
+                runtime = TimeSpan.Zero;
                 dead = false;
                 won = false;
                 fadeOut = null;
@@ -90,7 +92,7 @@ namespace Far_Off_Wanderer
                 playing = false;
             }
 
-            void UpdateFadeout(GameTime e)
+            void UpdateFadeout(TimeSpan e)
             {
 
                 if (fadeOut.HasValue == false)
@@ -99,7 +101,7 @@ namespace Far_Off_Wanderer
                 }
                 else
                 {
-                    fadeOut += (float)e.ElapsedGameTime.TotalSeconds / 3;
+                    fadeOut += (float)e.TotalSeconds / 3;
                     if (fadeOut > 1)
                     {
                         fadeOut = 1;
@@ -107,55 +109,53 @@ namespace Far_Off_Wanderer
                 }
             }
 
-            Begin = (scene, graphics) =>
+            Begin = (scene, content) =>
             {
                 var modelNames = new[] { Data.Ship, Data.Drone, Data.Spaceship };
-                var models = modelNames.Select(name => new
+                var loadedModels = modelNames.Select(name => new
                 {
                     Name = name,
-                    Model = graphics.GetModel(name)
+                    Model = content.GetModel(name)
                 });
-                var boundaries = models.Select(m => new
+                var boundaries = loadedModels.Select(m => new
                 {
                     m.Name,
                     Boundary = m.Model.Meshes.Select(mesh => mesh.BoundingSphere).Aggregate((a, b) => BoundingSphere.CreateMerged(a, b))
                 });
                 environment.ModelBoundaries = boundaries.ToDictionary(b => b.Name, b => b.Boundary);
 
+                foreach(var name in modelNames)
+                {
+                    models.Add(name, content.GetModel(name));
+                }
+
+                var textureNames = new[] { Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
+
+                foreach(var name in textureNames)
+                {
+                    textures.Add(name, content.GetTexture(name));
+                }
+
+                var spriteFontNames = new[] { Data.Font };
+
+                foreach(var name in spriteFontNames)
+                {
+                    spriteFonts.Add(name, content.GetSpriteFont(name));
+                }
+
                 terrain = new Terrain(
                     position: Vector3.Down * 64 * 10,
                     size: new Vector3(1024 * 128, 256 * 40, 1024 * 128)
                 );
                 environment.Range = terrain.Size.X;
-                terrain.LoadFromTexture2D(graphics.GetTexture(Data.LandscapeGround), environment);
-
-                leftEye = new RenderTarget2D(
-                    graphics.GraphicsDevice,
-                    graphics.GraphicsDevice.DisplayMode.Width,
-                    graphics.GraphicsDevice.DisplayMode.Height,
-                    false,
-                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
-                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
-                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
-                    RenderTargetUsage.PlatformContents
-                );
-                rightEye = new RenderTarget2D(
-                    graphics.GraphicsDevice,
-                    graphics.GraphicsDevice.DisplayMode.Width,
-                    graphics.GraphicsDevice.DisplayMode.Height,
-                    false,
-                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
-                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
-                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
-                    RenderTargetUsage.PlatformContents
-                );
+                terrain.LoadFromTexture2D(content.GetTexture(Data.LandscapeGround), environment);
 
                 StartGame();
             };
 
-            Update = (scene, gameTime) =>
+            Update = (scene, timeSpan) =>
             {
-                environment.Update(gameTime.ElapsedGameTime);
+                environment.Update(timeSpan);
 
                 if (!playing)
                 {
@@ -167,29 +167,19 @@ namespace Far_Off_Wanderer
                     {
                         OnGameOver();
                     }
-                    var e = new
-                    {
-                        TotalTime = gameTime.TotalGameTime,
-                        ElapsedTime = gameTime.ElapsedGameTime
-                    };
 
                     environment.Acceleration = accelerometer.Acceleration;
                     environment.ActiveCamera = level.Camera;
                     environment.Flipped = false; // Orientation == PageOrientation.LandscapeRight;
 
+                    
 
+                    runtime += timeSpan;
 
-                    if (startTime.HasValue == false)
-                    {
-                        startTime = e.TotalTime;
-                    }
-
-                    sinceStart = e.TotalTime - startTime.Value;
-
-                    fadeIn = Math.Min((float)sinceStart.TotalSeconds / fadeInTime, 1);
+                    fadeIn = Math.Min((float)runtime.TotalSeconds / fadeInTime, 1);
 
                     level.UpdateScene(
-                        ElapsedTime: sinceStart.TotalSeconds > fadeInTime ? e.ElapsedTime : TimeSpan.Zero,
+                        ElapsedTime: runtime.TotalSeconds > fadeInTime ? timeSpan : TimeSpan.Zero,
                         Yaw: GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.X,
                         Pitch: GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y,
                         ZoomIn: GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp)
@@ -209,7 +199,7 @@ namespace Far_Off_Wanderer
                         }
                         dead = true;
                         CheckForExitClick();
-                        UpdateFadeout(gameTime);
+                        UpdateFadeout(timeSpan);
                     }
                     else if (level.Objects3D.OfType<Spaceship>().Count() == 1 && dead == false)
                     {
@@ -220,7 +210,7 @@ namespace Far_Off_Wanderer
                         }
                         won = true;
                         CheckForExitClick();
-                        UpdateFadeout(gameTime);
+                        UpdateFadeout(timeSpan);
                     }
                 }
             };
@@ -228,6 +218,28 @@ namespace Far_Off_Wanderer
             Draw = (scene, graphics) =>
             {
                 environment.ScreenSize = new Size(graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height);
+
+                leftEye = leftEye ?? new RenderTarget2D(
+                    graphics.GraphicsDevice,
+                    graphics.GraphicsDevice.DisplayMode.Width,
+                    graphics.GraphicsDevice.DisplayMode.Height,
+                    false,
+                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
+                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
+                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
+                    RenderTargetUsage.PlatformContents
+                );
+                rightEye = rightEye ?? new RenderTarget2D(
+                    graphics.GraphicsDevice,
+                    graphics.GraphicsDevice.DisplayMode.Width,
+                    graphics.GraphicsDevice.DisplayMode.Height,
+                    false,
+                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
+                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
+                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
+                    RenderTargetUsage.PlatformContents
+                );
+
                 var views = new[] {
                 (
                     target: leftEye,
@@ -290,7 +302,7 @@ namespace Far_Off_Wanderer
 
                         foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
                         {
-                            var model = graphics.GetModel(spaceship.Id);
+                            var model = models[spaceship.Id];
 
                             model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
                         }
@@ -323,7 +335,7 @@ namespace Far_Off_Wanderer
                             for (var x = -range; x <= range; x++)
                             {
                                 terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
-                                terrain.Draw(basicEffect, graphics.GetTexture(Data.Grass));
+                                terrain.Draw(basicEffect, textures[Data.Grass]);
                             }
                         }
                         terrain.Position = terrainPosition;
@@ -338,7 +350,7 @@ namespace Far_Off_Wanderer
                             var distance = (explosion.Position - level.Camera.Position).Length();
                             if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                             {
-                                var sprite = graphics.GetTexture(Data.Sparkle);
+                                var sprite = textures[Data.Sparkle];
                                 var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
                                 width *= 4f;
                                 if (explosion.Id == Data.Fireball)
@@ -361,7 +373,7 @@ namespace Far_Off_Wanderer
                             var distance = (bullet.Position - level.Camera.Position).Length();
                             if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                             {
-                                var sprite = graphics.GetTexture(bullet.Id);
+                                var sprite = textures[bullet.Id];
                                 var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
                                 width *= 8f;
                                 var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
@@ -375,25 +387,25 @@ namespace Far_Off_Wanderer
 
                         var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
                         var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
-                        var enemyCountSize = graphics.GetSpriteFont(Data.Font).MeasureString(enemyCountText).X;
+                        var enemyCountSize = spriteFonts[Data.Font].MeasureString(enemyCountText).X;
 
                         var objectCount = level.Objects3D.Count();
                         var objectCountText = objectCount.ToString();
-                        var objectCountSize = graphics.GetSpriteFont(Data.Font).MeasureString(objectCountText).X;
+                        var objectCountSize = spriteFonts[Data.Font].MeasureString(objectCountText).X;
 
                         var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
                         graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
 
-                        graphics.SpriteBatch.DrawString(graphics.GetSpriteFont(Data.Font), enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+                        graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
 
-                        graphics.SpriteBatch.DrawString(graphics.GetSpriteFont(Data.Font), objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
+                        graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
 
                         if (fadeOut.HasValue)
                         {
-                            graphics.SpriteBatch.Draw(graphics.GetTexture(Data.BlackBackground), new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
+                            graphics.SpriteBatch.Draw(textures[Data.BlackBackground], new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
 
-                            var splashTexture = graphics.GetTexture(won ? Data.GameWonOverlay : Data.GameOverOverlay);
+                            var splashTexture = textures[won ? Data.GameWonOverlay : Data.GameOverOverlay];
                             var (Width, Height) = (1280, 768);
 
                             var screen = graphics.GraphicsDevice.Viewport;

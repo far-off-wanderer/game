@@ -103,6 +103,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Content.cs" />
     <Compile Include="LevelHandler.cs" />
     <Compile Include="MenuHandler.cs" />
     <Compile Include="Graphics.cs" />

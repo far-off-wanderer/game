@@ -1,6 +1,5 @@
 ﻿namespace Far_Off_Wanderer.Scenes
 {
-    using Microsoft.Xna.Framework;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -15,16 +14,16 @@
 
         public bool IsActive => active;
 
-        public void Update(GameTime gameTime, Graphics graphics)
+        public void Update(TimeSpan timeSpan, Content content)
         {
             if (SceneHandlers.ContainsKey(current.GetType()))
             {
                 if (begin)
                 {
-                    SceneHandlers[current.GetType()].Begin?.Invoke(current, graphics);
+                    SceneHandlers[current.GetType()].Begin?.Invoke(current, content);
                     begin = false;
                 }
-                SceneHandlers[current.GetType()].Update?.Invoke(current, gameTime);
+                SceneHandlers[current.GetType()].Update?.Invoke(current, timeSpan);
             }
             else
             {

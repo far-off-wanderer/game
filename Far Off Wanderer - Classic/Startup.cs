@@ -14,6 +14,7 @@
 
         Handlers handlers;
         Graphics graphics;
+        Content content;
 
         public Startup()
         {
@@ -47,8 +48,11 @@
             graphics = new Graphics
             {
                 GraphicsDevice = manager.GraphicsDevice,
-                ContentManager = Content,
                 SpriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice)
+            };
+            content = new Content
+            {
+                ContentManager = Content
             };
             theClassicGame.Initialize();
         }
@@ -63,7 +67,7 @@
             base.Update(gameTime);
             if(handlers.IsActive)
             {
-                handlers.Update(gameTime, graphics);
+                handlers.Update(gameTime.ElapsedGameTime, content);
             }
             else
             {

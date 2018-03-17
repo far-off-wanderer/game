@@ -111,6 +111,11 @@ namespace Far_Off_Wanderer
                 camera.ZoomIn = ZoomIn;
             }
 
+            if(ElapsedTime == TimeSpan.Zero)
+            {
+                return;
+            }
+
             var newObjects = new List<Object3D>();
             foreach (var objects3d in objects3D)
             {
