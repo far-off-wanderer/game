@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Windows.Foundation;
 
@@ -57,41 +58,6 @@ namespace Far_Off_Wanderer
                 playing = true;
             }
 
-            void CheckForExitClick()
-            {
-                if (TouchPanel.GetState().Count == 0)
-                {
-                    gameOverTouch = true;
-                }
-                if (TouchPanel.GetState().Count > 0 && gameOverTouch == true)
-                {
-                    OnGameOver();
-                }
-
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
-                {
-                    gameOverKeyboard = true;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) == true && gameOverKeyboard == true)
-                {
-                    OnGameOver();
-                }
-
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
-                {
-                    gameOverGamepad = true;
-                }
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == true && gameOverGamepad == true)
-                {
-                    OnGameOver();
-                }
-            }
-
-            void OnGameOver()
-            {
-                playing = false;
-            }
-
             void UpdateFadeout(TimeSpan e)
             {
 
@@ -126,21 +92,22 @@ namespace Far_Off_Wanderer
 
                 foreach(var name in modelNames)
                 {
-                    models.Add(name, content.GetModel(name));
+                    models[name] = content.GetModel(name);
                 }
 
-                var textureNames = new[] { Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
+                var textureNames = new[] { scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
+                textureNames = textureNames.Distinct().Where(n => n != null).ToArray();
 
                 foreach(var name in textureNames)
                 {
-                    textures.Add(name, content.GetTexture(name));
+                    textures[name] = content.GetTexture(name);
                 }
 
                 var spriteFontNames = new[] { Data.Font };
 
                 foreach(var name in spriteFontNames)
                 {
-                    spriteFonts.Add(name, content.GetSpriteFont(name));
+                    spriteFonts[name] = content.GetSpriteFont(name);
                 }
 
                 terrain = new Terrain(
@@ -156,6 +123,49 @@ namespace Far_Off_Wanderer
             Update = (scene, timeSpan) =>
             {
                 environment.Update(timeSpan);
+
+                void CheckForExitClick()
+                {
+                    if (TouchPanel.GetState().Count == 0)
+                    {
+                        gameOverTouch = true;
+                    }
+                    if (TouchPanel.GetState().Count > 0 && gameOverTouch == true)
+                    {
+                        OnGameOver();
+                    }
+
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
+                    {
+                        gameOverKeyboard = true;
+                    }
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space) == true && gameOverKeyboard == true)
+                    {
+                        OnGameOver();
+                    }
+
+                    if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
+                    {
+                        gameOverGamepad = true;
+                    }
+                    if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == true && gameOverGamepad == true)
+                    {
+                        OnGameOver();
+                    }
+                }
+
+                void OnGameOver()
+                {
+                    playing = false;
+                    if (won)
+                    {
+                        OnNext(scene.On.Won);
+                    }
+                    else
+                    {
+                        OnNext(scene.On.GameOver);
+                    }
+                }
 
                 if (!playing)
                 {
@@ -212,6 +222,15 @@ namespace Far_Off_Wanderer
                         CheckForExitClick();
                         UpdateFadeout(timeSpan);
                     }
+                    if(Keyboard.GetState().IsKeyDown(Keys.O))
+                    {
+                        won = true;
+                    }
+                    if(won == true || dead == true)
+                    {
+                        CheckForExitClick();
+                        UpdateFadeout(timeSpan);
+                    }
                 }
             };
 
@@ -240,28 +259,29 @@ namespace Far_Off_Wanderer
                     RenderTargetUsage.PlatformContents
                 );
 
-                var views = new[] {
-                (
-                    target: leftEye,
-//                    area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
-                    area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2),
-                    eye: -30f
-                ),
-                (
-                    target: rightEye,
-//                    area: new Rectangle(graphics.GraphicsDevice.Viewport.Width - graphics.GraphicsDevice.Viewport.Width / 2, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
-                    area: new Rectangle(0, graphics.GraphicsDevice.Viewport.Height - graphics.GraphicsDevice.Viewport.Height / 2, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2),
-                    eye: 30f
-                )
-            };
+                var views = new[]
+                {
+                    (
+                        target: leftEye,
+    //                    area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
+                        area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2),
+                        eye: -30f
+                    ),
+                    (
+                        target: rightEye,
+    //                    area: new Rectangle(graphics.GraphicsDevice.Viewport.Width - graphics.GraphicsDevice.Viewport.Width / 2, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
+                        area: new Rectangle(0, graphics.GraphicsDevice.Viewport.Height - graphics.GraphicsDevice.Viewport.Height / 2, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2),
+                        eye: 30f
+                    )
+                };
                 views = new[]
                 {
-                (
-                    target: leftEye,
-                    area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height),
-                    eye: 0f
-                )
-            };
+                    (
+                        target: leftEye,
+                        area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height),
+                        eye: 0f
+                    )
+                };
                 foreach (var (target, area, eye) in views)
                 {
                     graphics.GraphicsDevice.SetRenderTarget(target);
@@ -271,7 +291,9 @@ namespace Far_Off_Wanderer
 
                         var basicEffect = new BasicEffect(graphics.GraphicsDevice);
 
-                        graphics.GraphicsDevice.Clear(level.Skybox.Color);
+                        var backgroundColor = scene.Environment.BackgroundColor.ToColor();
+
+                        graphics.GraphicsDevice.Clear(backgroundColor);
 
                         graphics.GraphicsDevice.BlendState = BlendState.Opaque;
                         graphics.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -282,8 +304,8 @@ namespace Far_Off_Wanderer
                         basicEffect.TextureEnabled = true;
                         basicEffect.VertexColorEnabled = false;
                         basicEffect.FogEnabled = true;
-                        basicEffect.FogColor = level.Skybox.Color.ToVector3();
-                        basicEffect.FogStart = 10f;
+                        basicEffect.FogColor = backgroundColor.ToVector3();
+                        basicEffect.FogStart = MathHelper.Lerp(20000f, 10f, scene.Environment.Fog);
                         basicEffect.FogEnd = 75000f;
 
                         basicEffect.DirectionalLight0.Enabled = true;
@@ -335,7 +357,9 @@ namespace Far_Off_Wanderer
                             for (var x = -range; x <= range; x++)
                             {
                                 terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
-                                terrain.Draw(basicEffect, textures[Data.Grass]);
+                                var color = scene.Surface.Color.ToColor();
+                                var texture = scene.Surface.Texture != null ? textures[scene.Surface.Texture] : null;
+                                terrain.Draw(basicEffect, color, texture);
                             }
                         }
                         terrain.Position = terrainPosition;
@@ -445,6 +469,36 @@ namespace Far_Off_Wanderer
                 }
                 graphics.SpriteBatch.End();
             };
+        }
+    }
+
+    static class ColorHelper
+    {
+        public static Color ToColor(this string hex)
+        {
+            //remove the # at the front
+            hex = hex.Replace("#", "");
+
+            byte a = 255;
+            byte r = 255;
+            byte g = 255;
+            byte b = 255;
+
+            int start = 0;
+
+            //handle ARGB strings (8 characters long)
+            if (hex.Length == 8)
+            {
+                a = byte.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
+                start = 2;
+            }
+
+            //convert RGB characters to bytes
+            r = byte.Parse(hex.Substring(start, 2), NumberStyles.HexNumber);
+            g = byte.Parse(hex.Substring(start + 2, 2), NumberStyles.HexNumber);
+            b = byte.Parse(hex.Substring(start + 4, 2), NumberStyles.HexNumber);
+
+            return new Color(r, g, b, a);
         }
     }
 }

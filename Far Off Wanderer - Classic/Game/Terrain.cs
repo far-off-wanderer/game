@@ -76,7 +76,7 @@ namespace Far_Off_Wanderer
                 }
             }
 
-            var grid = new VertexPositionColorTexture[DataWidth * DataWidth];
+            var grid = new VertexPositionNormalTexture[DataWidth * DataWidth];
 
             var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
 
@@ -125,7 +125,7 @@ namespace Far_Off_Wanderer
                     var shade = Vector3.Dot(normal, light);
                     var snowColor = new Vector3(1, 1, 1);
                     var grassColor = new Vector3(0.1f, 0.4f, 0.01f);
-                    grassColor = new Vector3(0.01f, 0.01f, 0.01f);
+                    //grassColor = new Vector3(0.01f, 0.01f, 0.01f);
                     {
                         c -= 0.7f;
                         c *= 2f;
@@ -165,14 +165,16 @@ namespace Far_Off_Wanderer
                         colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
                     }
 
-                    grid[x + DataWidth * y] = new VertexPositionColorTexture(Point, color, texcoord * 64);
+                    color = Color.White * shade;
+
+                    grid[x + DataWidth * y] = new VertexPositionNormalTexture(Point, normal, texcoord * 64);
                 }
             }
 
             // optimizing.. for now
             Environment.StaticColliders = hasCache ? Colliders.ToArray() : Colliders.Where(c => Math.Abs(c.Position.Y) <= halfWidthOfSmallerStepSize).ToArray();
 
-            vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionColorTexture), grid.Length, BufferUsage.WriteOnly);
+            vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionNormalTexture), grid.Length, BufferUsage.WriteOnly);
             vertices.SetData(grid);
 
             var indexList = new short[(DataWidth + 1) * 2];
@@ -196,11 +198,12 @@ namespace Far_Off_Wanderer
             Environment.DistanceField = DistanceField;
         }
 
-        void DrawFirst(BasicEffect b, Texture2D texture = null)
+        void DrawFirst(BasicEffect b, Color color, Texture2D texture)
         {
             b.LightingEnabled = false;
+            b.PreferPerPixelLighting = true;
             b.TextureEnabled = texture != null;
-            b.VertexColorEnabled = true;
+            b.VertexColorEnabled = false;
             b.Texture = texture;
             b.GraphicsDevice.SamplerStates[0] = new SamplerState
             {
@@ -209,6 +212,9 @@ namespace Far_Off_Wanderer
                 MaxAnisotropy = 8,
                 Filter = TextureFilter.Anisotropic
             };
+
+            var diffuseColor = b.DiffuseColor;
+            b.DiffuseColor = color.ToVector3();
 
             b.GraphicsDevice.SetVertexBuffer(vertices);
             b.GraphicsDevice.Indices = indicees;
@@ -228,15 +234,17 @@ namespace Far_Off_Wanderer
             }
 
             b.World = world;
+
+            b.DiffuseColor = diffuseColor;
         }
 
-        public void Draw(BasicEffect b, Texture2D texture = null)
+        public void Draw(BasicEffect b, Color color, Texture2D texture)
         {
 
             b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             b.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
             b.GraphicsDevice.BlendState = BlendState.Opaque;
-            DrawFirst(b, texture);
+            DrawFirst(b, color, texture);
         }
     }
 }

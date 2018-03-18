@@ -19,8 +19,8 @@ namespace Far_Off_Wanderer
             Begin = (scene, content) =>
             {
                 var bg = scene.Background;
-                textures.Add(bg.Portrait.Name, content.GetTexture(bg.Portrait.Name));
-                textures.Add(bg.Landscape.Name, content.GetTexture(bg.Landscape.Name));
+                textures[bg.Portrait.Name] = content.GetTexture(bg.Portrait.Name);
+                textures[bg.Landscape.Name] = content.GetTexture(bg.Landscape.Name);
             };
 
             Update = (scene, gameTime) =>

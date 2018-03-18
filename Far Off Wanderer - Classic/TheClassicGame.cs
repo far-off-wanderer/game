@@ -368,7 +368,7 @@
                         for (var x = -range; x <= range; x++)
                         {
                             terrain.Position = terrainPosition + new Vector3(x * terrain.Size.X, 0, z * terrain.Size.Z);
-                            terrain.Draw(basicEffect, resources.Sprites[Data.Grass]);
+                            terrain.Draw(basicEffect, Color.White, resources.Sprites[Data.Grass]);
                         }
                     }
                     terrain.Position = terrainPosition;

@@ -26,7 +26,7 @@ namespace Far_Off_Wanderer
             players = new List<Player>();
             objects3D = new List<Object3D>();
             var random = new Random();
-            int factor = 3;
+            int factor = 1;
             objects3D.Add(new Spaceship(
                 id: Data.Ship,
                 position: Vector3.Zero,

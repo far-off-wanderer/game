@@ -1,0 +1,17 @@
+﻿{
+  "type": "menu",
+  "background": {
+    "portrait": {
+      "name": "overlays/gamewon",
+      "width": 1280,
+      "height": 768
+    },
+    "landscape": {
+      "name": "overlays/gamewon",
+      "width": 1280,
+      "height": 768
+    }
+  },
+  "nextScene": "index",
+  "timeout": 0
+}

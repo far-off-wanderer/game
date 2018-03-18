@@ -1,0 +1,15 @@
+﻿{
+  "type": "level",
+  "environment": {
+    "backgroundColor": "#44AAFF",
+    "fog": 0
+  },
+  "surface": {
+    "textured": null,
+    "color": "#33573E"
+  },
+  "on": {
+    "won": "level 2",
+    "gameover": "level 1"
+  }
+}
