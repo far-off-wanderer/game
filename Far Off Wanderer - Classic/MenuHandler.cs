@@ -1,64 +1,48 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Input.Touch;
 using System.Collections.Generic;
 
 namespace Far_Off_Wanderer
 {
     class MenuHandler : Scenes.Handler<Scenes.Menu>
     {
-        public MenuHandler()
+        class InputActions
         {
-            var startPlayingKeyup = false;
-            var startPlayingButtonup = false;
-            var startPlayingTouchup = false;
+            Input input;
 
+            public InputActions(Input input) => this.input = input;
+
+            public bool CanceledFromScreen => input.TouchKeys.OnBackButton || input.Keyboard.On[(int)Keys.Escape];
+            public bool ContinuesToNextScreen => input.Keyboard.On[(int)Keys.Space] || input.GamePad.On[Buttons.A] || input.TouchPanel.OnTouching;
+        }
+
+        public MenuHandler(Scenes.Menu scene)
+        {
             var textures = new Dictionary<string, Texture2D>();
 
-            Begin = (scene, content) =>
+            Begin = content =>
             {
                 var bg = scene.Background;
                 textures[bg.Portrait.Name] = content.GetTexture(bg.Portrait.Name);
                 textures[bg.Landscape.Name] = content.GetTexture(bg.Landscape.Name);
             };
 
-            Update = (scene, gameTime) =>
+            Update = (gameTime, input) =>
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                var actions = new InputActions(input);
+
+                if(actions.CanceledFromScreen)
                 {
-                    //Exit();
+                    OnNext(scene.On.Cancel);
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) == false)
+                if(actions.ContinuesToNextScreen)
                 {
-                    startPlayingKeyup = true;
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.Space) && startPlayingKeyup == true)
-                {
-                    startPlayingKeyup = false;
-                    OnNext(scene.NextScene);
-                }
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) == false)
-                {
-                    startPlayingButtonup = true;
-                }
-                if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.A) && startPlayingButtonup == true)
-                {
-                    startPlayingButtonup = false;
-                    OnNext(scene.NextScene);
-                }
-                if (TouchPanel.GetState().Count == 0)
-                {
-                    startPlayingTouchup = true;
-                }
-                if (TouchPanel.GetState().Count > 0 && startPlayingTouchup == true)
-                {
-                    startPlayingTouchup = false;
-                    OnNext(scene.NextScene);
+                    OnNext(scene.On.Next);
                 }
             };
 
-            Draw = (scene, graphics) =>
+            Draw = graphics =>
             {
                 graphics.GraphicsDevice.Clear(Color.Black);
                 graphics.SpriteBatch.Begin();

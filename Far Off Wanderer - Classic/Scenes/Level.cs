@@ -20,6 +20,7 @@
             {
                 public string Won { get; set; }
                 public string GameOver { get; set; }
+                public string Cancel { get; set; }
             }
 
             public Environment_ Environment { get; set; }

@@ -103,7 +103,14 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ColorHelper.cs" />
     <Compile Include="Content.cs" />
+    <Compile Include="Input\GamePad.cs" />
+    <Compile Include="Input\Input.cs" />
+    <Compile Include="Input\Keyboard.cs" />
+    <Compile Include="Input\Mouse.cs" />
+    <Compile Include="Input\TouchKeys.cs" />
+    <Compile Include="Input\TouchPanel.cs" />
     <Compile Include="LevelHandler.cs" />
     <Compile Include="MenuHandler.cs" />
     <Compile Include="Graphics.cs" />
@@ -157,6 +164,8 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="Content\distancefield.cache" />
     <Content Include="Content\Scenes\**\*" />
+    <Content Include="Content\Scenes\level 4.json" />
+    <Content Include="Content\Scenes\level 3.json" />
     <None Include="Content\vessels\schiff V37.obj" />
     <None Include="Content\vessels\sonde V29.obj" />
     <None Include="Content\vic viper small junctioned.x" />

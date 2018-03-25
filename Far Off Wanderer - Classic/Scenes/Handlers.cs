@@ -3,72 +3,60 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
-    class Handlers
+    class SceneHandlers
     {
-        Dictionary<Type, Handler> SceneHandlers = new Dictionary<Type, Handler>();
+        Dictionary<Type, Type> handlers;
+        Handler current;
         All all;
-        Scene current;
-        bool active = true;
-        bool begin = true;
+        Content content;
+        Action onExit;
 
-        public bool IsActive => active;
+        public void Update(TimeSpan timeSpan, Input input) => current.Update?.Invoke(timeSpan, input);
+        public void Draw(Graphics graphics) => current.Draw?.Invoke(graphics);
 
-        public void Update(TimeSpan timeSpan, Content content)
+        public Handler Create(Scene scene)
         {
-            if (SceneHandlers.ContainsKey(current.GetType()))
-            {
-                if (begin)
-                {
-                    SceneHandlers[current.GetType()].Begin?.Invoke(current, content);
-                    begin = false;
-                }
-                SceneHandlers[current.GetType()].Update?.Invoke(current, timeSpan);
-            }
-            else
-            {
-                active = false;
-            }
-        }
-
-        public void Draw(Graphics graphics)
-        {
-            if(SceneHandlers.ContainsKey(current.GetType()) && !begin)
-            {
-                SceneHandlers[current.GetType()].Draw?.Invoke(current, graphics);
-            }
-        }
-
-        public void Add<T>(Handler<T> handler) where T : Scene
-        {
-            Add(typeof(T), handler);
-        }
-
-        public void Add(Type type, Handler handler)
-        {
-            if (SceneHandlers.ContainsKey(type) && SceneHandlers[type] != null)
-            {
-                var existing = SceneHandlers[type];
-                existing.Draw = handler.Draw ?? existing.Draw;
-                existing.Update = handler.Update ?? existing.Update;
-            }
-            else
-            {
-                SceneHandlers[type] = handler;
-            }
+            var handlerType = handlers[scene.GetType()];
+            var handler = Activator.CreateInstance(handlerType, scene) as Handler;
+            handler.Begin?.Invoke(content);
             handler.OnNext = RunNext;
+            return handler;
         }
 
-        public void RunNext(string scene)
+        public void RunNext(string sceneName)
         {
-            current = all.Scenes.FirstOrDefault(s => s.Name == scene);
-            begin = true;
+            var scene = all.Scenes.FirstOrDefault(s => s.Name == sceneName);
+            if (scene != null)
+            {
+                current = Create(scene);
+            }
+            else
+            {
+                onExit();
+            }
         }
 
-        public void Run(All all)
+        public SceneHandlers(Action onExit)
+        {
+            this.onExit = onExit;
+
+            var handlerTypes = typeof(Handler).GetTypeInfo().Assembly.DefinedTypes
+                       .Where(t => t.IsSubclassOf(typeof(Handler)) && t.IsGenericType == false && t.BaseType.GetTypeInfo().IsGenericType);
+
+            handlers = handlerTypes.Select(handler => new
+            {
+                SceneType = handler.BaseType.GetTypeInfo().GenericTypeArguments.First(),
+                HandlerType = handler.AsType()
+            }).ToDictionary(item => item.SceneType, item => item.HandlerType);
+        }
+
+        public void Run(All all, Content content)
         {
             this.all = all;
-            this.current = all.Index;
+            this.content = content;
+            this.current = Create(all.Index);
         }
     }
 }

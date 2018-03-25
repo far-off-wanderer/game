@@ -12,6 +12,8 @@
       "height": 1200
     }
   },
-  "nextScene": "level 1",
+  "on": {
+    "next": "level 1"
+  },
   "timeout": 0
 }

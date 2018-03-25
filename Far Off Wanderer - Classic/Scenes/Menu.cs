@@ -1,27 +1,31 @@
-﻿using System;
-
-namespace Far_Off_Wanderer
+﻿namespace Far_Off_Wanderer
 {
     namespace Scenes
     {
         public class Menu : Scene
         {
-            public BackgroundLayouts Background { get; set; }
-            public string NextScene { get; set; }
-            public int Timeout { get; set; }
-
-            public class BackgroundLayouts
+            public class On_
             {
-                public BackgroundLayoutImage Portrait { get; set; }
-                public BackgroundLayoutImage Landscape { get; set; }
+                public string Next { get; set; }
+                public string Cancel { get; set; }
             }
 
-            public class BackgroundLayoutImage
+            public class Background_
+            {
+                public Image_ Portrait { get; set; }
+                public Image_ Landscape { get; set; }
+            }
+
+            public class Image_
             {
                 public string Name { get; set; }
                 public int? Width { get; set; }
                 public int? Height { get; set; }
             }
+
+            public Background_ Background { get; set; }
+            public On_ On { get; set; }
+            public int Timeout { get; set; }
         }
     }
 }

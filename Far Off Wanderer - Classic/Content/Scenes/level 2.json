@@ -9,7 +9,8 @@
     "color": "#3B3C33"
   },
   "on": {
-    "won": "congratulations",
-    "gameover": "level 2"
+    "won": "level 3",
+    "gameover": "level 2",
+    "cancel": "index"
   }
 }

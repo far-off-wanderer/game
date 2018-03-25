@@ -2,19 +2,19 @@
 {
     using Far_Off_Wanderer.Scenes;
     using Microsoft.Xna.Framework;
-    using System;
+    using Microsoft.Xna.Framework.Media;
     using System.Diagnostics;
-    using System.Linq;
-    using System.Reflection;
+    using System.Threading.Tasks;
 
     internal class Startup : Game
     {
         GraphicsDeviceManager manager;
-        TheClassicGame theClassicGame;
 
-        Handlers handlers;
+        SceneHandlers handlers;
         Graphics graphics;
         Content content;
+        Input input;
+        Song song;
 
         public Startup()
         {
@@ -22,22 +22,8 @@
             {
                 IsFullScreen = Debugger.IsAttached == false
             };
-
-            theClassicGame = new TheClassicGame(manager, Content, Exit);
             
-            handlers = new Handlers();
-
-            var handlerTypes = typeof(Handler).GetTypeInfo().Assembly.DefinedTypes
-                       .Where(t => t.IsSubclassOf(typeof(Handler)) && t.IsGenericType == false && t.BaseType.GetTypeInfo().IsGenericType);
-
-            foreach(var handler in handlerTypes)
-            {
-                var generic = handler.BaseType.GetTypeInfo().GenericTypeArguments.First();
-                var instance = Activator.CreateInstance(handler.AsType()) as Handler;
-                handlers.Add(generic, instance);
-            }
-
-            handlers.Run(All.Load());
+            handlers = new SceneHandlers(onExit: Exit);
 
             Content.RootDirectory = "Content";
         }
@@ -54,43 +40,31 @@
             {
                 ContentManager = Content
             };
-            theClassicGame.Initialize();
+            input = new Input();
+            handlers.Run(All.Load(), content);
         }
 
-        protected override void LoadContent()
+        protected override async void LoadContent()
         {
             base.LoadContent();
+            song = Content.Load<Song>("ambient");
+            await Task.Delay(5000);
+            MediaPlayer.Play(song);
         }
 
         protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-            if(handlers.IsActive)
-            {
-                handlers.Update(gameTime.ElapsedGameTime, content);
-            }
-            else
-            {
-                theClassicGame.Update(gameTime);
-            }
+            input.Update();
+            handlers.Update(gameTime.ElapsedGameTime, input);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
-            if(handlers.IsActive)
-            {
-                handlers.Draw(graphics);
-            }
-            else
-            {
-                theClassicGame.Draw(gameTime);
-            }
+            handlers.Draw(graphics);
         }
 
-        internal void GoBack()
-        {
-            theClassicGame.GoBack();
-        }
+        internal void GoBack() => input.TouchKeys.TriggerBackButton();
     }
 }

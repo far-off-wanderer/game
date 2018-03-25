@@ -1,9 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
+using XNA = Microsoft.Xna.Framework.Input;
 
 namespace Far_Off_Wanderer
 {
@@ -14,12 +14,13 @@ namespace Far_Off_Wanderer
         public bool Flipped { get; set; }
         public Random Random { get; set; }
         public Dictionary<string, BoundingSphere> ModelBoundaries { get; set; }
-        public IResource<SoundEffect> Sounds { get; set; }
+        public Dictionary<string, SoundEffect> Sounds { get; set; }
         public Camera ActiveCamera { get; set; }
         public float Range { get; set; }
         public IEnumerable<Collider> StaticColliders { get; set; }
         public InfiniteTerrainDistanceField DistanceField { get; set; }
         public Grid Grid { get; set; }
+        public LevelHandler.InputActions Actions { get; set; }
 
         public Vector3 RandomDirection()
         {
@@ -59,7 +60,7 @@ namespace Far_Off_Wanderer
 //                GamePad.SetVibration(PlayerIndex.One, vibration * vibration, vibration * vibration);
             } else
             {
-                GamePad.SetVibration(PlayerIndex.One, 0, 0);
+                XNA.GamePad.SetVibration(PlayerIndex.One, 0, 0);
             }
         }
 

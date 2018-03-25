@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Input.Touch;
 using System;
 using Windows.UI.ViewManagement;
+using XNA = Microsoft.Xna.Framework.Input;
 
 namespace Far_Off_Wanderer
 {
@@ -12,10 +12,12 @@ namespace Far_Off_Wanderer
 
         public override void UpdateThinking(TimeSpan timeSpan, Environment environment)
         {
+            var actions = environment.Actions;
+
             float turnAngle = 0;
             bool shoot = false;
             StrafingDirection? strafe = null;
-            foreach (var touchPoint in TouchPanel.GetState())
+            foreach (var touchPoint in XNA.Touch.TouchPanel.GetState())
             {
                 if (touchPoint.Position.X < environment.ScreenSize.Width / 3)
                 {
@@ -32,28 +34,29 @@ namespace Far_Off_Wanderer
                     shoot = true;
                 }
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
+
+            if (actions.TurningLeft)
             {
                 turnAngle += (float)Math.PI / 5;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
+            if(actions.TurningRight)
             {
                 turnAngle -= (float)Math.PI / 5;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            if (actions.Shooting)
             {
                 shoot = true;
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Q))
+            if (actions.StrafingLeft)
             {
                 strafe = StrafingDirection.Left;
             }
-            else if (Keyboard.GetState().IsKeyDown(Keys.E))
+            else if (actions.StrafingRight)
             {
                 strafe = StrafingDirection.Right;
             }
 
-            var pad = GamePad.GetState(PlayerIndex.One);
+            var pad = XNA.GamePad.GetState(PlayerIndex.One);
             if (pad.IsConnected)
             {
                 if (pad.IsButtonDown(Buttons.DPadLeft))

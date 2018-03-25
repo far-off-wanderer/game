@@ -101,17 +101,17 @@ namespace Far_Off_Wanderer
             environment.Grid = grid;
         }
 
-        public void UpdateScene(TimeSpan ElapsedTime, float Yaw, float Pitch, bool ZoomIn)
+        public void UpdateScene(TimeSpan elapsedTime, LevelHandler.InputActions actions)
         {
             if (camera is SpaceshipFollowingCamera)
             {
                 var camera = this.camera as SpaceshipFollowingCamera;
-                camera.Yaw = Yaw;
-                camera.Pitch = Pitch;
-                camera.ZoomIn = ZoomIn;
+                camera.Yaw = actions.CameraYaw;
+                camera.Pitch = actions.CameraPitch;
+                camera.ZoomIn = actions.ZoomingIn;
             }
 
-            if(ElapsedTime == TimeSpan.Zero)
+            if(elapsedTime == TimeSpan.Zero)
             {
                 return;
             }
@@ -119,12 +119,12 @@ namespace Far_Off_Wanderer
             var newObjects = new List<Object3D>();
             foreach (var objects3d in objects3D)
             {
-                newObjects.AddRange(objects3d.Update(environment, ElapsedTime));
+                newObjects.AddRange(objects3d.Update(environment, elapsedTime));
             }
 
             foreach (var player in players)
             {
-                player.UpdateThinking(ElapsedTime, environment);
+                player.UpdateThinking(elapsedTime, environment);
             }
 
             var collidableObjects = (from object3d in objects3D
@@ -141,7 +141,7 @@ namespace Far_Off_Wanderer
 
             foreach (var newObject in newObjects)
             {
-                newObject.Update(environment, ElapsedTime);
+                newObject.Update(environment, elapsedTime);
             }
             objects3D.AddRange(newObjects);
             objects3D = objects3D.Where(obj => obj.Alive == true).ToList();

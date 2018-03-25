@@ -12,6 +12,9 @@
       "height": 768
     }
   },
-  "nextScene": "index",
+  "on": {
+    "next": "index",
+    "cancel": "index"
+  },
   "timeout": 0
 }
