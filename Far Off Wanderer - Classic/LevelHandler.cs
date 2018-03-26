@@ -111,7 +111,7 @@ namespace Far_Off_Wanderer
                     models[name] = content.GetModel(name);
                 }
 
-                var textureNames = new[] { "vignette", "LDR_LLL1_0", scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
+                var textureNames = new[] { "vignette", "Floor", "dot", "LDR_LLL1_0", scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
                 textureNames = textureNames.Distinct().Where(n => n != null).ToArray();
 
                 foreach (var name in textureNames)
@@ -426,6 +426,33 @@ namespace Far_Off_Wanderer
                         }
                     }
                     graphics.SpriteBatch.End();
+
+                    float Mod(float a, float b)
+                    {
+                        return a - b * (float)Math.Floor(a / b);
+                    }
+
+                    graphics.SpriteBatch.Begin();
+                    var floor = textures["Floor"];
+                    var shipicon = textures["dot"];
+                    var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floor.Width * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floor.Height * 1.1f), floor.Width, floor.Height);
+                    foreach (var ship in level.Objects3D.OfType<Spaceship>())
+                    {
+                        var shipsize = (1 / 8f) * (maparea.Width + maparea.Height) / 2f;
+                        var shipcolor = level.LocalPlayer.ControlledObject == ship ? Color.White : Color.Red;
+                        var shipposition = new Vector2(
+                            MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - environment.Range / 2f, environment.Range) / environment.Range),
+                            MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - environment.Range / 2f, environment.Range) / environment.Range)
+                        );
+                        shipposition -= new Vector2(shipsize / 2);
+                        graphics.SpriteBatch.Draw(shipicon, new Rectangle((int)shipposition.X, (int)shipposition.Y, (int)shipsize, (int)shipsize), shipcolor);
+                    }
+                    graphics.SpriteBatch.End();
+
+                    graphics.SpriteBatch.Begin();
+                    graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
+                    graphics.SpriteBatch.End();
+
                     graphics.SpriteBatch.Begin(blendState: BlendState.Additive);
                     var noise = textures["LDR_LLL1_0"];
                     for (var y = environment.Random.Next(1 - noise.Height, 0); y < graphics.GraphicsDevice.Viewport.Height; y += noise.Height)
@@ -436,6 +463,7 @@ namespace Far_Off_Wanderer
                         }
                     }
                     graphics.SpriteBatch.End();
+
                     graphics.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
                     graphics.SpriteBatch.Draw(textures["vignette"], graphics.GraphicsDevice.Viewport.Bounds, new Color(1f, 1f, 1f, 1.0f));
                     graphics.SpriteBatch.End();
