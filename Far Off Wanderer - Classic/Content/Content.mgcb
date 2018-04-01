@@ -222,30 +222,6 @@
 /processorParam:TextureFormat=Compressed
 /build:SmallFont.spritefont
 
-#begin titlescreen-portrait.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=True
-/processorParam:MakeSquare=True
-/processorParam:TextureFormat=Compressed
-/build:titlescreen-portrait.png
-
-#begin titlescreen-landscape.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=True
-/processorParam:MakeSquare=True
-/processorParam:TextureFormat=Compressed
-/build:titlescreen-landscape.png
-
 #begin Sparkle.png
 /importer:TextureImporter
 /processor:TextureProcessor

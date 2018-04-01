@@ -21,6 +21,7 @@ namespace Far_Off_Wanderer
             public bool Toggling3dDisplay => input.Keyboard.On[(int)Keys.F3];
             public bool TogglingOverUnder => input.Keyboard.On[(int)Keys.F4];
             public bool ZoomingIn => input.GamePad.While[Buttons.DPadUp];
+            // TODO: Add joysticks to Input
             public float CameraYaw => XNA.GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.X;
             public float CameraPitch => XNA.GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y;
 

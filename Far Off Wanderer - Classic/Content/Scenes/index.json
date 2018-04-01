@@ -2,14 +2,10 @@
   "type": "menu",
   "background": {
     "portrait": {
-      "name": "titlescreen-portrait",
-      "width": 1080,
-      "height": 1920
+      "name": "titlescreen-portrait"
     },
     "landscape": {
-      "name": "titlescreen-landscape",
-      "width": 1836,
-      "height": 1200
+      "name": "titlescreen-landscape"
     }
   },
   "on": {

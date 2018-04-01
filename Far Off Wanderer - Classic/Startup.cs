@@ -38,17 +38,17 @@
             };
             content = new Content
             {
-                ContentManager = Content
+                ContentManager = Content,
+                GraphicsDevice = manager.GraphicsDevice
             };
             input = new Input();
             handlers.Run(All.Load(), content);
         }
 
-        protected override async void LoadContent()
+        protected override void LoadContent()
         {
             base.LoadContent();
             song = Content.Load<Song>("ambient");
-            await Task.Delay(5000);
             MediaPlayer.Play(song);
         }
 

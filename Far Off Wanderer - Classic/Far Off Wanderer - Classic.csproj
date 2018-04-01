@@ -187,8 +187,6 @@
     <Content Include="Content\overlays\gameover.png" />
     <Content Include="Content\overlays\gamewon.png" />
     <Content Include="Content\Sparkle.png" />
-    <Content Include="Content\titlescreen-landscape.png" />
-    <Content Include="Content\titlescreen-portrait.png" />
     <Content Include="Content\vessels\schiff textur 09.png" />
     <Content Include="Content\vessels\sonde textur 06.png" />
     <None Include="Package\Package.StoreAssociation.xml" />

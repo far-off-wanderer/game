@@ -20,7 +20,11 @@
         {
             var handlerType = handlers[scene.GetType()];
             var handler = Activator.CreateInstance(handlerType, scene) as Handler;
-            handler.Begin?.Invoke(content);
+            if(handler.Begin != null)
+            {
+                content.Scene = scene.Name;
+                handler.Begin(content);
+            }
             handler.OnNext = RunNext;
             return handler;
         }
