@@ -18,10 +18,13 @@ namespace Far_Off_Wanderer
         {
             var path = Path.Combine(ContentManager.RootDirectory, "Scenes", Scene);
 
-            var file = Directory.EnumerateFiles(path, $"{name}.*").Where(f => extensions.Contains(Path.GetExtension(f))).FirstOrDefault();
-            if(file != null)
+            if (Directory.Exists(path))
             {
-                return loader(File.OpenRead(file));
+                var file = Directory.EnumerateFiles(path, $"{name}.*").Where(f => extensions.Contains(Path.GetExtension(f))).FirstOrDefault();
+                if (file != null)
+                {
+                    return loader(File.OpenRead(file));
+                }
             }
             return ContentManager.Load<T>(name);
         }
