@@ -2,6 +2,7 @@
 {
     using Far_Off_Wanderer.Scenes;
     using Microsoft.Xna.Framework;
+    using Microsoft.Xna.Framework.Audio;
     using Microsoft.Xna.Framework.Media;
     using System.Diagnostics;
     using System.Threading.Tasks;
@@ -49,11 +50,15 @@
         {
             base.LoadContent();
             song = Content.Load<Song>("ambient");
-            MediaPlayer.Play(song);
         }
 
         protected override void Update(GameTime gameTime)
         {
+            if(MediaPlayer.State != MediaState.Playing)
+            {
+                MediaPlayer.Play(song);
+            }
+
             base.Update(gameTime);
             input.Update();
             handlers.Update(gameTime.ElapsedGameTime, input);

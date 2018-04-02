@@ -174,11 +174,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Codename - Far Off Wanderer.csproj" />
-    <Content Include="Content\8bit explosion.wav" />
-    <Content Include="Content\8bit gameover.wav" />
-    <Content Include="Content\8bit go.wav" />
-    <Content Include="Content\8bit good.wav" />
-    <Content Include="Content\8bit laser.wav" />
     <Content Include="Content\Bullet.png" />
     <Content Include="Content\Energyball.png" />
     <Content Include="Content\Fireball.png" />

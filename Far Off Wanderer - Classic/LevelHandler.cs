@@ -104,7 +104,8 @@ namespace Far_Off_Wanderer
 
                 environment.Sounds = new Dictionary<string, Microsoft.Xna.Framework.Audio.SoundEffect>
                 {
-                    ["puiiw"] = content.GetSoundEffect("puiiw")
+                    ["puiiw"] = content.GetSoundEffect("puiiw"),
+                    ["explosion"] = content.GetSoundEffect("explosion")
                 };
 
                 foreach (var name in modelNames)

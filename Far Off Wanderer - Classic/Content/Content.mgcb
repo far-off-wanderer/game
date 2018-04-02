@@ -116,36 +116,6 @@
 /processorParam:TextureFormat=Compressed
 /build:vic viper small junctioned.x
 
-#begin 8bit explosion.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:8bit explosion.wav
-
-#begin 8bit gameover.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:8bit gameover.wav
-
-#begin 8bit go.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:8bit go.wav
-
-#begin 8bit good.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:8bit good.wav
-
-#begin 8bit laser.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:8bit laser.wav
-
 #begin vessels/schiff V37.obj
 /importer:OpenAssetImporter
 /processor:ModelProcessor
@@ -279,12 +249,6 @@
 /processorParam:TextureFormat=Color
 /build:LDR_LLL1_0.png
 
-#begin ambient.wav
-/importer:WavImporter
-/processor:SongProcessor
-/processorParam:Quality=Medium
-/build:ambient.wav
-
 #begin dot.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -308,4 +272,16 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:arrow.png
+
+#begin ambient.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:ambient.mp3
+
+#begin explosion.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:explosion.wav
 
