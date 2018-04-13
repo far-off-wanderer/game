@@ -127,9 +127,7 @@ namespace Far_Off_Wanderer
                 player.UpdateThinking(elapsedTime, environment);
             }
 
-            var collidableObjects = (from object3d in objects3D
-                                     where object3d.Radius > 0
-                                     select object3d);
+            var collidableObjects = objects3D.Where(o => o.Radius > 0);
 
             grid.AddCurrentColliders(collidableObjects);
 
