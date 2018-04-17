@@ -6,7 +6,10 @@
   },
   "surface": {
     "textured": null,
-    "color": "#1B1A00"
+    "color": "#1B1A00",
+    "heightmap": "heightmap",
+    "distanceField": "distance",
+    "size":  65000
   },
   "on": {
     "won": "level 2",

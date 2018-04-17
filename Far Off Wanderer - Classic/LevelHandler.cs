@@ -113,7 +113,7 @@ namespace Far_Off_Wanderer
                     models[name] = content.GetModel(name);
                 }
 
-                var textureNames = new[] { "vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
+                var textureNames = new[] { "vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", scene.Surface.Heightmap, scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle };
                 textureNames = textureNames.Distinct().Where(n => n != null).ToArray();
 
                 foreach (var name in textureNames)
@@ -130,10 +130,10 @@ namespace Far_Off_Wanderer
 
                 terrain = new Terrain(
                     position: Vector3.Down * 64 * 10,
-                    size: new Vector3(1024 * 128, 256 * 40, 1024 * 128)
+                    size: scene.Surface.Size > 0 ? new Vector3(scene.Surface.Size, scene.Surface.Size / 16, scene.Surface.Size) : new Vector3(1024 * 128, 256 * 40, 1024 * 128)
                 );
                 environment.Range = terrain.Size.X;
-                terrain.LoadFromTexture2D(content.GetTexture(Data.LandscapeGround), environment);
+                terrain.LoadFromTexture2D(content.GetTexture(scene.Surface.Heightmap ?? Data.LandscapeGround), environment);
 
                 StartGame();
             };
@@ -434,26 +434,29 @@ namespace Far_Off_Wanderer
                         return a - b * (float)Math.Floor(a / b);
                     }
 
-                    graphics.SpriteBatch.Begin();
-                    var floor = textures["Floor"];
-                    var floorSize = floor.Width * 2;
-                    var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floorSize * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
-                    foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
+                    if (scene.Surface.Heightmap != null)
                     {
-                        var shipicon = ship.Id == Data.Ship ? textures["arrow"] : textures["dot"];
-                        var shipsize = (1 / 8f) * (maparea.Width + maparea.Height) / 2f;
-                        var shipcolor = level.LocalPlayer.ControlledObject == ship ? Color.White : Color.Red;
-                        var shipposition = new Vector2(
-                            MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - environment.Range / 2f, environment.Range) / environment.Range),
-                            MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - environment.Range / 2f, environment.Range) / environment.Range)
-                        );
-                        graphics.SpriteBatch.Draw(shipicon, shipposition, null, shipcolor, (float)Math.Atan2(ship.Forward.X, -ship.Forward.Z), Vector2.One * shipicon.Width / 2, shipsize / shipicon.Width, SpriteEffects.None, 0f);
-                    }
-                    graphics.SpriteBatch.End();
+                        graphics.SpriteBatch.Begin();
+                        var floor = textures[scene.Surface.Heightmap];
+                        var floorSize = floor.Width * 2;
+                        var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floorSize * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
+                        foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
+                        {
+                            var shipicon = ship.Id == Data.Ship ? textures["arrow"] : textures["dot"];
+                            var shipsize = (1 / 8f) * (maparea.Width + maparea.Height) / 2f;
+                            var shipcolor = level.LocalPlayer.ControlledObject == ship ? Color.White : Color.Red;
+                            var shipposition = new Vector2(
+                                MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - environment.Range / 2f, environment.Range) / environment.Range),
+                                MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - environment.Range / 2f, environment.Range) / environment.Range)
+                            );
+                            graphics.SpriteBatch.Draw(shipicon, shipposition, null, shipcolor, (float)Math.Atan2(ship.Forward.X, -ship.Forward.Z), Vector2.One * shipicon.Width / 2, shipsize / shipicon.Width, SpriteEffects.None, 0f);
+                        }
+                        graphics.SpriteBatch.End();
 
-                    graphics.SpriteBatch.Begin();
-                    graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
-                    graphics.SpriteBatch.End();
+                        graphics.SpriteBatch.Begin();
+                        graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
+                        graphics.SpriteBatch.End();
+                    }
 
                     graphics.SpriteBatch.Begin(blendState: BlendState.Additive);
                     var noise = textures["LDR_LLL1_0"];

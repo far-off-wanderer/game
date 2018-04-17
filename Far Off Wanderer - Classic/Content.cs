@@ -20,10 +20,15 @@ namespace Far_Off_Wanderer
 
             if (Directory.Exists(path))
             {
-                var file = Directory.EnumerateFiles(path, $"{name}.*").Where(f => extensions.Contains(Path.GetExtension(f))).FirstOrDefault();
-                if (file != null)
+                try
                 {
-                    return loader(File.OpenRead(file));
+                    var file = Directory.EnumerateFiles(path, $"{name}.*").Where(f => extensions.Contains(Path.GetExtension(f))).FirstOrDefault();
+                    if (file != null)
+                    {
+                        return loader(File.OpenRead(file));
+                    }
+                } catch(Exception)
+                {
                 }
             }
             return ContentManager.Load<T>(name);

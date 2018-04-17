@@ -160,10 +160,18 @@
     <AppxManifest Include="Package\Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <Content Include="Content\Scenes\level 1\heightmap.png" />
     <Content Include="Package\Assets\**\*" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="Content\distancefield.cache" />
-    <Content Include="Content\Scenes\**\*" />
+    <Content Include="Content\Scenes\congratulations.json" />
+    <Content Include="Content\Scenes\index.json" />
+    <Content Include="Content\Scenes\index\titlescreen-landscape.png" />
+    <Content Include="Content\Scenes\index\titlescreen-portrait.png" />
+    <Content Include="Content\Scenes\level 1.json" />
+    <Content Include="Content\Scenes\level 2.json" />
+    <Content Include="Content\Scenes\level 3.json" />
+    <Content Include="Content\Scenes\level 4.json" />
     <Content Include="Content\Scenes\level 4.json" />
     <Content Include="Content\Scenes\level 3.json" />
     <None Include="Content\vessels\schiff V37.obj" />
