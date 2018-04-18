@@ -38,6 +38,25 @@ namespace Converter
             }
         }
 
+        public static void ForEach<T>(this T[,] array, int centerx, int centery, int range, Action<int, int, T> compute)
+        {
+            var sizex = array.GetLength(0);
+            var sizey = array.GetLength(1);
+            var minx = centerx - range;
+            var maxx = centerx + range;
+            var miny = centery - range;
+            var maxy = centery + range;
+            for (var y = miny; y < maxy; y++)
+            {
+                for (var x = minx; x < maxx; x++)
+                {
+                    var _x = ((x % sizex) + sizex) % sizex;
+                    var _y = ((y % sizey) + sizey) % sizey;
+                    compute(x, y, array[_x, _y]);
+                }
+            }
+        }
+
         public static void ForEach<T>(this T[,,] array, Action<int, int, int, T> compute)
         {
             for (var z = 0; z < array.GetLength(2); z++)

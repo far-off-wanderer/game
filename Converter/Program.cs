@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Transforms;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace Converter
 {
@@ -55,6 +56,8 @@ namespace Converter
                 return;
             }
 
+            var (start, end) = (DateTime.Now, DateTime.Now);
+
             switch(arguments.OutputType)
             {
                 case "distancefield":
@@ -62,6 +65,9 @@ namespace Converter
                     CreateDistanceField(arguments);
                     break;
             }
+
+            end = DateTime.Now;
+            Console.WriteLine($"conversion took {(end - start).TotalSeconds:0.0} seconds");
         }
 
         private static void CreateDistanceField(Arguments arguments)

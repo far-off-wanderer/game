@@ -25,9 +25,11 @@ namespace Converter
             var size = heightmap.GetLength(0);
             var field = new DistanceField(size, height, size);
 
-            field.Field.ForEachParallel((x, y, z, value) =>
+            var oneOverSize = 1f / size;
+
+            field.Field.ForEach((x, y, z, value) =>
             {
-                var location = new Vector3(x, y, z) / size;
+                var location = (x: x * oneOverSize, y: y * oneOverSize, z: z * oneOverSize);
 
                 var shortestDistance = float.PositiveInfinity;
 
@@ -36,16 +38,17 @@ namespace Converter
 
                 if (range > 0)
                 {
-                    heightmap.ForEach(x - range, x + range, z - range, z + range, (u, v, h) =>
+                    heightmap.ForEach(x, z, range, (u, v, h) =>
                     {
-                        var point = new Vector3(u / (float)size, height * h / (float)size, v / (float)size);
-                        if (point.Y > location.Y)
+                        var point = (x: u * oneOverSize, y: height * h * oneOverSize, z: v * oneOverSize);
+                        var (dx, dy, dz) = (point.x - location.x, point.y - location.y, point.z - location.z);
+                        if (point.y > location.y)
                         {
-                            shortestDistance = Math.Min(shortestDistance, Vector2.DistanceSquared(new Vector2(location.X, location.Z), new Vector2(point.X, point.Z)));
+                            shortestDistance = Math.Min(shortestDistance, dx * dx + dz * dz);
                         }
                         else
                         {
-                            shortestDistance = Math.Min(shortestDistance, Vector3.DistanceSquared(location, point));
+                            shortestDistance = Math.Min(shortestDistance, dx * dx + dy * dy + dz * dz);
                         }
                     });
                 }
