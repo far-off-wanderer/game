@@ -8,7 +8,7 @@
     "textured": null,
     "color": "#1B1A00",
     "heightmap": "heightmap",
-    "distanceField": "distance",
+    "distanceField": "heightmap",
     "size":  65000
   },
   "on": {

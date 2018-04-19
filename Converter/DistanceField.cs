@@ -20,16 +20,18 @@ namespace Converter
             this.Field = new float[width, height, length];
         }
 
-        public static DistanceField FromHeightmap(float[,] heightmap, int height, Action<float> onPercentageStep = null)
+        public static DistanceField FromHeightmap(float[,] heightmap, int height)
         {
             var size = heightmap.GetLength(0);
             var field = new DistanceField(size, height, size);
 
             var oneOverSize = 1f / size;
 
-            field.Field.ForEach((x, y, z, value) =>
+            field.Field.ForEachParallel((x, y, z, value) =>
             {
-                var location = (x: x * oneOverSize, y: y * oneOverSize, z: z * oneOverSize);
+                var locationx = x * oneOverSize;
+                var locationy = y * oneOverSize;
+                var locationz = z * oneOverSize;
 
                 var shortestDistance = float.PositiveInfinity;
 
@@ -38,19 +40,45 @@ namespace Converter
 
                 if (range > 0)
                 {
-                    heightmap.ForEach(x, z, range, (u, v, h) =>
+                    var sizex = heightmap.GetLength(0);
+                    var sizey = heightmap.GetLength(1);
+                    var minu = x - range;
+                    var maxu = x + range;
+                    var minv = y - range;
+                    var maxv = y + range;
+                    for (var v = minv; v < maxv; v++)
                     {
-                        var point = (x: u * oneOverSize, y: height * h * oneOverSize, z: v * oneOverSize);
-                        var (dx, dy, dz) = (point.x - location.x, point.y - location.y, point.z - location.z);
-                        if (point.y > location.y)
+                        for (var u = minu; u < maxu; u++)
                         {
-                            shortestDistance = Math.Min(shortestDistance, dx * dx + dz * dz);
+                            var _x = ((x % sizex) + sizex) % sizex;
+                            var _y = ((y % sizey) + sizey) % sizey;
+
+                            var h = heightmap[_x, _y];
+
+                            var pointx = u * oneOverSize;
+                            var pointy = height * h * oneOverSize;
+                            var pointz = v * oneOverSize;
+                            var dx = pointx - locationx;
+                            var dz = pointz - locationz;
+                            if (pointy > locationy)
+                            {
+                                var _distance = dx * dx + dz * dz;
+                                if(_distance < shortestDistance)
+                                {
+                                    shortestDistance = _distance;
+                                }
+                            }
+                            else
+                            {
+                                var dy = pointy - locationy;
+                                var _distance = dx * dx + dy * dy + dz * dz;
+                                if(_distance < shortestDistance)
+                                {
+                                    shortestDistance = _distance;
+                                }
+                            }
                         }
-                        else
-                        {
-                            shortestDistance = Math.Min(shortestDistance, dx * dx + dy * dy + dz * dz);
-                        }
-                    });
+                    }
                 }
 
                 if (shortestDistance == float.PositiveInfinity)
@@ -59,7 +87,7 @@ namespace Converter
                 }
 
                 return (float)Math.Sqrt(shortestDistance);
-            }, onPercentageStep);
+            });
 
             return field;
         }

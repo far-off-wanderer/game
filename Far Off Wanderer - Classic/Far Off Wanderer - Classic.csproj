@@ -161,6 +161,7 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <Content Include="Content\Scenes\level 1\heightmap.png" />
+    <Content Include="Content\Scenes\level 2\heightmap.png" />
     <Content Include="Package\Assets\**\*" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="Content\distancefield.cache" />
@@ -174,6 +175,8 @@
     <Content Include="Content\Scenes\level 4.json" />
     <Content Include="Content\Scenes\level 4.json" />
     <Content Include="Content\Scenes\level 3.json" />
+    <None Include="Content\Scenes\level 1\heightmap.distancefield" />
+    <None Include="Content\Scenes\level 2\heightmap.distancefield" />
     <None Include="Content\vessels\schiff V37.obj" />
     <None Include="Content\vessels\sonde V29.obj" />
     <None Include="Content\vic viper small junctioned.x" />

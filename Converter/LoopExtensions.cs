@@ -71,11 +71,8 @@ namespace Converter
             }
         }
 
-        public static void ForEach<T>(this T[,,] array, Func<int, int, int, T, T> compute, Action<float> onPercentageStep = null)
+        public static void ForEach<T>(this T[,,] array, Func<int, int, int, T, T> compute)
         {
-            var elements = array.Length;
-            var percentage = -1;
-            var processed = 0;
             for (var z = 0; z < array.GetLength(2); z++)
             {
                 for (var y = 0; y < array.GetLength(1); y++)
@@ -83,13 +80,6 @@ namespace Converter
                     for (var x = 0; x < array.GetLength(0); x++)
                     {
                         array[x, y, z] = compute(x, y, z, array[x, y, z]);
-                        processed++;
-                        var nextPercentage = 100 * processed / elements;
-                        if (nextPercentage != percentage)
-                        {
-                            percentage = nextPercentage;
-                            onPercentageStep?.Invoke(percentage);
-                        }
                     }
                 }
             }

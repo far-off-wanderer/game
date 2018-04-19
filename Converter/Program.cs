@@ -1,11 +1,9 @@
 ﻿using ShellProgressBar;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Transforms;
 using System;
 using System.IO;
-using System.Threading;
 
 namespace Converter
 {
@@ -40,14 +38,6 @@ namespace Converter
             return (parser.Object, false);
         }
 
-        static ProgressBar Progress(string message) => new ProgressBar(100, message, new ProgressBarOptions
-        {
-            ForegroundColor = ConsoleColor.DarkYellow,
-            ForegroundColorDone = ConsoleColor.DarkGreen,
-            BackgroundColor = ConsoleColor.DarkGray,
-            BackgroundCharacter = '░'
-        });
-
         static void Main(string[] args)
         {
             var (arguments, cancelConverter) = Parse(args);
@@ -64,6 +54,10 @@ namespace Converter
                 case "df":
                     CreateDistanceField(arguments);
                     break;
+
+                default:
+                    Console.WriteLine("please specify correct target type");
+                    return;
             }
 
             end = DateTime.Now;
@@ -89,17 +83,13 @@ namespace Converter
 
                 var heightmap = Array2D.Create(size, size, (x, y) => image[x, y].R / (float)byte.MaxValue);
 
-                DistanceField distanceField;
-                using (var progress = Progress("create volume"))
-                {
-                    distanceField = DistanceField.FromHeightmap(heightmap, height, percentage => progress.Tick());
-                }
+                DistanceField distanceField =  DistanceField.FromHeightmap(heightmap, height);
 
-                var outname = Path.ChangeExtension(arguments.InputFilename, "distancefield");
-                using (var file = File.Create(outname))
-                {
-                    distanceField.SaveTo(file);
-                }
+                //var outname = Path.ChangeExtension(arguments.InputFilename, "distancefield");
+                //using (var file = File.Create(outname))
+                //{
+                //    distanceField.SaveTo(file);
+                //}
             }
         }
     }
