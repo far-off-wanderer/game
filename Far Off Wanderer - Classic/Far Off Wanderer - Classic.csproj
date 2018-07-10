@@ -12,8 +12,8 @@
     <AssemblyName>Far Off Wanderer - Classic</AssemblyName>
     <DefaultLanguage>de-DE</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.14393.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,7 +35,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -48,6 +48,8 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <Use64BitCompiler>true</Use64BitCompiler>
+    <SingleThreadNUTC>true</SingleThreadNUTC>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
@@ -83,6 +85,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -94,7 +97,10 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <Use64BitCompiler>true</Use64BitCompiler>
+    <SingleThreadNUTC>true</SingleThreadNUTC>
+    <EnableGatekeeperAnalysis>false</EnableGatekeeperAnalysis>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
@@ -103,15 +109,22 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Array2D.cs" />
     <Compile Include="ColorHelper.cs" />
     <Compile Include="Content.cs" />
+    <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="DistanceField.cs" />
+    <Compile Include="DistanceFieldFileExtensions.cs" />
+    <Compile Include="Game\WorldSimulation.cs" />
     <Compile Include="Input\GamePad.cs" />
     <Compile Include="Input\Input.cs" />
     <Compile Include="Input\Keyboard.cs" />
-    <Compile Include="Input\Mouse.cs" />
     <Compile Include="Input\TouchKeys.cs" />
     <Compile Include="Input\TouchPanel.cs" />
+    <Compile Include="Landscape.cs" />
     <Compile Include="LevelHandler.cs" />
+    <Compile Include="LinqExtensions.cs" />
+    <Compile Include="LoopExtensions.cs" />
     <Compile Include="MenuHandler.cs" />
     <Compile Include="Graphics.cs" />
     <Compile Include="Scenes\Handler.cs" />
@@ -145,7 +158,6 @@
     <Compile Include="Game\Object3D.cs" />
     <Compile Include="Game\SpaceshipFollowingCamera.cs" />
     <Compile Include="Game\Player.cs" />
-    <Compile Include="Game\Skybox.cs" />
     <Compile Include="Game\Spaceship.cs" />
     <Compile Include="Game\StrafingDirection.cs" />
     <Compile Include="Game\ThrustFlame.cs" />
@@ -162,6 +174,7 @@
     </AppxManifest>
     <Content Include="Content\Scenes\level 1\heightmap.png" />
     <Content Include="Content\Scenes\level 2\heightmap.png" />
+    <Content Include="Content\Scenes\level 3\heightmap.png" />
     <Content Include="Package\Assets\**\*" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     <None Include="Content\distancefield.cache" />
@@ -177,6 +190,7 @@
     <Content Include="Content\Scenes\level 3.json" />
     <None Include="Content\Scenes\level 1\heightmap.distancefield" />
     <None Include="Content\Scenes\level 2\heightmap.distancefield" />
+    <None Include="Content\Scenes\level 3\heightmap.distancefield" />
     <None Include="Content\vessels\schiff V37.obj" />
     <None Include="Content\vessels\sonde V29.obj" />
     <None Include="Content\vic viper small junctioned.x" />
@@ -210,7 +224,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.0.8</Version>
+      <Version>6.1.5</Version>
     </PackageReference>
     <PackageReference Include="MonoGame.Framework.WindowsUniversal">
       <Version>3.6.0.1625</Version>
@@ -219,10 +233,7 @@
       <Version>11.0.2</Version>
     </PackageReference>
     <PackageReference Include="SixLabors.ImageSharp">
-      <Version>1.0.0-beta0003</Version>
-    </PackageReference>
-    <PackageReference Include="System.ValueTuple">
-      <Version>4.5.0-preview1-26216-02</Version>
+      <Version>1.0.0-beta0004</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Converter
+namespace Far_Off_Wanderer
 {
     static class LoopExtensions
     {

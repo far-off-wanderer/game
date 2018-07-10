@@ -13,8 +13,8 @@ namespace Far_Off_Wanderer
         float speed;
 
         float rotation;
-        float maxRotation = (float)(Math.PI / 2) / 25;
-        float rotationSpeed = 0.15f;
+        readonly float maxRotation = (float)(Math.PI / 2) / 25;
+        readonly float rotationSpeed = 0.15f;
 
         float targetRotation;
         float forwardAcceleration;
@@ -22,13 +22,13 @@ namespace Far_Off_Wanderer
         bool readyToShoot;
         bool shooting;
         float lastShot;
-        float shotTrigger = 0.1f;
+        readonly float shotTrigger = 0.1f;
 
         bool beginStrafing;
         StrafingDirection? strafe;
-        float strafingTime = 0.25f;
-        float strafingIdle = 1 - 0.25f;
-        float strafingRatio = 2f;
+        readonly float strafingTime = 0.25f;
+        readonly float strafingIdle = 1 - 0.25f;
+        readonly float strafingRatio = 2f;
         float strafing;
         
         public Vector3[] SensorPoints { get; set; }
@@ -84,7 +84,14 @@ namespace Far_Off_Wanderer
             if (readyToShoot && shooting)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
-                Environment.Sounds["puiiw"].Play((.5f + (float)Environment.Random.NextDouble() * .25f) * (1 / (1 + dst / 5000)), (float)Environment.Random.NextDouble() * .25f, 0);
+                try
+                {
+                    Environment.Sounds["puiiw"].Play((.5f + (float)Environment.Random.NextDouble() * .25f) * (1 / (1 + dst / 5000)), (float)Environment.Random.NextDouble() * .25f, 0);
+                }
+                catch (Exception)
+                {
+
+                }
                 var bulletDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, Orientation)) + Environment.RandomPointInUnitSphere() * new Vector3(1, .25f, 1) * .01f;
                 var bullet = new Bullet(Position, bulletDirection, Speed * 100 + 6250);
                 bullet.Position += (bullet.Radius + Radius) * 2 * bulletDirection;
@@ -285,7 +292,14 @@ namespace Far_Off_Wanderer
             if (Alive == true)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
-                Environment.Sounds["explosion"].Play((.75f + (float)Environment.Random.NextDouble() * .125f) * (1 / (1 + dst / 8000)), 0, 0);
+                try
+                {
+                    Environment.Sounds["explosion"].Play((.75f + (float)Environment.Random.NextDouble() * .125f) * (1 / (1 + dst / 8000)), 0, 0);
+                }
+                catch (Exception)
+                {
+
+                }
                 //Environment.Sounds[Data.ExplosionSound].Play(1 / (1 + dst / 5000), 0, 0);
                 //Environment.TriggerVibration(1 / (1 + dst));
             }

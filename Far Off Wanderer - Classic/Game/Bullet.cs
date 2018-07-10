@@ -7,7 +7,7 @@ namespace Far_Off_Wanderer
     public class Bullet : Object3D
     {
         Vector3 direction;
-        float speed;
+        readonly float speed;
         double age;
 
         public Bullet(Vector3 Position, Vector3 Direction, float Speed)

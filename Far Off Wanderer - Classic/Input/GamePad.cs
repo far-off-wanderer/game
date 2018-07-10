@@ -12,7 +12,7 @@ namespace Far_Off_Wanderer
         public Dictionary<Buttons, bool> On { get; private set; } = new Dictionary<Buttons, bool>();
         public Dictionary<Buttons, bool> While { get; private set; } = new Dictionary<Buttons, bool>();
 
-        Buttons[] buttons;
+        readonly Buttons[] buttons;
 
         public GamePad()
         {

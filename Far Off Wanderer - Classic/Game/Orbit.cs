@@ -9,7 +9,7 @@ namespace Far_Off_Wanderer
         Spaceship orbitee;
         Object3D orbiter;
         float angle;
-        float angularSpeed;
+        readonly float angularSpeed;
         Vector3 toOrbiter;
 
         public Orbit(Spaceship orbitee, Object3D orbiter, float speed)

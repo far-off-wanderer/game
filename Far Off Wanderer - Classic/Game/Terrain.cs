@@ -14,12 +14,12 @@ namespace Far_Off_Wanderer
         VertexBuffer vertices;
         IndexBuffer indicees;
         List<Collider> colliders;
-        InfiniteTerrainDistanceField distanceField;
+        //InfiniteTerrainDistanceField distanceField;
 
         public int DataWidth => dataWidth;
         public Vector3 Size => size;
         public IEnumerable<Collider> Colliders => colliders;
-        public InfiniteTerrainDistanceField DistanceField => distanceField;
+        //public InfiniteTerrainDistanceField DistanceField => distanceField;
 
         public Terrain(Vector3 position, Vector3 size)
         {
@@ -30,7 +30,7 @@ namespace Far_Off_Wanderer
             this.vertices = null;
             this.indicees = null;
             this.colliders = null;
-            this.distanceField = null;
+            //this.distanceField = null;
         }
 
         public void LoadFromTexture2D(Texture2D TerrainTexture, Environment Environment)
@@ -80,7 +80,7 @@ namespace Far_Off_Wanderer
 
             var halfWidthOfSmallerStepSize = Math.Min(Size.X, Size.Z) / DataWidth / 1.414f;
 
-            var hasCache = InfiniteTerrainDistanceField.HasCache;
+            //var hasCache = InfiniteTerrainDistanceField.HasCache;
 
             foreach (var y in Enumerable.Range(0, DataWidth))
             {
@@ -153,17 +153,17 @@ namespace Far_Off_Wanderer
 
                     var position = Point + Position - halfWidthOfSmallerStepSize * Vector3.Up;
 
-                    if (hasCache) // optimizing for now
-                    {
-                        if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
-                        {
-                            colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
-                        }
-                    }
-                    else
-                    {
-                        colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
-                    }
+                    //if (hasCache) // optimizing for now
+                    //{
+                    //    if (Math.Abs(position.Y) <= halfWidthOfSmallerStepSize)
+                    //    {
+                    //        colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    colliders.Add(new Collider(position, halfWidthOfSmallerStepSize));
+                    //}
 
                     color = Color.White * shade;
 
@@ -172,7 +172,7 @@ namespace Far_Off_Wanderer
             }
 
             // optimizing.. for now
-            Environment.StaticColliders = hasCache ? Colliders.ToArray() : Colliders.Where(c => Math.Abs(c.Position.Y) <= halfWidthOfSmallerStepSize).ToArray();
+            //Environment.StaticColliders = hasCache ? Colliders.ToArray() : Colliders.Where(c => Math.Abs(c.Position.Y) <= halfWidthOfSmallerStepSize).ToArray();
 
             vertices = new VertexBuffer(TerrainTexture.GraphicsDevice, typeof(VertexPositionNormalTexture), grid.Length, BufferUsage.WriteOnly);
             vertices.SetData(grid);
@@ -193,9 +193,9 @@ namespace Far_Off_Wanderer
             indicees = new IndexBuffer(TerrainTexture.GraphicsDevice, IndexElementSize.SixteenBits, indexList.Length, BufferUsage.WriteOnly);
             indicees.SetData(indexList);
 
-            this.distanceField = new InfiniteTerrainDistanceField(this);
+            //this.distanceField = new InfiniteTerrainDistanceField(this);
 
-            Environment.DistanceField = DistanceField;
+            //Environment.DistanceField = DistanceField;
         }
 
         void DrawFirst(BasicEffect b, Color color, Texture2D texture)

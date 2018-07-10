@@ -33,7 +33,7 @@ namespace Far_Off_Wanderer
             get
             {
                 var v = Vector3.Up;
-                if (acc != null)
+                if (acc != null && reading != null)
                 {
                     DisplayInformation displayInfo = DisplayInformation.GetForCurrentView();
                     switch (displayInfo.CurrentOrientation)

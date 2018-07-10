@@ -6,12 +6,12 @@ namespace Far_Off_Wanderer
 {
     public class Explosion : Object3D
     {
-        float endOfLife;
-        float maxSize;
-        float minSize;
+        readonly float endOfLife;
+        readonly float maxSize;
+        readonly float minSize;
         float age;
-        float spin;
-        float startSpin;
+        readonly float spin;
+        readonly float startSpin;
 
         public float Age => age;
         public float Spin => spin;

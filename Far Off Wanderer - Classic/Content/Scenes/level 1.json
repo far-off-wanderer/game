@@ -1,14 +1,12 @@
 ﻿{
   "type": "level",
   "environment": {
-    "backgroundColor": "#7E35D1",
+    "backgroundColor":  "skyblue",
     "fog": 0.25
   },
   "surface": {
     "textured": null,
-    "color": "#1B1A00",
-    "heightmap": "heightmap",
-    "distanceField": "heightmap",
+    "color": "#444100",
     "size":  65000
   },
   "on": {

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 
-namespace Converter
+namespace Far_Off_Wanderer
 {
     static class DistanceFieldFileExtensions
     {

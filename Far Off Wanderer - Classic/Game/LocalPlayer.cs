@@ -13,6 +13,7 @@ namespace Far_Off_Wanderer
         public override void UpdateThinking(TimeSpan timeSpan, Environment environment)
         {
             var actions = environment.Actions;
+            var spaceShip = ControlledObject as Spaceship;
 
             float turnAngle = 0;
             bool shoot = false;
@@ -42,6 +43,18 @@ namespace Far_Off_Wanderer
             if(actions.TurningRight)
             {
                 turnAngle -= (float)Math.PI / 5;
+            }
+            if (actions.Accelerating && !actions.Decelerating)
+            {
+                spaceShip.AccelerateAmount(30f);
+            }
+            if (!actions.Accelerating && actions.Decelerating)
+            {
+                spaceShip.AccelerateAmount(-30f);
+            }
+            if(!actions.Accelerating && !actions.Decelerating)
+            {
+                spaceShip.AccelerateAmount(0);
             }
             if (actions.Shooting)
             {
@@ -88,8 +101,6 @@ namespace Far_Off_Wanderer
             {
                 turnAngle += Math.Sign(-environment.Acceleration.X) * MathHelper.Clamp((Math.Abs(environment.Acceleration.X) - deadZone) / (1 - deadZone), 0, 1);
             }
-
-            var spaceShip = ControlledObject as Spaceship;
             if (shoot)
             {
                 spaceShip.Shoot();

@@ -7,68 +7,44 @@ namespace Far_Off_Wanderer
 {
     public class Grid
     {
-        float range;
-
-        int cellCount = 16;
-        float cellSize;
-        (Object3D[] staticColliders, List<Object3D> colliders)[,] grid;
-        InfiniteTerrainDistanceField distanceField;
+        readonly float range;
+        readonly int cellCount = 16;
+        readonly float cellSize;
+        readonly List<Object3D>[,] grid;
+        DistanceField distanceField;
+        Vector3 distanceFieldPosition;
+        float distanceFieldSize;
 
         public Grid(float range)
         {
             this.range = range;
 
             cellSize = range / cellCount;
-            grid = new(Object3D[] staticColliders, List<Object3D> colliders)[cellCount, cellCount];
+            grid = new List<Object3D>[cellCount, cellCount];
             for (var z = 0; z < cellCount; z++)
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    grid[x, z] = (null, new List<Object3D>());
+                    grid[x, z] = new List<Object3D>();
                 }
             }
 
         }
 
-        public void AddDistanceField(InfiniteTerrainDistanceField distanceField)
+        public void AddDistanceField(DistanceField distanceField, Vector3 position, float size)
         {
             this.distanceField = distanceField;
+            this.distanceFieldPosition = position;
+            this.distanceFieldSize = size;
         }
 
-        public void AddStaticColliders(IEnumerable<Collider> staticColliders)
-        {
-            foreach (var obj in staticColliders)
-            {
-                var minpos = (obj.Position - new Vector3(obj.Radius)) / cellSize;
-                var maxpos = (obj.Position + new Vector3(obj.Radius)) / cellSize;
-                
-                for (var z = minpos.Z; z <= maxpos.Z; z++)
-                {
-                    for (var x = minpos.X; x <= maxpos.X; x++)
-                    {
-                        grid[Imod(x), Imod(z)].colliders.Add(obj);
-                    }
-                }
-            }
-
-            for (var z = 0; z < cellCount; z++)
-            {
-                for (var x = 0; x < cellCount; x++)
-                {
-                    grid[x, z].staticColliders = grid[x, z].colliders.ToArray();
-                    grid[x, z].colliders.Clear();
-                    grid[x, z].colliders.Capacity = 0;
-                }
-            }
-        }
-
-        public void AddCurrentColliders(IEnumerable<Object3D> collidableObjects)
+        public void SetCurrentColliders(IEnumerable<Object3D> collidableObjects)
         {
             for (var z = 0; z < cellCount; z++)
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    grid[x, z].colliders.Clear();
+                    grid[x, z].Clear();
                 }
             }
 
@@ -81,7 +57,7 @@ namespace Far_Off_Wanderer
                 {
                     for (var x = minpos.X; x <= maxpos.X; x++)
                     {
-                        grid[Imod(x), Imod(z)].colliders.Add(object3d);
+                        grid[Imod(x), Imod(z)].Add(object3d);
                     }
                 }
             }
@@ -101,7 +77,7 @@ namespace Far_Off_Wanderer
             {
                 for (var x = 0; x < cellCount; x++)
                 {
-                    var objects = grid[x, z].colliders.ToArray();
+                    var objects = grid[x, z].ToArray();
 
                     if (objects.Length > 0)
                     {
@@ -109,7 +85,7 @@ namespace Far_Off_Wanderer
                         {
                             var objectA = objects[a];
 
-                            if(distanceField.DistanceAt(objectA.Position) < objectA.Radius)
+                            if(distanceField.DistanceAt((objectA.Position - distanceFieldPosition) / distanceFieldSize) * distanceFieldSize < objectA.Radius)
                             {
                                 interact((objectA, objectA.Position), (objectA, objectA.Position));
                                 continue;
@@ -147,7 +123,7 @@ namespace Far_Off_Wanderer
             {
                 for (var x = minpos.X; x <= maxpos.X; x++)
                 {
-                    colliders.AddRange(grid[Imod(x), Imod(z)].staticColliders.OfType<Collider>());
+                    colliders.AddRange(grid[Imod(x), Imod(z)].OfType<Collider>());
                 }
             }
 

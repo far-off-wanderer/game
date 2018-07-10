@@ -1,9 +1,7 @@
-﻿using ShellProgressBar;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Transforms;
 using System;
-using System.IO;
 
 namespace Converter
 {
@@ -75,7 +73,7 @@ namespace Converter
                 }
                 if (arguments.Optimisation > 0)
                 {
-                    var speedboostFactor = (int)Math.Pow(2, arguments.Optimisation);
+                    var speedboostFactor = (int)MathF.Pow(2, arguments.Optimisation);
                     image.Mutate(ctx => ctx.Resize(image.Width / speedboostFactor, image.Height / speedboostFactor));
                 }
                 var size = image.Width;
@@ -83,7 +81,7 @@ namespace Converter
 
                 var heightmap = Array2D.Create(size, size, (x, y) => image[x, y].R / (float)byte.MaxValue);
 
-                DistanceField distanceField =  DistanceField.FromHeightmap(heightmap, height);
+                var distanceField =  DistanceField.FromHeightmap(heightmap, height);
 
                 //var outname = Path.ChangeExtension(arguments.InputFilename, "distancefield");
                 //using (var file = File.Create(outname))

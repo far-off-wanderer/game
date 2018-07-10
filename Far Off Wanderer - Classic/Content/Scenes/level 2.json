@@ -7,8 +7,6 @@
   "surface": {
     "textured": null,
     "color": "#3B3C33",
-    "heightmap": "heightmap",
-    "distanceField": "heightmap",
     "size": 65000
   },
   "on": {

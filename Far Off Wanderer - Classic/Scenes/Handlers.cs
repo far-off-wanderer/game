@@ -7,11 +7,11 @@
 
     class SceneHandlers
     {
-        Dictionary<Type, Type> handlers;
+        readonly Dictionary<Type, Type> handlers;
         Handler current;
         All all;
         Content content;
-        Action onExit;
+        readonly Action onExit;
 
         public void Update(TimeSpan timeSpan, Input input) => current.Update?.Invoke(timeSpan, input);
         public void Draw(Graphics graphics) => current.Draw?.Invoke(graphics);

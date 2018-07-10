@@ -84,7 +84,7 @@ namespace Far_Off_Wanderer
         public IResource<SoundEffect> Sounds { get; private set; }
         public IResource<SpriteFont> Fonts { get; private set; }
 
-        private IResourceLoader resourceLoader;
+        private readonly IResourceLoader resourceLoader;
 
         public Resources(IResourceLoader resourceLoader)
         {

@@ -14,8 +14,6 @@
             {
                 public string Texture { get; set; }
                 public string Color { get; set; }
-                public string Heightmap { get; set; }
-                public string DistanceField { get; set; }
                 public int Size { get; set; }
             }
 

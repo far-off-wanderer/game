@@ -56,6 +56,8 @@
         {
             if(MediaPlayer.State != MediaState.Playing)
             {
+                MediaPlayer.Volume = .1f;
+                SoundEffect.MasterVolume = .1f;
                 MediaPlayer.Play(song);
             }
 

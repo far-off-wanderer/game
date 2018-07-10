@@ -1,25 +1,48 @@
 ﻿using System;
-using System.Numerics;
+using Microsoft.Xna.Framework;
 
-namespace Converter
+namespace Far_Off_Wanderer
 {
-    class DistanceField
+    public class DistanceField
     {
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int Length { get; private set; }
+        public Vector3 Size { get; private set; }
 
         public float[,,] Distance { get; private set; }
         public Vector3[,,] Nearest { get; private set; }
+
+        public enum BorderBehaviour
+        {
+            Solid,
+            Empty,
+            Repeat
+        }
+
+        public BorderBehaviour LeftBorder { get; private set; }
+        public BorderBehaviour RightBorder { get; private set; }
+        public BorderBehaviour FrontBorder { get; private set; }
+        public BorderBehaviour BackBorder { get; private set; }
+        public BorderBehaviour TopBorder { get; private set; }
+        public BorderBehaviour BottomBorder { get; private set; }
 
         public DistanceField(int width, int height, int length)
         {
             this.Width = width;
             this.Height = height;
             this.Length = length;
+            this.Size = new Vector3(width, height, length);
 
             this.Distance = new float[width, height, length];
             this.Nearest = new Vector3[width, height, length];
+
+            this.LeftBorder = BorderBehaviour.Repeat;
+            this.RightBorder = BorderBehaviour.Repeat;
+            this.FrontBorder = BorderBehaviour.Repeat;
+            this.BackBorder = BorderBehaviour.Repeat;
+            this.TopBorder = BorderBehaviour.Empty;
+            this.BottomBorder = BorderBehaviour.Solid;
         }
 
         public static DistanceField FromHeightmap(float[,] heightmap, int height)
@@ -98,6 +121,24 @@ namespace Converter
             });
 
             return field;
+        }
+
+        int IMod(float a, int size) => (int)MathF.Floor(a - size * MathF.Floor(a / size));
+        int IClamp(float a, int size) => a < 0 ? 0 : (a > size ? size : (int) a);
+
+        public float DistanceAt(Vector3 at)
+        {
+            var at_ = (at + Vector3.One) * .5f;
+
+            var x = IMod(at_.X * Width, Width);
+            var y = IClamp(at_.Y * Height, Height);
+            var z = IMod(at_.Z * Length, Length);
+
+            var distance_ = Distance[x, y, z];
+
+            var distance = distance_ * 2;
+
+            return distance;
         }
     }
 }

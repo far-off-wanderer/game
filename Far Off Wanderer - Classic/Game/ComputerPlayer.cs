@@ -11,8 +11,7 @@ namespace Far_Off_Wanderer
         int direction = 7;
         double shootTime = float.NegativeInfinity;
         bool shoot = false;
-
-        float defaultVisibleRange = 67500;
+        readonly float defaultVisibleRange = 67500;
 
         private (float lean, StrafingDirection? strafe) Look(Environment environment)
         {
@@ -22,7 +21,7 @@ namespace Far_Off_Wanderer
             var forward = Vector3.Normalize(Vector3.Transform(Vector3.Forward, my.Orientation));
             var left = Vector3.Normalize(Vector3.Cross(Vector3.Up, forward));
 
-            var field = environment.DistanceField;
+            //var field = environment.DistanceField;
             
             var sensorCount = 2;
             var sensors = Enumerable.Range(0, sensorCount).Select(i =>
@@ -33,24 +32,24 @@ namespace Far_Off_Wanderer
                 return (distance: 0f, collision: my.Position, range: 0f, leftishness: l);
             }).ToArray();
 
-            for(var i = 0; i < sensors.Length; i++)
-            {
-                var sensor = sensors[i];
-                sensor.range = visibleRange * (float)Math.Exp(-Math.Abs(sensor.leftishness * 5));
-                var direction = Vector3.Normalize(forward + sensor.leftishness * left);
-                while (sensor.distance < sensor.range)
-                {
-                    var d = field.DistanceAt(sensor.collision);
-                    if (d < my.Radius)
-                    {
-                        break;
-                    }
-                    sensor.distance += d;
-                    sensor.distance = Math.Min(sensor.range, sensor.distance);
-                    sensor.collision = my.Position + sensor.distance * direction;
-                }
-                sensors[i] = sensor;
-            }
+            //for(var i = 0; i < sensors.Length; i++)
+            //{
+            //    var sensor = sensors[i];
+            //    sensor.range = visibleRange * (float)Math.Exp(-Math.Abs(sensor.leftishness * 5));
+            //    var direction = Vector3.Normalize(forward + sensor.leftishness * left);
+            //    while (sensor.distance < sensor.range)
+            //    {
+            //        var d = field.DistanceAt(sensor.collision);
+            //        if (d < my.Radius)
+            //        {
+            //            break;
+            //        }
+            //        sensor.distance += d;
+            //        sensor.distance = Math.Min(sensor.range, sensor.distance);
+            //        sensor.collision = my.Position + sensor.distance * direction;
+            //    }
+            //    sensors[i] = sensor;
+            //}
             
             var leftishness = 0f;
 

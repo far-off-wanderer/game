@@ -7,32 +7,32 @@ namespace Far_Off_Wanderer
 {
     public class Level
     {
-        public Camera Camera => camera;
-        public Skybox Skybox => skybox;
-        public IEnumerable<Object3D> Objects3D => objects3D;
+        public Camera Camera { get; }
+
+        public IEnumerable<Object3D> Objects3D => worldSimulation.Objects3D;
         public LocalPlayer LocalPlayer => players.OfType<LocalPlayer>().First();
 
-        Environment environment;
-        Grid grid;
-        Camera camera;
-        List<Player> players;
-        List<Object3D> objects3D;
-        Skybox skybox;
+        readonly Environment environment;
 
-        public Level(Environment environment)
+        List<Player> players;
+
+        WorldSimulation worldSimulation;
+
+        public Level(Environment environment, Dictionary<string, float> modelBoundaries, IEnumerable<Landscape> landscapes)
         {
             this.environment = environment;
+            this.worldSimulation = new WorldSimulation();
 
             players = new List<Player>();
-            objects3D = new List<Object3D>();
             var random = new Random();
             int factor = 1;
-            objects3D.Add(new Spaceship(
+            
+            worldSimulation.Add(new Spaceship(
                 id: Data.Ship,
                 position: Vector3.Zero,
                 orientation: Quaternion.Identity,
-                speed: 150,
-                radius: environment.ModelBoundaries[Data.Ship].Radius
+                speed: 10,
+                radius: modelBoundaries[Data.Ship]
             ));
             for (int y = -factor; y <= factor; y++)
             {
@@ -47,36 +47,22 @@ namespace Far_Off_Wanderer
                             position: (9400 * (Vector3.Forward * y + Vector3.Right * x) * factor) * 2 / 5,
                             orientation: Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
                             speed: id == ids[0] ? 150 : 2,
-                            radius: environment.ModelBoundaries[id].Radius
+                            radius: modelBoundaries[id]
                         );
                         players.Add(new ComputerPlayer()
                         {
                             ControlledObject = spaceship
                         });
-                        objects3D.Add(spaceship);
+                        worldSimulation.Add(spaceship);
                     }
                 }
             }
-            //Objects3D.RemoveRange(2, Objects3D.Count - 2);
-            skybox = new Skybox(
-//                color: new Color(0.2f, 0.3f, 0.8f)
-                color: new Color(0.9f, 0.7f, 0.4f)
-            );
-            if (objects3D.Count > 0)
+
+            worldSimulation.Add(landscapes);
+
+            if (worldSimulation.IsEmpty)
             {
-                camera = new SpaceshipFollowingCamera()
-                {
-                    Orientation = Quaternion.Identity,
-                    Up = Vector3.Up,
-                    FieldOFView = (float)Math.PI / 3,
-                    NearCutOff = 100,
-                    FarCutOff = 80000,
-                    Ship = objects3D.OfType<Spaceship>().First()
-                };
-            }
-            else
-            {
-                camera = new FixedCamera()
+                Camera = new FixedCamera()
                 {
                     Orientation = Quaternion.Identity,
                     Up = Vector3.Up,
@@ -87,25 +73,33 @@ namespace Far_Off_Wanderer
                     Target = Vector3.Zero
                 };
             }
+            else
+            {
+                Camera = new SpaceshipFollowingCamera()
+                {
+                    Orientation = Quaternion.Identity,
+                    Up = Vector3.Up,
+                    FieldOFView = (float)Math.PI / 3,
+                    NearCutOff = 100,
+                    FarCutOff = 80000,
+                    Ship = worldSimulation.GetAll<Spaceship>().First()
+                };
+            }
             players.Add(new LocalPlayer()
             {
-                ControlledObject = objects3D.OfType<Spaceship>().First()
+                ControlledObject = worldSimulation.GetAll<Spaceship>().First()
             });
-
-
-            grid = new Grid(this.environment.Range);
-
-            grid.AddStaticColliders(environment.StaticColliders);
-            grid.AddDistanceField(environment.DistanceField);
-
-            environment.Grid = grid;
         }
+
+        public bool NoLocalPlayerLeft => Objects3D.Contains(LocalPlayer.ControlledObject) == false;
+        public IEnumerable<Object3D> Enemies => Objects3D.Except(LocalPlayer.ControlledObject).OfType<Spaceship>();
+        public bool NoEnemiesLeft => !Enemies.Any();
 
         public void UpdateScene(TimeSpan elapsedTime, LevelHandler.InputActions actions)
         {
-            if (camera is SpaceshipFollowingCamera)
+            if (Camera is SpaceshipFollowingCamera)
             {
-                var camera = this.camera as SpaceshipFollowingCamera;
+                var camera = this.Camera as SpaceshipFollowingCamera;
                 camera.Yaw = actions.CameraYaw;
                 camera.Pitch = actions.CameraPitch;
                 camera.ZoomIn = actions.ZoomingIn;
@@ -116,65 +110,13 @@ namespace Far_Off_Wanderer
                 return;
             }
 
-            var newObjects = new List<Object3D>();
-            foreach (var objects3d in objects3D)
-            {
-                newObjects.AddRange(objects3d.Update(environment, elapsedTime));
-            }
+            worldSimulation.Update(elapsedTime, environment);
 
             foreach (var player in players)
             {
                 player.UpdateThinking(elapsedTime, environment);
             }
 
-            var collidableObjects = objects3D.Where(o => o.Radius > 0);
-
-            grid.AddCurrentColliders(collidableObjects);
-
-            grid.CheckCollisions((a, b) =>
-            {
-                newObjects.AddRange(a.obj.Die(environment, a.at));
-                newObjects.AddRange(b.obj.Die(environment, b.at));
-            });
-
-            foreach (var newObject in newObjects)
-            {
-                newObject.Update(environment, elapsedTime);
-            }
-            objects3D.AddRange(newObjects);
-            objects3D = objects3D.Where(obj => obj.Alive == true).ToList();
-
-            var center = camera.Position;
-            var range = environment.Range;
-            foreach (var other in objects3D)
-            {
-                var position = other.Position;
-                while (position.X - center.X > range / 2)
-                {
-                    position.X -= range;
-                }
-                while (position.X - center.X < -range / 2)
-                {
-                    position.X += range;
-                }
-                while (position.Y - center.Y > range / 2)
-                {
-                    position.Y -= range;
-                }
-                while (position.Y - center.Y < -range / 2)
-                {
-                    position.Y += range;
-                }
-                while (position.Z - center.Z > range / 2)
-                {
-                    position.Z -= range;
-                }
-                while (position.Z - center.Z < -range / 2)
-                {
-                    position.Z += range;
-                }
-                other.Position = position;
-            }
         }
     }
 }

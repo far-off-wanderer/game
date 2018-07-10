@@ -13,13 +13,9 @@ namespace Far_Off_Wanderer
         public Size ScreenSize { get; set; }
         public bool Flipped { get; set; }
         public Random Random { get; set; }
-        public Dictionary<string, BoundingSphere> ModelBoundaries { get; set; }
         public Dictionary<string, SoundEffect> Sounds { get; set; }
         public Camera ActiveCamera { get; set; }
         public float Range { get; set; }
-        public IEnumerable<Collider> StaticColliders { get; set; }
-        public InfiniteTerrainDistanceField DistanceField { get; set; }
-        public Grid Grid { get; set; }
         public LevelHandler.InputActions Actions { get; set; }
 
         public Vector3 RandomDirection()

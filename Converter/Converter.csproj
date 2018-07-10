@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser.Core" Version="1.0.1" />
-    <PackageReference Include="ShellProgressBar" Version="4.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0003" />
   </ItemGroup>
 
