@@ -21,6 +21,7 @@ namespace Far_Off_Wanderer
         public Vector3[,] Points => pointmap;
         public VertexBuffer VertexBuffer => vertexBuffer;
         public IndexBuffer IndexBuffer => indexBuffer;
+        public int Resolution => width;
 
         public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map)
         {
@@ -37,7 +38,11 @@ namespace Far_Off_Wanderer
                 for(var x = 0; x < width; x++)
                 {
                     var h = map[x, z].ToScaledVector4().X * height;
-                    pointmap[x, z] = new Vector3(1f * x / width, 1f * h / Math.Min(width, length), 1f * z / length);
+                    var p = new Vector3(1f * x / width, 1f * h / Math.Min(width, length), 1f * z / length);
+
+                    p += (1f / width) * Noise.Vector3.Get(x / 4, z / 4) * h / height;
+
+                    pointmap[x, z] = p;
 
                     var dx = map[Math.Max(0, x - 1), z].ToScaledVector4().X * height - map[Math.Min(width - 1, x + 1), z].ToScaledVector4().X * height;
                     var dz = map[x, Math.Max(0, z - 1)].ToScaledVector4().X * height - map[x, Math.Min(length - 1, z + 1)].ToScaledVector4().X * height;
@@ -56,23 +61,15 @@ namespace Far_Off_Wanderer
 
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), vertices.Length, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices);
-
-            var widthPlusOne = width + 1;
-
-            var indexList = new short[(widthPlusOne + 1) * 2];
-            foreach (var i in Enumerable.Range(0, indexList.Length))
+            
+            var indices = new short[width * 2];
+            for (var i = 0; i < width; i++)
             {
-                if (i % 2 == 0)
-                {
-                    indexList[i] = (short)(i + widthPlusOne);
-                }
-                else
-                {
-                    indexList[i] = (short)(i - 1);
-                }
+                indices[i * 2 + 0] = (short)(i + width);
+                indices[i * 2 + 1] = (short)i;
             }
-            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indexList.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indexList);
+            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indices);
         }
 
         public float this[float x, float z]
@@ -90,7 +87,6 @@ namespace Far_Off_Wanderer
             }
         }
 
-
         public Vector3[] GetHeightsAround1D(float x, float z, float range)
         {
             // convert from unit cube to integer array scale
@@ -106,7 +102,7 @@ namespace Far_Off_Wanderer
             var ixmax = Math.Min(width - 1, (int)Math.Ceiling(x + range));
             var dix = ixmax - ixmin;
 
-            if(dix <= 0 || diz <= 0)
+            if (dix <= 0 || diz <= 0)
             {
                 return null;
             }
@@ -121,6 +117,45 @@ namespace Far_Off_Wanderer
                 for (var ix = ixmin; ix < ixmax; ix++)
                 {
                     points[i + dix * j] = pointmap[ix, iz];
+
+                    i++;
+                }
+                j++;
+            }
+
+            return points;
+        }
+
+        public Vector3[,] GetHeightsAround2D(float x, float z, float range)
+        {
+            // convert from unit cube to integer array scale
+            x *= width;
+            z *= length;
+            range *= Math.Min(width, length);
+
+            var izmin = Math.Max(0, (int)Math.Floor(z - range));
+            var izmax = Math.Min(length - 1, (int)Math.Ceiling(z + range));
+            var diz = izmax - izmin;
+
+            var ixmin = Math.Max(0, (int)Math.Floor(x - range));
+            var ixmax = Math.Min(width - 1, (int)Math.Ceiling(x + range));
+            var dix = ixmax - ixmin;
+
+            if (dix <= 0 || diz <= 0)
+            {
+                return null;
+            }
+
+            var points = new Vector3[dix, diz];
+
+            // ugly loop
+            var j = 0;
+            for (var iz = izmin; iz < izmax; iz++)
+            {
+                var i = 0;
+                for (var ix = ixmin; ix < ixmax; ix++)
+                {
+                    points[i, j] = pointmap[ix, iz];
 
                     i++;
                 }
@@ -155,17 +190,15 @@ namespace Far_Off_Wanderer
 
             var world = b.World;
 
-            var widthPlusOne = width + 1;
-
             b.World *= Matrix.CreateScale(Radius) * Matrix.CreateTranslation(Position.X, Position.Y, Position.Z);
             foreach (var pass in b.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                foreach (var i in Enumerable.Range(0, widthPlusOne - 1))
+                for (var i = 0; i < length - 1; i++)
                 {
                     //b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
 
-                    b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, i * widthPlusOne, 0, widthPlusOne - 1);
+                    b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, i * width, 0, width * 2 - 2);
                 }
             }
 
@@ -174,11 +207,14 @@ namespace Far_Off_Wanderer
             b.DiffuseColor = diffuseColor;
         }
 
-        public void Draw(BasicEffect b, Color color, Texture2D texture)
+        public void Draw(BasicEffect b, Color color, Texture2D texture, bool wireframe)
         {
-
             b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            b.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            b.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
+            {
+                FillMode = FillMode.WireFrame,
+                CullMode = CullMode.None
+            } : RasterizerState.CullNone;
             b.GraphicsDevice.BlendState = BlendState.Opaque;
             DrawFirst(b, color, texture);
         }

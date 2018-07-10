@@ -100,6 +100,8 @@ namespace Far_Off_Wanderer
             if (Camera is SpaceshipFollowingCamera)
             {
                 var camera = this.Camera as SpaceshipFollowingCamera;
+                var ship = camera.Ship;
+                camera.Up = Vector3.Normalize(Vector3.Up * 2 + ship.Up); // needs to be better.. 
                 camera.Yaw = actions.CameraYaw;
                 camera.Pitch = actions.CameraPitch;
                 camera.ZoomIn = actions.ZoomingIn;

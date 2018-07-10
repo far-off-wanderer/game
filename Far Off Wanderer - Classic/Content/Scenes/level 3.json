@@ -6,7 +6,9 @@
   },
   "surface": {
     "textured": null,
-    "color": "#33573E"
+    "color": "#33573E",
+    "size": 127000,
+    "height": 9000
   },
   "on": {
     "won": "congratulations",

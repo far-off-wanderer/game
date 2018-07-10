@@ -7,7 +7,8 @@
   "surface": {
     "textured": null,
     "color": "#444100",
-    "size":  65000
+    "size": 65000,
+    "height": 5000
   },
   "on": {
     "won": "level 2",
