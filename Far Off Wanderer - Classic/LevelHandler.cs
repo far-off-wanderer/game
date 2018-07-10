@@ -362,7 +362,7 @@ namespace Far_Off_Wanderer
                         {
                             foreach(var spaceship in level.Objects3D.OfType<Spaceship>())
                             {
-                                void DrawShadow(BasicEffect b, Color color, Texture2D texture, Vector3[,] shadowPoints)
+                                void DrawShadow(BasicEffect b, Color color, Texture2D texture, Vector3[,] shadowPoints, Vector3 toObject, float sizeOfObject)
                                 {
                                     b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
@@ -388,6 +388,7 @@ namespace Far_Off_Wanderer
 
                                     var diffuseColor = b.DiffuseColor;
                                     b.DiffuseColor = color.ToVector3();
+                                    b.Alpha = color.ToVector4().W;
 
                                     var world = b.World;
 
@@ -405,14 +406,35 @@ namespace Far_Off_Wanderer
                                             for(var x = 0; x < shadowPoints.GetLength(0) - 1; x++)
                                             {
                                                 // verified through wireframe
-                                                triangleStrip[0].Position = shadowPoints[x + 1, z + 0];
-                                                triangleStrip[0].TextureCoordinate = new Vector2(1f * (x + 1) / shadowPoints.GetLength(0), 1f * z / shadowPoints.GetLength(1));
-                                                triangleStrip[1].Position = shadowPoints[x + 1, z + 1];
-                                                triangleStrip[1].TextureCoordinate = new Vector2(1f * (x + 1) / shadowPoints.GetLength(0), 1f * (z + 1) / shadowPoints.GetLength(1));
-                                                triangleStrip[2].Position = shadowPoints[x + 0, z + 0];
-                                                triangleStrip[2].TextureCoordinate = new Vector2(1f * x / shadowPoints.GetLength(0), 1f * z / shadowPoints.GetLength(1));
-                                                triangleStrip[3].Position = shadowPoints[x + 0, z + 1];
-                                                triangleStrip[3].TextureCoordinate = new Vector2(1f * x / shadowPoints.GetLength(0), 1f * (z + 1) / shadowPoints.GetLength(1));
+                                                {
+                                                    var point = shadowPoints[x + 1, z + 0];
+                                                    var pointToObject = (toObject - point) / sizeOfObject;
+                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
+                                                    triangleStrip[0].Position = point;
+                                                    triangleStrip[0].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
+                                                }
+                                                {
+                                                    var point = shadowPoints[x + 1, z + 1];
+                                                    var pointToObject = (toObject - point) / sizeOfObject;
+                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
+                                                    triangleStrip[1].Position = point;
+                                                    triangleStrip[1].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
+                                                }
+                                                {
+                                                    var point = shadowPoints[x + 0, z + 0];
+                                                    var pointToObject = (toObject - point) / sizeOfObject;
+                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
+                                                    triangleStrip[2].Position = point;
+                                                    triangleStrip[2].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
+                                                }
+                                                {
+                                                    var point = shadowPoints[x + 0, z + 1];
+                                                    var pointToObject = (toObject - point) / sizeOfObject;
+                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
+                                                    triangleStrip[3].Position = point;
+                                                    triangleStrip[3].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
+                                                }
+
                                                 triangleStrip[0].Position.Y += .0001f;
                                                 triangleStrip[1].Position.Y += .0001f;
                                                 triangleStrip[2].Position.Y += .0001f;
@@ -433,7 +455,7 @@ namespace Far_Off_Wanderer
 
                                 if(points != null)
                                 {
-                                    DrawShadow(basicEffect, Color.White, textures["Shadow"], points);
+                                    DrawShadow(basicEffect,( scene.Environment.BackgroundColor.ToColor().Complementary() * .2f).Faded(.75f), textures["Shadow"], points, distanceTo, radius * 8);
                                 }
                             }
                         }
