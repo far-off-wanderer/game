@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Far_Off_Wanderer
@@ -13,7 +14,7 @@ namespace Far_Off_Wanderer
     {
         public static Color ToColor(this string color)
         {
-            if (color.StartsWith('#'))
+            if (color.StartsWith("#"))
             {
                 //remove the # at the front
                 color = color.Replace("#", "");
@@ -44,12 +45,26 @@ namespace Far_Off_Wanderer
                 return (Color)(typeof(Color).GetProperties().FirstOrDefault(p => string.Equals(p.Name, color, System.StringComparison.OrdinalIgnoreCase)).GetValue(null));
             }
         }
-        
+
         public static Color Complementary(this Color color)
         {
             var converter = new HsvAndRgbConverter();
             var hsv = converter.Convert(color);
             return converter.Convert(new Hsv(hsv.H + 180, hsv.S, hsv.V));
+        }
+
+        static Vector3 greyscale = new Vector3(.3f, .59f, .11f);
+
+        public static Color GreyedOut(this Color color, float amount)
+        {
+            var c = color.ToVector3();
+            var grey = Vector3.Dot(c, greyscale);
+
+            return new Color(
+                r: c.X * (1 - amount) + grey * amount,
+                g: c.Y * (1 - amount) + grey * amount,
+                b: c.Z * (1 - amount) + grey * amount
+            );
         }
 
         public static Color Faded(this Color color, float fade)
@@ -153,27 +168,27 @@ namespace SixLabors.ImageSharp.ColorSpaces
             float g = color.G / 255F;
             float b = color.B / 255F;
 
-            float max = MathF.Max(r, MathF.Max(g, b));
-            float min = MathF.Min(r, MathF.Min(g, b));
+            float max = Math.Max(r, Math.Max(g, b));
+            float min = Math.Min(r, Math.Min(g, b));
             float chroma = max - min;
             float h = 0;
             float s = 0;
             float v = max;
 
-            if (MathF.Abs(chroma) < float.Epsilon)
+            if (Math.Abs(chroma) < float.Epsilon)
             {
                 return new Hsv(0, s, v);
             }
 
-            if (MathF.Abs(r - max) < float.Epsilon)
+            if (Math.Abs(r - max) < float.Epsilon)
             {
                 h = (g - b) / chroma;
             }
-            else if (MathF.Abs(g - max) < float.Epsilon)
+            else if (Math.Abs(g - max) < float.Epsilon)
             {
                 h = 2 + ((b - r) / chroma);
             }
-            else if (MathF.Abs(b - max) < float.Epsilon)
+            else if (Math.Abs(b - max) < float.Epsilon)
             {
                 h = 4 + ((r - g) / chroma);
             }
@@ -257,7 +272,7 @@ namespace SixLabors.ImageSharp.ColorSpaces.Conversion.Implementation.HsvColorSap
     /// Color converter between HSV and Rgb
     /// See <see href="http://www.poynton.com/PDFs/coloureq.pdf"/> for formulas.
     /// </summary>
-    internal class HsvAndRgbConverter 
+    internal class HsvAndRgbConverter
     {
         /// <inheritdoc/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -266,12 +281,12 @@ namespace SixLabors.ImageSharp.ColorSpaces.Conversion.Implementation.HsvColorSap
             float s = input.S;
             float v = input.V;
 
-            if (MathF.Abs(s) < float.Epsilon)
+            if (Math.Abs(s) < float.Epsilon)
             {
                 return new Color(v, v, v);
             }
 
-            float h = (MathF.Abs(input.H - 360) < float.Epsilon) ? 0 : input.H / 60;
+            float h = (Math.Abs(input.H - 360) < float.Epsilon) ? 0 : input.H / 60;
             int i = (int)Math.Truncate(h);
             float f = h - i;
 
@@ -330,27 +345,27 @@ namespace SixLabors.ImageSharp.ColorSpaces.Conversion.Implementation.HsvColorSap
             float g = input.ToVector3().Y;
             float b = input.ToVector3().Z;
 
-            float max = MathF.Max(r, MathF.Max(g, b));
-            float min = MathF.Min(r, MathF.Min(g, b));
+            float max = Math.Max(r, Math.Max(g, b));
+            float min = Math.Min(r, Math.Min(g, b));
             float chroma = max - min;
             float h = 0;
             float s = 0;
             float v = max;
 
-            if (MathF.Abs(chroma) < float.Epsilon)
+            if (Math.Abs(chroma) < float.Epsilon)
             {
                 return new Hsv(0, s, v);
             }
 
-            if (MathF.Abs(r - max) < float.Epsilon)
+            if (Math.Abs(r - max) < float.Epsilon)
             {
                 h = (g - b) / chroma;
             }
-            else if (MathF.Abs(g - max) < float.Epsilon)
+            else if (Math.Abs(g - max) < float.Epsilon)
             {
                 h = 2 + ((b - r) / chroma);
             }
-            else if (MathF.Abs(b - max) < float.Epsilon)
+            else if (Math.Abs(b - max) < float.Epsilon)
             {
                 h = 4 + ((r - g) / chroma);
             }

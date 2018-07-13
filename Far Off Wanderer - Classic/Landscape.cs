@@ -40,6 +40,14 @@ namespace Far_Off_Wanderer
                     var h = map[x, z].ToScaledVector4().X * height;
                     var p = new Vector3(1f * x / width, 1f * h / Math.Min(width, length), 1f * z / length);
 
+                    var fromcenter = 2 * p - Vector3.One;
+                    fromcenter.Y = 0;
+                    var borderFraction = .9f;
+                    if(fromcenter.LengthSquared() > borderFraction)
+                    {
+                        p += (float)(Math.Tan((Math.PI / 2) * Math.Min(1, (fromcenter.LengthSquared() - borderFraction) / (1 - borderFraction)))) * Vector3.Normalize(fromcenter);
+                    }
+
                     p += (1f / width) * Noise.Vector3.Get(x / 4, z / 4) * h / height;
 
                     pointmap[x, z] = p;

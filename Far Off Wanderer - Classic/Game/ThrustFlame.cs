@@ -21,31 +21,28 @@ namespace Far_Off_Wanderer
             if (LastPosition.HasValue && LastDirection.HasValue)
             {
                 var distance = Position - LastPosition.Value;
-                if (distance.LengthSquared() < Math.Pow(Environment.Range / 2, 2))
+                var count = (Position - LastPosition.Value).Length() / 5;
+
+                var forward = Vector3.Normalize(Direction);
+                var up = Vector3.Normalize(Up);
+                var left = Vector3.Normalize(Vector3.Cross(up, forward));
+                Position += forward * Location.Z;
+                Position += -left * Location.X;
+                Position += up * Location.Y;
+
+                if (count > 4)
                 {
-                    var count = (Position - LastPosition.Value).Length() / 5;
-
-                    var forward = Vector3.Normalize(Direction);
-                    var up = Vector3.Normalize(Up);
-                    var left = Vector3.Normalize(Vector3.Cross(up, forward));
-                    Position += forward * Location.Z;
-                    Position += -left * Location.X;
-                    Position += up * Location.Y;
-
-                    if (count > 4)
+                    for (int i = 0; i < count; i++)
                     {
-                        for (int i = 0; i < count; i++)
-                        {
-                            var value = (float)(i + Environment.Random.NextDouble()) / (float)count;
+                        var value = (float)(i + Environment.Random.NextDouble()) / (float)count;
 
-                            var flame = new Flame()
-                            {
-                                Position = Vector3.Hermite(LastPosition.Value, LastDirection.Value, Position, Direction, value) + Environment.RandomPointInUnitSphere() * 0.1f,
-                                Up = Up,
-                                Direction = -Direction
-                            };
-                            flames.Enqueue(flame);
-                        }
+                        var flame = new Flame()
+                        {
+                            Position = Vector3.Hermite(LastPosition.Value, LastDirection.Value, Position, Direction, value) + Environment.RandomPointInUnitSphere() * 0.1f,
+                            Up = Up,
+                            Direction = -Direction
+                        };
+                        flames.Enqueue(flame);
                     }
                 }
             }

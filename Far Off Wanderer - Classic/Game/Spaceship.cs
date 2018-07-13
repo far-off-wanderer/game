@@ -12,11 +12,13 @@ namespace Far_Off_Wanderer
 
         float speed;
 
-        float rotation;
+        float horizontalRotation;
+        float verticalRotation;
         readonly float maxRotation = (float)(Math.PI / 2) / 25;
         readonly float rotationSpeed = 0.15f;
 
-        float targetRotation;
+        float targetHorizontalRotation;
+        float targetVerticalRotation;
         float forwardAcceleration;
 
         bool readyToShoot;
@@ -34,7 +36,7 @@ namespace Far_Off_Wanderer
         public Vector3[] SensorPoints { get; set; }
 
         public float Speed => speed;
-        public Quaternion ShipLeaning => Quaternion.CreateFromAxisAngle(Vector3.Forward, -rotation * 5); // the @buildstarted factor
+        public Quaternion ShipLeaning => Quaternion.CreateFromAxisAngle(Vector3.Forward, -horizontalRotation * 5); // the @buildstarted factor
         public float StrafingAngle => (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing);
         public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, StrafingAngle);
         public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
@@ -42,7 +44,8 @@ namespace Far_Off_Wanderer
         public Vector3 Right => Vector3.Cross(Forward, Up);
 
         float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
-        Quaternion Rotation => Quaternion.CreateFromAxisAngle(Vector3.Up, rotation);
+        Quaternion HorizontalRotation => Quaternion.CreateFromAxisAngle(Vector3.Up, horizontalRotation);
+        Quaternion VerticalRotation => Quaternion.CreateFromAxisAngle(Right, verticalRotation);
 
         public bool IsStafing => strafe.HasValue;
 
@@ -102,32 +105,57 @@ namespace Far_Off_Wanderer
             shooting = false;
 
             speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
-            if (targetRotation > rotation)
+            if (targetHorizontalRotation > horizontalRotation)
             {
-                rotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (rotation >= targetRotation)
+                horizontalRotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
+                if (horizontalRotation >= targetHorizontalRotation)
                 {
-                    rotation = targetRotation;
+                    horizontalRotation = targetHorizontalRotation;
                 }
             }
-            else if (targetRotation < rotation)
+            else if (targetHorizontalRotation < horizontalRotation)
             {
-                rotation -= rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (rotation <= targetRotation)
+                horizontalRotation -= rotationSpeed * (float)ElapsedTime.TotalSeconds;
+                if (horizontalRotation <= targetHorizontalRotation)
                 {
-                    rotation = targetRotation;
+                    horizontalRotation = targetHorizontalRotation;
                 }
             }
-            if (rotation > maxRotation)
+            if (targetVerticalRotation > verticalRotation)
             {
-                rotation = maxRotation;
+                verticalRotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
+                if (verticalRotation >= targetVerticalRotation)
+                {
+                    verticalRotation = targetVerticalRotation;
+                }
             }
-            if (rotation < -maxRotation)
+            else if (targetVerticalRotation < verticalRotation)
             {
-                rotation = -maxRotation;
+                verticalRotation -= rotationSpeed * (float)ElapsedTime.TotalSeconds;
+                if (verticalRotation <= targetVerticalRotation)
+                {
+                    verticalRotation = targetVerticalRotation;
+                }
             }
 
-            Orientation *= Rotation;
+            if (horizontalRotation > maxRotation)
+            {
+                horizontalRotation = maxRotation;
+            }
+            if (horizontalRotation < -maxRotation)
+            {
+                horizontalRotation = -maxRotation;
+            }
+            if (verticalRotation > maxRotation)
+            {
+                verticalRotation = maxRotation;
+            }
+            if (verticalRotation < -maxRotation)
+            {
+                verticalRotation = -maxRotation;
+            }
+
+            Orientation *= VerticalRotation * HorizontalRotation;
             var Direction = Vector3.Transform(Vector3.Forward * Speed, Orientation);
             var Up = Vector3.Transform(Vector3.Up, Orientation);
             Position += Direction * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
@@ -200,9 +228,14 @@ namespace Far_Off_Wanderer
             yield break;
         }
 
-        public override void TurnAngle(float Angle)
+        public override void HorizontalTurnAngle(float Angle)
         {
-            targetRotation = Angle;
+            targetHorizontalRotation = Angle;
+        }
+
+        public override void VerticalTurnAngle(float Angle)
+        {
+            targetVerticalRotation = Angle;
         }
 
         public override void AccelerateAmount(float Amount)
@@ -269,11 +302,11 @@ namespace Far_Off_Wanderer
                         yield return new Orbit(this, explosion, strafe == StrafingDirection.Left ? -rollSpeed : rollSpeed);
                     }
                 }
-                foreach (var explosion in createThrustFlames(leftFlame, (float)Math.Exp(-10 * rotation)))
+                foreach (var explosion in createThrustFlames(leftFlame, (float)Math.Exp(-10 * horizontalRotation)))
                 {
                     yield return explosion;
                 }
-                foreach (var explosion in createThrustFlames(rightFlame, (float)Math.Exp(10 * rotation)))
+                foreach (var explosion in createThrustFlames(rightFlame, (float)Math.Exp(10 * horizontalRotation)))
                 {
                     yield return explosion;
                 }

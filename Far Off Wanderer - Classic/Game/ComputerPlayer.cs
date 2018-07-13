@@ -118,11 +118,11 @@ namespace Far_Off_Wanderer
                 var lean = decision.lean;
                 if (Math.Abs(lean) > 0.0001)
                 {
-                    spaceShip.TurnAngle(-lean * 15);
+                    spaceShip.HorizontalTurnAngle(-lean * 15);
                 }
                 else
                 {
-                    spaceShip.TurnAngle(directions[direction] / 4);
+                    spaceShip.HorizontalTurnAngle(directions[direction] / 4);
                 }
             }
         }

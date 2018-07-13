@@ -31,8 +31,10 @@ namespace Far_Off_Wanderer
 
             public bool TurningLeft => input.Keyboard.While[(int)Keys.A] || input.Keyboard.While[(int)Keys.Left];
             public bool TurningRight => input.Keyboard.While[(int)Keys.D] || input.Keyboard.While[(int)Keys.Right];
-            public bool Accelerating => input.Keyboard.While[(int)Keys.W] || input.Keyboard.While[(int)Keys.Up];
-            public bool Decelerating => input.Keyboard.While[(int)Keys.S] || input.Keyboard.While[(int)Keys.Down];
+            public bool TurningUp => false;
+            public bool TurningDown => false;
+            public bool Accelerating => input.Keyboard.While[(int)Keys.W] || input.Keyboard.While[(int)Keys.Up]; // input.Keyboard.While[(int)Keys.LeftShift] || input.Keyboard.While[(int)Keys.RightShift];
+            public bool Decelerating => input.Keyboard.While[(int)Keys.S] || input.Keyboard.While[(int)Keys.Down]; // input.Keyboard.While[(int)Keys.LeftControl] || input.Keyboard.While[(int)Keys.RightControl];
             public bool Shooting => input.Keyboard.While[(int)Keys.Space];
             public bool StrafingLeft => input.Keyboard.On[(int)Keys.Q];
             public bool StrafingRight => input.Keyboard.On[(int)Keys.E];
@@ -172,7 +174,7 @@ namespace Far_Off_Wanderer
                         OnNext(scene.On.Cancel);
                     }
 
-                    if(actions.ToggleWireframe)
+                    if (actions.ToggleWireframe)
                     {
                         wireframe = !wireframe;
                     }
@@ -358,9 +360,9 @@ namespace Far_Off_Wanderer
                             landscape.Draw(basicEffect, color, texture, wireframe);
                         }
 
-                        foreach(var landscape in level.Objects3D.OfType<Landscape>())
+                        foreach (var landscape in level.Objects3D.OfType<Landscape>())
                         {
-                            foreach(var spaceship in level.Objects3D.OfType<Spaceship>())
+                            foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
                             {
                                 void DrawShadow(BasicEffect b, Color color, Texture2D texture, Vector3[,] shadowPoints, Vector3 toObject, float sizeOfObject)
                                 {
@@ -376,7 +378,7 @@ namespace Far_Off_Wanderer
                                     b.LightingEnabled = false;
                                     b.PreferPerPixelLighting = true;
                                     b.TextureEnabled = texture != null;
-                                    b.VertexColorEnabled = texture == null;
+                                    b.VertexColorEnabled = true;
                                     b.Texture = texture;
                                     b.GraphicsDevice.SamplerStates[0] = new SamplerState
                                     {
@@ -388,57 +390,45 @@ namespace Far_Off_Wanderer
 
                                     var diffuseColor = b.DiffuseColor;
                                     b.DiffuseColor = color.ToVector3();
-                                    b.Alpha = color.ToVector4().W;
 
                                     var world = b.World;
 
                                     b.World *= Matrix.CreateScale(landscape.Radius) * Matrix.CreateTranslation(landscape.Position.X, landscape.Position.Y, landscape.Position.Z);
+
+
+                                    var shift = new Vector3(0, 0.0001f, 0);
+
                                     foreach (var pass in b.CurrentTechnique.Passes)
                                     {
                                         pass.Apply();
-                                        var triangleStrip = new VertexPositionTexture[4];
-                                        for(var i = 0; i < triangleStrip.Length; i++)
+                                        var triangleStrip = new VertexPositionColorTexture[4];
+                                        for (var i = 0; i < triangleStrip.Length; i++)
                                         {
-                                            triangleStrip[i] = new VertexPositionTexture(Vector3.Zero, Vector2.Zero);
+                                            triangleStrip[i] = new VertexPositionColorTexture(Vector3.Zero, Color.White, Vector2.Zero);
                                         }
                                         for (var z = 0; z < shadowPoints.GetLength(1) - 1; z++)
                                         {
-                                            for(var x = 0; x < shadowPoints.GetLength(0) - 1; x++)
+                                            for (var x = 0; x < shadowPoints.GetLength(0) - 1; x++)
                                             {
-                                                // verified through wireframe
+                                                VertexPositionColorTexture ComputeShadowPoint(Vector3 at)
                                                 {
-                                                    var point = shadowPoints[x + 1, z + 0];
-                                                    var pointToObject = (toObject - point) / sizeOfObject;
+                                                    var pointToObject = (toObject - at) / sizeOfObject;
                                                     var textureSpace = pointToObject * .5f + Vector3.One * .5f;
-                                                    triangleStrip[0].Position = point;
-                                                    triangleStrip[0].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
-                                                }
-                                                {
-                                                    var point = shadowPoints[x + 1, z + 1];
-                                                    var pointToObject = (toObject - point) / sizeOfObject;
-                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
-                                                    triangleStrip[1].Position = point;
-                                                    triangleStrip[1].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
-                                                }
-                                                {
-                                                    var point = shadowPoints[x + 0, z + 0];
-                                                    var pointToObject = (toObject - point) / sizeOfObject;
-                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
-                                                    triangleStrip[2].Position = point;
-                                                    triangleStrip[2].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
-                                                }
-                                                {
-                                                    var point = shadowPoints[x + 0, z + 1];
-                                                    var pointToObject = (toObject - point) / sizeOfObject;
-                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
-                                                    triangleStrip[3].Position = point;
-                                                    triangleStrip[3].TextureCoordinate = new Vector2(textureSpace.X, textureSpace.Z);
-                                                }
 
-                                                triangleStrip[0].Position.Y += .0001f;
-                                                triangleStrip[1].Position.Y += .0001f;
-                                                triangleStrip[2].Position.Y += .0001f;
-                                                triangleStrip[3].Position.Y += .0001f;
+                                                    var fade = 1 / (1 + pointToObject.Y * pointToObject.Y * (pointToObject.Y < 0 ? 1000000000000000 : 1));
+
+                                                    return new VertexPositionColorTexture(
+                                                        position: at + shift,
+                                                        color: new Color(Color.White, fade),
+                                                        textureCoordinate: new Vector2(textureSpace.X, textureSpace.Z)
+                                                    );
+                                                }
+                                                // verified through wireframe
+                                                triangleStrip[0] = ComputeShadowPoint(shadowPoints[x + 1, z + 0]);
+                                                triangleStrip[1] = ComputeShadowPoint(shadowPoints[x + 1, z + 1]);
+                                                triangleStrip[2] = ComputeShadowPoint(shadowPoints[x + 0, z + 0]);
+                                                triangleStrip[3] = ComputeShadowPoint(shadowPoints[x + 0, z + 1]);
+
                                                 b.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, triangleStrip, 0, 2);
                                             }
                                         }
@@ -453,9 +443,9 @@ namespace Far_Off_Wanderer
 
                                 var points = landscape.GetHeightsAround2D(distanceTo.X, distanceTo.Z, radius * 8);
 
-                                if(points != null)
+                                if (points != null)
                                 {
-                                    DrawShadow(basicEffect,( scene.Environment.BackgroundColor.ToColor().Complementary() * .2f).Faded(.75f), textures["Shadow"], points, distanceTo, radius * 8);
+                                    DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * 8);
                                 }
                             }
                         }

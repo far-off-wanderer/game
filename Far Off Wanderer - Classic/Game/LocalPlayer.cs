@@ -15,7 +15,8 @@ namespace Far_Off_Wanderer
             var actions = environment.Actions;
             var spaceShip = ControlledObject as Spaceship;
 
-            float turnAngle = 0;
+            float horizontalTurnAngle = 0;
+            float verticalTurnAngle = 0;
             bool shoot = false;
             StrafingDirection? strafe = null;
             foreach (var touchPoint in XNA.Touch.TouchPanel.GetState())
@@ -23,12 +24,12 @@ namespace Far_Off_Wanderer
                 if (touchPoint.Position.X < environment.ScreenSize.Width / 3)
                 {
                     strafe = StrafingDirection.Left;
-//                    turnAngle += (float)Math.PI / 2;
+                    //horizontalTurnAngle += (float)Math.PI / 2;
                 }
                 else if (touchPoint.Position.X > 2 * environment.ScreenSize.Width / 3)
                 {
                     strafe = StrafingDirection.Right;
-//                    turnAngle -= (float)Math.PI / 2;
+                    //horizontalTurnAngle -= (float)Math.PI / 2;
                 }
                 else
                 {
@@ -38,11 +39,19 @@ namespace Far_Off_Wanderer
 
             if (actions.TurningLeft)
             {
-                turnAngle += (float)Math.PI / 5;
+                horizontalTurnAngle += (float)Math.PI / 5;
             }
             if(actions.TurningRight)
             {
-                turnAngle -= (float)Math.PI / 5;
+                horizontalTurnAngle -= (float)Math.PI / 5;
+            }
+            if (actions.TurningUp)
+            {
+                horizontalTurnAngle += (float)Math.PI / 5;
+            }
+            if (actions.TurningDown)
+            {
+                horizontalTurnAngle -= (float)Math.PI / 5;
             }
             if (actions.Accelerating && !actions.Decelerating)
             {
@@ -74,19 +83,28 @@ namespace Far_Off_Wanderer
             {
                 if (pad.IsButtonDown(Buttons.DPadLeft))
                 {
-                    turnAngle += (float)Math.PI / 5;
+                    horizontalTurnAngle += (float)Math.PI / 5;
                 }
                 if (pad.IsButtonDown(Buttons.DPadRight))
                 {
-                    turnAngle -= (float)Math.PI / 5;
+                    horizontalTurnAngle -= (float)Math.PI / 5;
+                }
+                if (pad.IsButtonDown(Buttons.DPadUp))
+                {
+                    verticalTurnAngle += (float)Math.PI / 5;
+                }
+                if (pad.IsButtonDown(Buttons.DPadDown))
+                {
+                    verticalTurnAngle -= (float)Math.PI / 5;
                 }
                 if (pad.IsButtonDown(Buttons.A))
                 {
                     shoot = true;
                 }
-                var stick = pad.ThumbSticks.Left.X;
-                turnAngle -= Math.Sign(stick) * (float)Math.Pow(Math.Abs(stick), 3) / 2.5f;
-                turnAngle += (pad.Triggers.Left - pad.Triggers.Right) * (float)Math.PI / 5;
+                var stick = pad.ThumbSticks.Left;
+                horizontalTurnAngle -= Math.Sign(stick.X) * (float)Math.Pow(Math.Abs(stick.X), 3) / 2.5f;
+                horizontalTurnAngle += (pad.Triggers.Left - pad.Triggers.Right) * (float)Math.PI / 5;
+                verticalTurnAngle -= Math.Sign(stick.Y) * (float)Math.Pow(Math.Abs(stick.Y), 3) / 2.5f;
                 if (pad.IsButtonDown(Buttons.LeftShoulder))
                 {
                     strafe = StrafingDirection.Left;
@@ -99,7 +117,8 @@ namespace Far_Off_Wanderer
 
             if (UIViewSettings.GetForCurrentView().UserInteractionMode == UserInteractionMode.Touch && pad.IsConnected == false)
             {
-                turnAngle += Math.Sign(-environment.Acceleration.X) * MathHelper.Clamp((Math.Abs(environment.Acceleration.X) - deadZone) / (1 - deadZone), 0, 1);
+                horizontalTurnAngle += Math.Sign(-environment.Acceleration.X) * MathHelper.Clamp((Math.Abs(environment.Acceleration.X) - deadZone) / (1 - deadZone), 0, 1);
+                verticalTurnAngle += Math.Sign(-environment.Acceleration.Y) * MathHelper.Clamp((Math.Abs(environment.Acceleration.Y) - deadZone) / (1 - deadZone), 0, 1);
             }
             if (shoot)
             {
@@ -109,7 +128,8 @@ namespace Far_Off_Wanderer
             {
                 spaceShip.Strafe(strafe.Value);
             }
-            spaceShip.TurnAngle(turnAngle);
+            spaceShip.HorizontalTurnAngle(horizontalTurnAngle);
+            spaceShip.VerticalTurnAngle(verticalTurnAngle);
             //spaceShip.AccelerateAmount(0);
         }
     }

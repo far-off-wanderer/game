@@ -12,8 +12,8 @@
     <AssemblyName>Far Off Wanderer - Classic</AssemblyName>
     <DefaultLanguage>de-DE</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -113,8 +113,6 @@
     <Compile Include="ColorHelper.cs" />
     <Compile Include="Content.cs" />
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="DistanceField.cs" />
-    <Compile Include="DistanceFieldFileExtensions.cs" />
     <Compile Include="Game\WorldSimulation.cs" />
     <Compile Include="Input\GamePad.cs" />
     <Compile Include="Input\Input.cs" />
@@ -152,7 +150,6 @@
     <Compile Include="Game\Environment.cs" />
     <Compile Include="Game\Explosion.cs" />
     <Compile Include="Game\FixedCamera.cs" />
-    <Compile Include="Game\Grid.cs" />
     <Compile Include="Game\Level.cs" />
     <Compile Include="Game\LocalPlayer.cs" />
     <Compile Include="Game\Object3D.cs" />
