@@ -25,7 +25,7 @@ namespace Far_Off_Wanderer
 
             players = new List<Player>();
             var random = new Random();
-            int factor = 5;
+            int factor = 1;
             
             worldSimulation.Add(new Spaceship(
                 id: Data.Ship,

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Far_Off_Wanderer
@@ -10,6 +11,7 @@ namespace Far_Off_Wanderer
     public class Landscape : Object3D
     {
         private readonly string name;
+        private readonly Color color;
         private readonly Image<Rgba32> map;
         private readonly int width;
         private readonly int height;
@@ -18,14 +20,16 @@ namespace Far_Off_Wanderer
         private readonly VertexBuffer vertexBuffer;
         private readonly IndexBuffer indexBuffer;
 
+        public Color Color => color;
         public Vector3[,] Points => pointmap;
         public VertexBuffer VertexBuffer => vertexBuffer;
         public IndexBuffer IndexBuffer => indexBuffer;
         public int Resolution => width;
 
-        public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map)
+        public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float borderFraction)
         {
             this.name = name;
+            this.color = color;
             this.map = map;
             this.width = map.Width;
             this.length = map.Height;
@@ -40,15 +44,14 @@ namespace Far_Off_Wanderer
                     var h = map[x, z].ToScaledVector4().X * height;
                     var p = new Vector3(1f * x / width, 1f * h / Math.Min(width, length), 1f * z / length);
 
-                    var fromcenter = 2 * p - Vector3.One;
-                    fromcenter.Y = 0;
-                    var borderFraction = .9f;
-                    if(fromcenter.LengthSquared() > borderFraction)
-                    {
-                        p += (float)(Math.Tan((Math.PI / 2) * Math.Min(1, (fromcenter.LengthSquared() - borderFraction) / (1 - borderFraction)))) * Vector3.Normalize(fromcenter);
-                    }
+                    //var fromcenter = 2 * p - Vector3.One;
+                    //fromcenter.Y = 0;
+                    //if(fromcenter.LengthSquared() > borderFraction)
+                    //{
+                    //    p += (float)(Math.Tan((Math.PI / 2) * Math.Min(1, (fromcenter.LengthSquared() - borderFraction) / (1 - borderFraction)))) * Vector3.Normalize(fromcenter);
+                    //}
 
-                    p += (1f / width) * Noise.Vector3.Get(x / 4, z / 4) * h / height;
+                    p += (1f / width) * Noise.Vector3.Get(x / 4, z / 4) * ((1 - h / height) * bottomNoise + (h / height) * topNoise);
 
                     pointmap[x, z] = p;
 
@@ -58,6 +61,7 @@ namespace Far_Off_Wanderer
                     var dxVector = new Vector3(2, dx, 0);
                     var dyVector = new Vector3(0, dz, 2);
                     var normal = Vector3.Cross(dyVector, dxVector);
+                    normal.Y *= 10f;
                     normal.Normalize();
 
                     /// TODO
@@ -69,15 +73,36 @@ namespace Far_Off_Wanderer
 
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), vertices.Length, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices);
-            
-            var indices = new short[width * 2];
-            for (var i = 0; i < width; i++)
+
+            /// indexing thanks to
+            /// http://www.learnopengles.com/tag/triangle-strips/
+            /// https://github.com/learnopengles/Learn-OpenGLES-Tutorials/blob/master/android/AndroidOpenGLESLessonsCpp/app/src/main/cpp/lesson8/HeightMap.cpp
+            /// helped with the degenerate triangles. i'm really thankful
+            var indices = new List<int>();
+            for(var z = 0; z < length - 1; z++)
             {
-                indices[i * 2 + 0] = (short)(i + width);
-                indices[i * 2 + 1] = (short)i;
+                if (z > 0)
+                {
+                    // Degenerate begin: repeat first vertex
+                    indices.Add(z * width);
+                }
+
+                for (var x = 0; x < width; x++)
+                {
+                    // One part of the strip
+                    indices.Add((z * width) + x);
+                    indices.Add(((z + 1) * width) + x);
+                }
+
+                if (z < length - 2)
+                {
+                    // Degenerate end: repeat last vertex
+                    indices.Add(((z + 1) * width) + (length - 1));
+                }
             }
-            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indices);
+            var indexArray = indices.ToArray();
+            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indexArray.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indexArray);
         }
 
         public float this[float x, float z]
@@ -202,12 +227,7 @@ namespace Far_Off_Wanderer
             foreach (var pass in b.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                for (var i = 0; i < length - 1; i++)
-                {
-                    //b.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleStrip, Grid, i * DataWidth, DataWidth * 2, Indicees, 0, DataWidth - 1);
-
-                    b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, i * width, 0, width * 2 - 2);
-                }
+                b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, indexBuffer.IndexCount - 2);
             }
 
             b.World = world;

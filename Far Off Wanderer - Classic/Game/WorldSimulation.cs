@@ -58,8 +58,9 @@ namespace Far_Off_Wanderer
                     if(points != null)
                     {
                         var anyPointsAboveObject = points.Any(p => p.Y > distanceTo.Y - radius);
+                        var anyPointsBelowObject = points.Any(p => p.Y < distanceTo.Y + radius);
 
-                        if (anyPointsAboveObject)
+                        if (anyPointsAboveObject && anyPointsBelowObject)
                         {
                             var point = points.Where(p => p.Y > distanceTo.Y - radius).First();
                             newObjects.AddRange(obj.Die(environment, point));

@@ -145,12 +145,17 @@ namespace Far_Off_Wanderer
                     models = Get<Model>(Data.Ship, Data.Drone, Data.Spaceship);
                     environment.Sounds = Get<Microsoft.Xna.Framework.Audio.SoundEffect>("puiiw", "explosion");
                     textures = Get<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", "heightmap", scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
-                    images = Get<Image<Rgba32>>("heightmap");
+                    images = Get<Image<Rgba32>>("heightmap", "stonemap", "grassmap", "watermap");
 
-                    var landscapes = images.Select(image => new Landscape(image.Key, content.GraphicsDevice, image.Value)
+                    var bottomNoises = new float[] { 0f, 15f, .1f, 0f };
+                    var topNoises = new float[] { 1f, 0f, .1f, 0f };
+                    var colors = new Color[] { Color.Transparent, new Color(.2f, .2f, .2f), new Color(.12f, .13f, .02f), new Color(0f, 0f, .2f).GreyedOut(.25f) };
+                    var shift = new float[] { 0f, 4500f, 0f, -2000f };
+
+                    var landscapes = images.Select((image, index) => new Landscape(image.Key, content.GraphicsDevice, image.Value, bottomNoises[index], topNoises[index], colors[index], .5f)
                     {
                         Radius = scene.Surface.Size,
-                        Position = Vector3.UnitX * -scene.Surface.Size / 2 + Vector3.UnitY * -scene.Surface.Height + Vector3.UnitZ * -scene.Surface.Size / 2
+                        Position = Vector3.UnitX * -scene.Surface.Size / 2 + Vector3.UnitY * (-scene.Surface.Height - shift[index]) + Vector3.UnitZ * -scene.Surface.Size / 2
                     });
 
                     var boundaries = models.SelectAsDictionary(m => CreateMerged(m.Meshes.Select(mesh => mesh.BoundingSphere)).Radius);
@@ -357,7 +362,7 @@ namespace Far_Off_Wanderer
                         {
                             var color = scene.Surface.Color.ToColor();
                             var texture = scene.Surface.Texture != null ? textures[scene.Surface.Texture] : null;
-                            landscape.Draw(basicEffect, color, texture, wireframe);
+                            landscape.Draw(basicEffect, landscape.Color == Color.Transparent ? color : landscape.Color, texture, wireframe);
                         }
 
                         foreach (var landscape in level.Objects3D.OfType<Landscape>())
@@ -441,11 +446,13 @@ namespace Far_Off_Wanderer
                                 var distanceTo = (spaceship.Position - landscape.Position) / landscape.Radius;
                                 var radius = spaceship.Radius / landscape.Radius;
 
-                                var points = landscape.GetHeightsAround2D(distanceTo.X, distanceTo.Z, radius * 8);
+                                var factor = 32;
+
+                                var points = landscape.GetHeightsAround2D(distanceTo.X, distanceTo.Z, radius * factor);
 
                                 if (points != null)
                                 {
-                                    DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * 8);
+                                    DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
                                 }
                             }
                         }
@@ -544,7 +551,7 @@ namespace Far_Off_Wanderer
                         {
                             graphics.SpriteBatch.Begin();
                             var floor = textures["heightmap"];
-                            var floorSize = floor.Width * 2;
+                            var floorSize = graphics.GraphicsDevice.Viewport.Width / 4;
                             var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floorSize * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
                             foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
                             {
