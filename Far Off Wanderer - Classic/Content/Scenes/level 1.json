@@ -1,18 +1,42 @@
 ﻿{
   "type": "level",
   "environment": {
-    "backgroundColor":  "skyblue",
+    "backgroundColor": "skyblue",
     "fog": 0.025
   },
-  "surface": {
-    "textured": null,
-    "color": "#444100",
-    "size": 150000,
-    "height": 13000
+  "surfaces": {
+    "heightmap": {
+      "color": "#444100",
+      "size": 150000,
+      "height": -13000,
+      "noise": {
+        "top": 1,
+        "bottom": 0
+      },
+      "borderToInfinity": 0.8
+    },
+    "stonemap": {
+      "color": "#333333",
+      "size": 150000,
+      "height": -17500,
+      "noise": {
+        "top": 0,
+        "bottom": 15
+      }
+    },
+    "grassmap": {
+      "color": "#113E10",
+      "size": 150000,
+      "height": -13000,
+      "noise": {
+        "top": 0.1,
+        "bottom": 0.1
+      }
+    }
   },
   "on": {
     "won": "level 2",
     "gameover": "level 1",
-    "cancel":  "index"
+    "cancel": "index"
   }
 }

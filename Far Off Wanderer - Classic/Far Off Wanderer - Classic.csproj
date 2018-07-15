@@ -172,7 +172,6 @@
     <Content Include="Content\Scenes\level 1\grassmap.png" />
     <Content Include="Content\Scenes\level 1\heightmap.png" />
     <Content Include="Content\Scenes\level 1\stonemap.png" />
-    <Content Include="Content\Scenes\level 1\watermap.png" />
     <Content Include="Content\Scenes\level 2\grassmap.png" />
     <Content Include="Content\Scenes\level 2\heightmap.png" />
     <Content Include="Content\Scenes\level 2\stonemap.png" />

@@ -23,5 +23,15 @@ namespace Far_Off_Wanderer
                 Value = select(key)
             }).ToDictionary(entry => entry.Key, entry => entry.Value);
         }
+
+        public static IEnumerable<TOut> SelectFromDictionary<TKey, TIn, TOut>(this IDictionary<TKey, TIn> dictionary, Func<TKey, TIn, TOut> select)
+        {
+            return dictionary.Select((keyValuePair) => select(keyValuePair.Key, keyValuePair.Value));
+        }
+
+        public static IEnumerable<TOut> SelectFromDictionary<TKey, TIn, TOut>(this IDictionary<TKey, TIn> dictionary, Func<TKey, TIn, int, TOut> select)
+        {
+            return dictionary.Select((keyValuePair, index) => select(keyValuePair.Key, keyValuePair.Value, index));
+        }
     }
 }

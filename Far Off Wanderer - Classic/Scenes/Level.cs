@@ -1,4 +1,6 @@
-﻿namespace Far_Off_Wanderer
+﻿using System.Collections.Generic;
+
+namespace Far_Off_Wanderer
 {
     namespace Scenes
     {
@@ -16,6 +18,14 @@
                 public string Color { get; set; }
                 public int Size { get; set; }
                 public int Height { get; set; }
+                public Noise_ Noise { get; set; }
+                public float? BorderToInfinity { get; set; }
+
+                public class Noise_
+                {
+                    public float Top { get; set; }
+                    public float Bottom { get; set; }
+                }
             }
 
             public class On_
@@ -26,7 +36,7 @@
             }
 
             public Environment_ Environment { get; set; }
-            public Surface_ Surface { get; set; }
+            public Dictionary<string, Surface_> Surfaces { get; set; }
             public On_ On { get; set; }
         }
     }

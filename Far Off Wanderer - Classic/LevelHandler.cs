@@ -94,7 +94,6 @@ namespace Far_Off_Wanderer
             var models = default(Dictionary<string, Model>);
             var textures = default(Dictionary<string, Texture2D>);
             var spriteFonts = default(Dictionary<string, SpriteFont>);
-            var images = default(Dictionary<string, Image<Rgba32>>);
 
             var wireframe = false;
             var runIn3d = false;
@@ -132,30 +131,27 @@ namespace Far_Off_Wanderer
 
             Begin = async content =>
             {
-                Dictionary<string, T> Get<T>(params string[] names) => names.SelectAsDictionary(name => content.Get<T>(name));
+                Dictionary<string, T> GetAll<T>(params string[] names) => names.SelectAsDictionary(name => content.Get<T>(name));
 
                 // at start for loading screen
-                spriteFonts = Get<SpriteFont>(Data.Font);
+                spriteFonts = GetAll<SpriteFont>(Data.Font);
 
                 // delayed till game starts
                 await Task.Run(() =>
                 {
                     BoundingSphere CreateMerged(IEnumerable<BoundingSphere> spheres) => spheres.Aggregate((a, b) => BoundingSphere.CreateMerged(a, b));
 
-                    models = Get<Model>(Data.Ship, Data.Drone, Data.Spaceship);
-                    environment.Sounds = Get<Microsoft.Xna.Framework.Audio.SoundEffect>("puiiw", "explosion");
-                    textures = Get<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", "heightmap", scene.Surface.Texture, Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
-                    images = Get<Image<Rgba32>>("heightmap", "stonemap", "grassmap", "watermap");
+                    models = GetAll<Model>(Data.Ship, Data.Drone, Data.Spaceship);
+                    environment.Sounds = GetAll<Microsoft.Xna.Framework.Audio.SoundEffect>("puiiw", "explosion");
+                    textures = GetAll<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
 
-                    var bottomNoises = new float[] { 0f, 15f, .1f, 0f };
-                    var topNoises = new float[] { 1f, 0f, .1f, 0f };
-                    var colors = new Color[] { Color.Transparent, new Color(.2f, .2f, .2f), new Color(.12f, .13f, .02f), new Color(0f, 0f, .2f).GreyedOut(.25f) };
-                    var shift = new float[] { 0f, 4500f, 0f, -2000f };
-
-                    var landscapes = images.Select((image, index) => new Landscape(image.Key, content.GraphicsDevice, image.Value, bottomNoises[index], topNoises[index], colors[index], .5f)
+                    var landscapes = scene.Surfaces.SelectFromDictionary((name, surface, index) =>
                     {
-                        Radius = scene.Surface.Size,
-                        Position = Vector3.UnitX * -scene.Surface.Size / 2 + Vector3.UnitY * (-scene.Surface.Height - shift[index]) + Vector3.UnitZ * -scene.Surface.Size / 2
+                        return new Landscape(name, content.GraphicsDevice, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color.ToColor(), surface.BorderToInfinity)
+                        {
+                            Radius = surface.Size,
+                            Position = Vector3.UnitX * -surface.Size / 2 + Vector3.UnitY * surface.Height + Vector3.UnitZ * -surface.Size / 2
+                        };
                     });
 
                     var boundaries = models.SelectAsDictionary(m => CreateMerged(m.Meshes.Select(mesh => mesh.BoundingSphere)).Radius);
@@ -309,6 +305,7 @@ namespace Far_Off_Wanderer
 
                     if (started)
                     {
+                        level.Camera.FarCutOff = scene.Surfaces.First(s => s.Value.BorderToInfinity.HasValue).Value.Size;
                         var camera = new CameraModel(level.Camera, eye, new Size(graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height));
 
                         var basicEffect = new BasicEffect(graphics.GraphicsDevice);
@@ -328,7 +325,7 @@ namespace Far_Off_Wanderer
                         basicEffect.FogEnabled = true;
                         basicEffect.FogColor = backgroundColor.ToVector3();
                         basicEffect.FogStart = MathHelper.Lerp(20000f, 10f, scene.Environment.Fog);
-                        basicEffect.FogEnd = 75000f;
+                        basicEffect.FogEnd = scene.Surfaces.First(s => s.Value.BorderToInfinity.HasValue).Value.Size;
 
                         basicEffect.DirectionalLight0.Enabled = true;
                         basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
@@ -343,214 +340,247 @@ namespace Far_Off_Wanderer
 
                         graphics.GraphicsDevice.BlendState = BlendState.Opaque;
 
-                        foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
-                        {
-                            var model = models[spaceship.Id];
-
-                            graphics.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
-                            {
-                                FillMode = FillMode.WireFrame,
-                                CullMode = CullMode.None
-                            } : RasterizerState.CullNone;
-
-                            model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
-                        }
-
-                        graphics.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-                        foreach (var landscape in level.Objects3D.OfType<Landscape>())
-                        {
-                            var color = scene.Surface.Color.ToColor();
-                            var texture = scene.Surface.Texture != null ? textures[scene.Surface.Texture] : null;
-                            landscape.Draw(basicEffect, landscape.Color == Color.Transparent ? color : landscape.Color, texture, wireframe);
-                        }
-
-                        foreach (var landscape in level.Objects3D.OfType<Landscape>())
+                        void DrawSpaceships()
                         {
                             foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
                             {
-                                void DrawShadow(BasicEffect b, Color color, Texture2D texture, Vector3[,] shadowPoints, Vector3 toObject, float sizeOfObject)
+                                var model = models[spaceship.Id];
+
+                                graphics.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
                                 {
-                                    b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                                    FillMode = FillMode.WireFrame,
+                                    CullMode = CullMode.None
+                                } : RasterizerState.CullNone;
 
+                                model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                            }
+                        }
+                        DrawSpaceships();
 
-                                    graphics.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
+                        void DrawLandscapes()
+                        {
+                            graphics.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+
+                            basicEffect.GraphicsDevice.BlendState = BlendState.Opaque;
+
+                            basicEffect.LightingEnabled = false;
+                            basicEffect.PreferPerPixelLighting = true;
+                            basicEffect.TextureEnabled = false;
+                            basicEffect.VertexColorEnabled = false;
+
+                            foreach (var landscape in level.Objects3D.OfType<Landscape>())
+                            {
+                                var diffuseColor = basicEffect.DiffuseColor;
+                                basicEffect.DiffuseColor = landscape.Color.ToVector3();
+
+                                basicEffect.GraphicsDevice.SetVertexBuffer(landscape.VertexBuffer);
+                                basicEffect.GraphicsDevice.Indices = landscape.IndexBuffer;
+
+                                var world = basicEffect.World;
+
+                                basicEffect.World *= Matrix.CreateScale(landscape.Radius) * Matrix.CreateTranslation(landscape.Position);
+                                foreach (var pass in basicEffect.CurrentTechnique.Passes)
+                                {
+                                    pass.Apply();
+                                    basicEffect.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, landscape.IndexBuffer.IndexCount - 2);
+                                }
+
+                                basicEffect.World = world;
+                                basicEffect.DiffuseColor = diffuseColor;
+                            }
+                        }
+                        DrawLandscapes();
+
+                        void DrawShadowsBelowSpaceships()
+                        {
+                            foreach (var landscape in level.Objects3D.OfType<Landscape>())
+                            {
+                                foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
+                                {
+                                    void DrawShadow(BasicEffect b, Color color, Texture2D texture, Vector3[,] shadowPoints, Vector3 toObject, float sizeOfObject)
                                     {
-                                        FillMode = FillMode.WireFrame,
-                                        CullMode = CullMode.None
-                                    } : RasterizerState.CullNone;
-                                    b.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
-                                    b.LightingEnabled = false;
-                                    b.PreferPerPixelLighting = true;
-                                    b.TextureEnabled = texture != null;
-                                    b.VertexColorEnabled = true;
-                                    b.Texture = texture;
-                                    b.GraphicsDevice.SamplerStates[0] = new SamplerState
-                                    {
-                                        MaxMipLevel = 8,
-                                        MipMapLevelOfDetailBias = -.5f,
-                                        MaxAnisotropy = 8,
-                                        Filter = TextureFilter.Anisotropic
-                                    };
-
-                                    var diffuseColor = b.DiffuseColor;
-                                    b.DiffuseColor = color.ToVector3();
-
-                                    var world = b.World;
-
-                                    b.World *= Matrix.CreateScale(landscape.Radius) * Matrix.CreateTranslation(landscape.Position.X, landscape.Position.Y, landscape.Position.Z);
-
-
-                                    var shift = new Vector3(0, 0.0001f, 0);
-
-                                    foreach (var pass in b.CurrentTechnique.Passes)
-                                    {
-                                        pass.Apply();
-                                        var triangleStrip = new VertexPositionColorTexture[4];
-                                        for (var i = 0; i < triangleStrip.Length; i++)
+                                        b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                                        b.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+                                        b.LightingEnabled = false;
+                                        b.PreferPerPixelLighting = true;
+                                        b.TextureEnabled = texture != null;
+                                        b.VertexColorEnabled = true;
+                                        b.Texture = texture;
+                                        b.GraphicsDevice.SamplerStates[0] = new SamplerState
                                         {
-                                            triangleStrip[i] = new VertexPositionColorTexture(Vector3.Zero, Color.White, Vector2.Zero);
-                                        }
-                                        for (var z = 0; z < shadowPoints.GetLength(1) - 1; z++)
+                                            MaxMipLevel = 8,
+                                            MipMapLevelOfDetailBias = -.5f,
+                                            MaxAnisotropy = 8,
+                                            Filter = TextureFilter.Anisotropic
+                                        };
+
+                                        var diffuseColor = b.DiffuseColor;
+                                        b.DiffuseColor = color.ToVector3();
+
+                                        var world = b.World;
+
+                                        b.World *= Matrix.CreateScale(landscape.Radius) * Matrix.CreateTranslation(landscape.Position.X, landscape.Position.Y, landscape.Position.Z);
+
+                                        var shift = new Vector3(0, 0.0001f, 0);
+
+                                        foreach (var pass in b.CurrentTechnique.Passes)
                                         {
-                                            for (var x = 0; x < shadowPoints.GetLength(0) - 1; x++)
+                                            pass.Apply();
+                                            var triangleStrip = new VertexPositionColorTexture[4];
+                                            for (var i = 0; i < triangleStrip.Length; i++)
                                             {
-                                                VertexPositionColorTexture ComputeShadowPoint(Vector3 at)
+                                                triangleStrip[i] = new VertexPositionColorTexture(Vector3.Zero, Color.White, Vector2.Zero);
+                                            }
+                                            for (var z = 0; z < shadowPoints.GetLength(1) - 1; z++)
+                                            {
+                                                for (var x = 0; x < shadowPoints.GetLength(0) - 1; x++)
                                                 {
-                                                    var pointToObject = (toObject - at) / sizeOfObject;
-                                                    var textureSpace = pointToObject * .5f + Vector3.One * .5f;
+                                                    VertexPositionColorTexture ComputeShadowPoint(Vector3 at)
+                                                    {
+                                                        var pointToObject = (toObject - at) / sizeOfObject;
+                                                        var textureSpace = pointToObject * .5f + Vector3.One * .5f;
 
-                                                    var fade = 1 / (1 + pointToObject.Y * pointToObject.Y * (pointToObject.Y < 0 ? 1000000000000000 : 1));
+                                                        var fade = 1 / (1 + pointToObject.Y * pointToObject.Y * (pointToObject.Y < 0 ? 1000000000000000 : 1));
 
-                                                    return new VertexPositionColorTexture(
-                                                        position: at + shift,
-                                                        color: new Color(Color.White, fade),
-                                                        textureCoordinate: new Vector2(textureSpace.X, textureSpace.Z)
-                                                    );
+                                                        return new VertexPositionColorTexture(
+                                                            position: at + shift,
+                                                            color: new Color(Color.White, fade),
+                                                            textureCoordinate: new Vector2(textureSpace.X, textureSpace.Z)
+                                                        );
+                                                    }
+                                                    // verified through wireframe
+                                                    triangleStrip[0] = ComputeShadowPoint(shadowPoints[x + 0, z + 0]);
+                                                    triangleStrip[1] = ComputeShadowPoint(shadowPoints[x + 1, z + 0]);
+                                                    triangleStrip[2] = ComputeShadowPoint(shadowPoints[x + 0, z + 1]);
+                                                    triangleStrip[3] = ComputeShadowPoint(shadowPoints[x + 1, z + 1]);
+
+                                                    b.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, triangleStrip, 0, 2);
                                                 }
-                                                // verified through wireframe
-                                                triangleStrip[0] = ComputeShadowPoint(shadowPoints[x + 1, z + 0]);
-                                                triangleStrip[1] = ComputeShadowPoint(shadowPoints[x + 1, z + 1]);
-                                                triangleStrip[2] = ComputeShadowPoint(shadowPoints[x + 0, z + 0]);
-                                                triangleStrip[3] = ComputeShadowPoint(shadowPoints[x + 0, z + 1]);
-
-                                                b.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, triangleStrip, 0, 2);
                                             }
                                         }
+
+                                        b.World = world;
+                                        b.DiffuseColor = diffuseColor;
                                     }
 
-                                    b.World = world;
-                                    b.DiffuseColor = diffuseColor;
-                                }
+                                    var distanceTo = (spaceship.Position - landscape.Position) / landscape.Radius;
+                                    var radius = spaceship.Radius / landscape.Radius;
 
-                                var distanceTo = (spaceship.Position - landscape.Position) / landscape.Radius;
-                                var radius = spaceship.Radius / landscape.Radius;
+                                    var factor = 4;
 
-                                var factor = 32;
+                                    var points = landscape.GetHeightsAround2D(distanceTo.X, distanceTo.Z, radius * factor, includingSurroundingHeights: true);
 
-                                var points = landscape.GetHeightsAround2D(distanceTo.X, distanceTo.Z, radius * factor);
-
-                                if (points != null)
-                                {
-                                    DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
+                                    if (points != null)
+                                    {
+                                        DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
+                                    }
                                 }
                             }
                         }
+                        DrawShadowsBelowSpaceships();
 
-                        var bounds = graphics.GraphicsDevice.Viewport.Bounds;
 
-                        graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                        graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-                        foreach (var explosion in level.Objects3D.OfType<Explosion>())
+                        void DrawSparclesFireballsAndBullets()
                         {
-                            var transformed = graphics.GraphicsDevice.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
-                            var distance = (explosion.Position - level.Camera.Position).Length();
-                            if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                            var bounds = graphics.GraphicsDevice.Viewport.Bounds;
+                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                            graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                            foreach (var explosion in level.Objects3D.OfType<Explosion>())
                             {
-                                var sprite = textures[Data.Sparkle];
-                                var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
-                                width *= 4f;
-                                if (explosion.Id == Data.Fireball)
+                                var transformed = graphics.GraphicsDevice.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
+                                var distance = (explosion.Position - level.Camera.Position).Length();
+                                if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                                 {
-                                    width *= 2f;
-                                }
-                                var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                                if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
-                                {
-                                    graphics.SpriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age / 2, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
-                                }
-                            }
-                        }
-                        graphics.SpriteBatch.End();
-                        graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                        graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
-                        foreach (var bullet in level.Objects3D.OfType<Bullet>())
-                        {
-                            var transformed = graphics.GraphicsDevice.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
-                            var distance = (bullet.Position - level.Camera.Position).Length();
-                            if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
-                            {
-                                var sprite = textures[bullet.Id];
-                                var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
-                                width *= 8f;
-                                var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                                if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
-                                {
-                                    graphics.SpriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                    var sprite = textures[Data.Sparkle];
+                                    var width = explosion.CurrentSize * Math.Max(bounds.Width, bounds.Height) / distance;
+                                    width *= 4f;
+                                    if (explosion.Id == Data.Fireball)
+                                    {
+                                        width *= 2f;
+                                    }
+                                    var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                                    if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
+                                    {
+                                        graphics.SpriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age / 2, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                    }
                                 }
                             }
-                        }
-                        graphics.SpriteBatch.End();
-
-                        var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
-                        var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
-                        var enemyCountSize = spriteFonts[Data.Font].MeasureString(enemyCountText).X;
-
-                        var objectCount = level.Objects3D.Count();
-                        var objectCountText = objectCount.ToString();
-                        var objectCountSize = spriteFonts[Data.Font].MeasureString(objectCountText).X;
-
-                        var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
-
-                        graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-
-                        graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
-
-                        graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
-
-                        if (fadeOut.HasValue)
-                        {
-                            graphics.SpriteBatch.Draw(textures[Data.BlackBackground], new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
-
-                            var splashTexture = textures[won.Value ? Data.GameWonOverlay : Data.GameOverOverlay];
-                            var (Width, Height) = (1280, 768);
-
-                            var screen = graphics.GraphicsDevice.Viewport;
-                            var screenAspect = (float)screen.Width / screen.Height;
-                            var output = new Rectangle();
-                            var titleAspect = (float)Width / Height;
+                            graphics.SpriteBatch.End();
+                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                            graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                            foreach (var bullet in level.Objects3D.OfType<Bullet>())
                             {
-                                output.Width = Width * screen.Height / Height;
-                                output.Height = screen.Height;
-                                output.X = -(output.Width - screen.Width) / 2;
-                                output.Y = 0;
+                                var transformed = graphics.GraphicsDevice.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
+                                var distance = (bullet.Position - level.Camera.Position).Length();
+                                if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
+                                {
+                                    var sprite = textures[bullet.Id];
+                                    var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
+                                    width *= 8f;
+                                    var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
+                                    if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
+                                    {
+                                        graphics.SpriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                    }
+                                }
                             }
-                            if (dead.Value || won.Value)
+                            graphics.SpriteBatch.End();
+                        }
+                        DrawSparclesFireballsAndBullets();
+
+                        void DrawText()
+                        {
+                            var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
+                            var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
+                            var enemyCountSize = spriteFonts[Data.Font].MeasureString(enemyCountText).X;
+
+                            var objectCount = level.Objects3D.Count();
+                            var objectCountText = objectCount.ToString();
+                            var objectCountSize = spriteFonts[Data.Font].MeasureString(objectCountText).X;
+
+                            var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
+
+                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+
+                            graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+
+                            graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
+
+                            if (fadeOut.HasValue)
                             {
-                                graphics.SpriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                                graphics.SpriteBatch.Draw(textures[Data.BlackBackground], new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
+
+                                var splashTexture = textures[won.Value ? Data.GameWonOverlay : Data.GameOverOverlay];
+                                var (Width, Height) = (1280, 768);
+
+                                var screen = graphics.GraphicsDevice.Viewport;
+                                var screenAspect = (float)screen.Width / screen.Height;
+                                var output = new Rectangle();
+                                var titleAspect = (float)Width / Height;
+                                {
+                                    output.Width = Width * screen.Height / Height;
+                                    output.Height = screen.Height;
+                                    output.X = -(output.Width - screen.Width) / 2;
+                                    output.Y = 0;
+                                }
+                                if (dead.Value || won.Value)
+                                {
+                                    graphics.SpriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                                }
                             }
+                            graphics.SpriteBatch.End();
                         }
-                        graphics.SpriteBatch.End();
+                        DrawText();
 
-                        float Mod(float a, float b)
-                        {
-                            return a - b * (float)Math.Floor(a / b);
-                        }
 
-                        //if (scene.Surface.Heightmap != null)
+                        void DrawMap()
                         {
+                            float Mod(float a, float b)
+                            {
+                                return a - b * (float)Math.Floor(a / b);
+                            }
+                            var range = scene.Surfaces.First(s => s.Value.BorderToInfinity.HasValue).Value.Size;
                             graphics.SpriteBatch.Begin();
-                            var floor = textures["heightmap"];
                             var floorSize = graphics.GraphicsDevice.Viewport.Width / 4;
                             var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floorSize * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
                             foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
@@ -559,32 +589,37 @@ namespace Far_Off_Wanderer
                                 var shipsize = (1 / 8f) * (maparea.Width + maparea.Height) / 2f;
                                 var shipcolor = level.LocalPlayer.ControlledObject == ship ? Color.White : Color.Red;
                                 var shipposition = new Vector2(
-                                    MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - environment.Range / 2f, environment.Range) / environment.Range),
-                                    MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - environment.Range / 2f, environment.Range) / environment.Range)
+                                    MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - range / 2f, range) / range),
+                                    MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - range / 2f, range) / range)
                                 );
                                 graphics.SpriteBatch.Draw(shipicon, shipposition, null, shipcolor, (float)Math.Atan2(ship.Forward.X, -ship.Forward.Z), Vector2.One * shipicon.Width / 2, shipsize / shipicon.Width, SpriteEffects.None, 0f);
                             }
                             graphics.SpriteBatch.End();
 
-                            graphics.SpriteBatch.Begin();
-                            graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
+                            //graphics.SpriteBatch.Begin();
+                            //graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
+                            //graphics.SpriteBatch.End();
+                        }
+                        DrawMap();
+
+                        void DrawCameraEffects()
+                        {
+                            graphics.SpriteBatch.Begin(blendState: BlendState.Additive);
+                            var noise = textures["LDR_LLL1_0"];
+                            for (var y = environment.Random.Next(1 - noise.Height, 0); y < graphics.GraphicsDevice.Viewport.Height; y += noise.Height)
+                            {
+                                for (var x = environment.Random.Next(1 - noise.Width, 0); x < graphics.GraphicsDevice.Viewport.Width; x += noise.Width)
+                                {
+                                    graphics.SpriteBatch.Draw(noise, new Vector2(x, y), new Color(255, 255, 255, 4));
+                                }
+                            }
+                            graphics.SpriteBatch.End();
+
+                            graphics.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+                            graphics.SpriteBatch.Draw(textures["vignette"], graphics.GraphicsDevice.Viewport.Bounds, new Color(1f, 1f, 1f, 1.0f));
                             graphics.SpriteBatch.End();
                         }
-
-                        graphics.SpriteBatch.Begin(blendState: BlendState.Additive);
-                        var noise = textures["LDR_LLL1_0"];
-                        for (var y = environment.Random.Next(1 - noise.Height, 0); y < graphics.GraphicsDevice.Viewport.Height; y += noise.Height)
-                        {
-                            for (var x = environment.Random.Next(1 - noise.Width, 0); x < graphics.GraphicsDevice.Viewport.Width; x += noise.Width)
-                            {
-                                graphics.SpriteBatch.Draw(noise, new Vector2(x, y), new Color(255, 255, 255, 4));
-                            }
-                        }
-                        graphics.SpriteBatch.End();
-
-                        graphics.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
-                        graphics.SpriteBatch.Draw(textures["vignette"], graphics.GraphicsDevice.Viewport.Bounds, new Color(1f, 1f, 1f, 1.0f));
-                        graphics.SpriteBatch.End();
+                        DrawCameraEffects();
                     }
                 }
 

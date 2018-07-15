@@ -26,7 +26,7 @@ namespace Far_Off_Wanderer
         public IndexBuffer IndexBuffer => indexBuffer;
         public int Resolution => width;
 
-        public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float borderFraction)
+        public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float? borderToInfinity)
         {
             this.name = name;
             this.color = color;
@@ -37,37 +37,45 @@ namespace Far_Off_Wanderer
             this.pointmap = new Vector3[width, length];
             var vertices = new VertexPositionNormalTexture[width * length];
 
-            for(var z = 0; z < length; z++)
+            for (var z = 0; z < length; z++)
             {
-                for(var x = 0; x < width; x++)
+                for (var x = 0; x < width; x++)
                 {
                     var h = map[x, z].ToScaledVector4().X * height;
                     var p = new Vector3(1f * x / width, 1f * h / Math.Min(width, length), 1f * z / length);
 
-                    //var fromcenter = 2 * p - Vector3.One;
-                    //fromcenter.Y = 0;
-                    //if(fromcenter.LengthSquared() > borderFraction)
-                    //{
-                    //    p += (float)(Math.Tan((Math.PI / 2) * Math.Min(1, (fromcenter.LengthSquared() - borderFraction) / (1 - borderFraction)))) * Vector3.Normalize(fromcenter);
-                    //}
+                    if (borderToInfinity.HasValue)
+                    {
+                        var borderFraction = borderToInfinity.Value;
+                        var fromcenter = 2 * p - Vector3.One;
+                        fromcenter.Y = 0;
+                        if (fromcenter.LengthSquared() > borderFraction)
+                        {
+                            p += (float)(Math.Tan((Math.PI / 2) * Math.Min(1, (fromcenter.LengthSquared() - borderFraction) / (1 - borderFraction)))) * Vector3.Normalize(fromcenter);
+                        }
+                    }
 
                     p += (1f / width) * Noise.Vector3.Get(x / 4, z / 4) * ((1 - h / height) * bottomNoise + (h / height) * topNoise);
 
                     pointmap[x, z] = p;
 
-                    var dx = map[Math.Max(0, x - 1), z].ToScaledVector4().X * height - map[Math.Min(width - 1, x + 1), z].ToScaledVector4().X * height;
-                    var dz = map[x, Math.Max(0, z - 1)].ToScaledVector4().X * height - map[x, Math.Min(length - 1, z + 1)].ToScaledVector4().X * height;
+                    vertices[x + width * z] = new VertexPositionNormalTexture(pointmap[x, z], Vector3.Up, (4f / width) * new Vector2(1f * x / width, 1f * z / length));
+                }
+            }
 
-                    var dxVector = new Vector3(2, dx, 0);
-                    var dyVector = new Vector3(0, dz, 2);
-                    var normal = Vector3.Cross(dyVector, dxVector);
-                    normal.Y *= 10f;
-                    normal.Normalize();
-
-                    /// TODO
-                    /// proper normal one day..
-                    /// and proper texcoords
-                    vertices[x + width * z] = new VertexPositionNormalTexture(pointmap[x, z], normal, (4f / width) * new Vector2(1f * x / width, 1f * z / length));
+            for (var z = 0; z < length; z++)
+            {
+                for (var x = 0; x < width; x++)
+                {
+                    var points = GetHeightsAround1D(1f * x / width, 1f * z / length, 3f / width);
+                    var normals = points.Select(p =>
+                    {
+                        var toPoint = pointmap[x, z];
+                        var toSide = Vector3.Normalize(Vector3.Cross(toPoint, Vector3.Up));
+                        var normal = Vector3.Cross(toSide, toPoint);
+                        return normal;
+                    });
+                    vertices[x + width * z].Normal = Vector3.Normalize(normals.Aggregate((a, b) => a + b));
                 }
             }
 
@@ -79,7 +87,7 @@ namespace Far_Off_Wanderer
             /// https://github.com/learnopengles/Learn-OpenGLES-Tutorials/blob/master/android/AndroidOpenGLESLessonsCpp/app/src/main/cpp/lesson8/HeightMap.cpp
             /// helped with the degenerate triangles. i'm really thankful
             var indices = new List<int>();
-            for(var z = 0; z < length - 1; z++)
+            for (var z = 0; z < length - 1; z++)
             {
                 if (z > 0)
                 {
@@ -112,7 +120,7 @@ namespace Far_Off_Wanderer
                 // heightmap returns 0 outside of range. non-repeating or similar. that should be done through multiple chunks
                 var ix = (int)Math.Floor(x * width);
                 var iz = (int)Math.Floor(z * length);
-                if(ix < 0 || iz < 0 || ix >= width || iz >= length)
+                if (ix < 0 || iz < 0 || ix >= width || iz >= length)
                 {
                     return 0;
                 }
@@ -159,19 +167,21 @@ namespace Far_Off_Wanderer
             return points;
         }
 
-        public Vector3[,] GetHeightsAround2D(float x, float z, float range)
+        public Vector3[,] GetHeightsAround2D(float x, float z, float range, bool includingSurroundingHeights)
         {
             // convert from unit cube to integer array scale
             x *= width;
             z *= length;
             range *= Math.Min(width, length);
 
-            var izmin = Math.Max(0, (int)Math.Floor(z - range));
-            var izmax = Math.Min(length - 1, (int)Math.Ceiling(z + range));
+            var shift = (includingSurroundingHeights ? 1 : 0);
+
+            var izmin = Math.Max(0, (int)Math.Floor(z - range) - shift);
+            var izmax = Math.Min(length - 1, (int)Math.Ceiling(z + range) + shift);
             var diz = izmax - izmin;
 
-            var ixmin = Math.Max(0, (int)Math.Floor(x - range));
-            var ixmax = Math.Min(width - 1, (int)Math.Ceiling(x + range));
+            var ixmin = Math.Max(0, (int)Math.Floor(x - range) - shift);
+            var ixmax = Math.Min(width - 1, (int)Math.Ceiling(x + range) + shift);
             var dix = ixmax - ixmin;
 
             if (dix <= 0 || diz <= 0)
@@ -196,55 +206,6 @@ namespace Far_Off_Wanderer
             }
 
             return points;
-        }
-
-
-
-        void DrawFirst(BasicEffect b, Color color, Texture2D texture)
-        {
-            b.LightingEnabled = false;
-            b.PreferPerPixelLighting = true;
-            b.TextureEnabled = texture != null;
-            b.VertexColorEnabled = false;
-            b.Texture = texture;
-            b.GraphicsDevice.SamplerStates[0] = new SamplerState
-            {
-                MaxMipLevel = 8,
-                MipMapLevelOfDetailBias = -.5f,
-                MaxAnisotropy = 8,
-                Filter = TextureFilter.Anisotropic
-            };
-
-            var diffuseColor = b.DiffuseColor;
-            b.DiffuseColor = color.ToVector3();
-
-            b.GraphicsDevice.SetVertexBuffer(vertexBuffer);
-            b.GraphicsDevice.Indices = indexBuffer;
-
-            var world = b.World;
-
-            b.World *= Matrix.CreateScale(Radius) * Matrix.CreateTranslation(Position.X, Position.Y, Position.Z);
-            foreach (var pass in b.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                b.GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, indexBuffer.IndexCount - 2);
-            }
-
-            b.World = world;
-
-            b.DiffuseColor = diffuseColor;
-        }
-
-        public void Draw(BasicEffect b, Color color, Texture2D texture, bool wireframe)
-        {
-            b.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            b.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
-            {
-                FillMode = FillMode.WireFrame,
-                CullMode = CullMode.None
-            } : RasterizerState.CullNone;
-            b.GraphicsDevice.BlendState = BlendState.Opaque;
-            DrawFirst(b, color, texture);
         }
     }
 }
