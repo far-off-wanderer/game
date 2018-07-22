@@ -18,12 +18,12 @@ namespace Far_Off_Wanderer
         {
             get
             {
-                if(Ship != null)
+                if (Ship != null)
                 {
                     _target = Ship.Position;
                     if (ZoomIn == false)
                     {
-                        _target += Vector3.Transform(Vector3.Forward * 250f, Ship.Orientation);
+                        _target += Vector3.Transform(Vector3.Forward * 250f, Matrix.CreateRotationY(Ship.HorizontalOrientation));
                     }
                 }
                 return _target;
@@ -38,19 +38,11 @@ namespace Far_Off_Wanderer
         {
             get
             {
-                if(Ship != null)
+                if (Ship != null)
                 {
                     var bla = Ship.Speed;
                     _position = Ship.Position
-                        + Vector3.Transform(
-                            (ZoomIn ? 0.3f : 1f)
-                            * (Vector3.Backward * 100 + Vector3.Up * 60 + Vector3.Right * 0)
-                            * ((float)Math.Sqrt(1 + 75 + Math.Abs(Ship.Speed / 2)))
-                            ,
-                            Ship.Orientation
-                            * Quaternion.CreateFromYawPitchRoll(Yaw * (float)Math.PI, Pitch, 0)
-                            * Ship.ShipLeaning
-                        );
+                        + (ZoomIn ? 0.3f : 1f) * (Ship.Forward * -100 + Ship.Up * 60 + Ship.Right * 0) * ((float)Math.Sqrt(1 + 75 + Math.Abs(Ship.Speed / 2)));
                 }
                 return _position;
             }

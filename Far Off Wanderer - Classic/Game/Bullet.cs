@@ -15,7 +15,6 @@ namespace Far_Off_Wanderer
             this.Position = Position;
 
             Id = Data.Sparkle;
-            Orientation = Quaternion.Identity;
             Radius = 100;
             speed = Speed;
             age = 0;

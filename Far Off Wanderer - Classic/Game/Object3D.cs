@@ -8,7 +8,8 @@ namespace Far_Off_Wanderer
     {
         public string Id { get; set; }
         public virtual Vector3 Position { get; set; }
-        public Quaternion Orientation { get; set; }
+        public float HorizontalOrientation { get; set; }
+        public float VerticalOrientation { get; set; }
         public float Radius { get; set; }
 
         public bool Alive { get; protected set; }

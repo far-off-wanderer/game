@@ -12,13 +12,16 @@ namespace Far_Off_Wanderer
 
         float speed;
 
-        float horizontalRotation;
-        float verticalRotation;
-        readonly float maxRotation = (float)(Math.PI / 2) / 25;
-        readonly float rotationSpeed = 0.15f;
+        public Vector3 Forward => Vector3.Transform(Vector3.Forward, Matrix.CreateFromYawPitchRoll(HorizontalOrientation, VerticalOrientation, 0));
+        public Vector3 Up => Vector3.Transform(Vector3.Up, Matrix.CreateFromYawPitchRoll(HorizontalOrientation, VerticalOrientation, 0));
+        public Vector3 Right => Vector3.Cross(Forward, Up);
 
-        float targetHorizontalRotation;
-        float targetVerticalRotation;
+        float horizontalRotation = 0;
+        float verticalRotation = 0;
+
+        float horizontalRotationSpeed = 0;
+        float verticalRotationSpeed = 0;
+
         float forwardAcceleration;
 
         bool readyToShoot;
@@ -32,20 +35,12 @@ namespace Far_Off_Wanderer
         readonly float strafingIdle = 1 - 0.25f;
         readonly float strafingRatio = 2f;
         float strafing;
-        
-        public Vector3[] SensorPoints { get; set; }
 
         public float Speed => speed;
-        public Quaternion ShipLeaning => Quaternion.CreateFromAxisAngle(Vector3.Forward, -horizontalRotation * 5); // the @buildstarted factor
         public float StrafingAngle => (strafe == StrafingDirection.Left ? 1 : -1) * MathHelper.SmoothStep(0, 2 * (float)Math.PI, strafing);
         public Quaternion Strafing => Quaternion.CreateFromAxisAngle(Vector3.Forward, StrafingAngle);
-        public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
-        public Vector3 Up => Vector3.Transform(Vector3.Up, ShipLeaning * Strafing);
-        public Vector3 Right => Vector3.Cross(Forward, Up);
 
         float StrafingAmount => MathHelper.SmoothStep(0, 1, 1 - Math.Abs(1 - Math.Max(0, strafing) * 2));
-        Quaternion HorizontalRotation => Quaternion.CreateFromAxisAngle(Vector3.Up, horizontalRotation);
-        Quaternion VerticalRotation => Quaternion.CreateFromAxisAngle(Right, verticalRotation);
 
         public bool IsStafing => strafe.HasValue;
 
@@ -59,11 +54,10 @@ namespace Far_Off_Wanderer
             }
         }
 
-        public Spaceship(string id, Vector3 position, Quaternion orientation, float speed, float radius)
+        public Spaceship(string id, Vector3 position, float horizontalOrientation, float speed, float radius)
         {
             this.Id = id;
             this.Position = position;
-            this.Orientation = orientation;
             this.speed = speed;
             this.Radius = radius;
 
@@ -84,6 +78,28 @@ namespace Far_Off_Wanderer
         {
             UpdateCanon(ElapsedTime);
 
+            speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
+
+            var factor = 10f;
+            horizontalRotation += horizontalRotationSpeed * (float)ElapsedTime.TotalSeconds;
+
+            HorizontalOrientation += factor * horizontalRotation * (float)ElapsedTime.TotalSeconds;
+            VerticalOrientation += factor * verticalRotation * (float)ElapsedTime.TotalSeconds;
+            VerticalOrientation = (float)(Math.Sign(VerticalOrientation) * Math.Min(Math.Abs(VerticalOrientation), Math.PI / 2));
+
+            // return to no turning. not liking it yet, but.. okay..
+            if (horizontalRotationSpeed == 0)
+            {
+                horizontalRotation *= (float)Math.Pow(0.1f, (float)ElapsedTime.TotalSeconds);
+            }
+            if (verticalRotation == 0)
+            {
+                VerticalOrientation *= (float)Math.Pow(0.1f, (float)ElapsedTime.TotalSeconds);
+            }
+
+            horizontalRotationSpeed = 0;
+            verticalRotationSpeed = 0;
+
             if (readyToShoot && shooting)
             {
                 var dst = (Position - Environment.ActiveCamera.Position).Length();
@@ -95,7 +111,7 @@ namespace Far_Off_Wanderer
                 {
 
                 }
-                var bulletDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, Orientation)) + Environment.RandomPointInUnitSphere() * new Vector3(1, .25f, 1) * .01f;
+                var bulletDirection = Vector3.Normalize(Forward + Environment.RandomPointInUnitSphere() * new Vector3(1, .25f, 1) * .01f);
                 var bullet = new Bullet(Position, bulletDirection, Speed * 100 + 6250);
                 bullet.Position += (bullet.Radius + Radius) * 2 * bulletDirection;
                 yield return bullet;
@@ -104,63 +120,10 @@ namespace Far_Off_Wanderer
             }
             shooting = false;
 
-            speed += forwardAcceleration * (float)ElapsedTime.TotalSeconds;
-            if (targetHorizontalRotation > horizontalRotation)
-            {
-                horizontalRotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (horizontalRotation >= targetHorizontalRotation)
-                {
-                    horizontalRotation = targetHorizontalRotation;
-                }
-            }
-            else if (targetHorizontalRotation < horizontalRotation)
-            {
-                horizontalRotation -= rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (horizontalRotation <= targetHorizontalRotation)
-                {
-                    horizontalRotation = targetHorizontalRotation;
-                }
-            }
-            if (targetVerticalRotation > verticalRotation)
-            {
-                verticalRotation += rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (verticalRotation >= targetVerticalRotation)
-                {
-                    verticalRotation = targetVerticalRotation;
-                }
-            }
-            else if (targetVerticalRotation < verticalRotation)
-            {
-                verticalRotation -= rotationSpeed * (float)ElapsedTime.TotalSeconds;
-                if (verticalRotation <= targetVerticalRotation)
-                {
-                    verticalRotation = targetVerticalRotation;
-                }
-            }
 
-            if (horizontalRotation > maxRotation)
-            {
-                horizontalRotation = maxRotation;
-            }
-            if (horizontalRotation < -maxRotation)
-            {
-                horizontalRotation = -maxRotation;
-            }
-            if (verticalRotation > maxRotation)
-            {
-                verticalRotation = maxRotation;
-            }
-            if (verticalRotation < -maxRotation)
-            {
-                verticalRotation = -maxRotation;
-            }
+            Position += Forward * speed * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
 
-            Orientation *= VerticalRotation * HorizontalRotation;
-            var Direction = Vector3.Transform(Vector3.Forward * Speed, Orientation);
-            var Up = Vector3.Transform(Vector3.Up, Orientation);
-            Position += Direction * (ElapsedTime == TimeSpan.Zero ? 0 : 1);
-
-            if(beginStrafing == true)
+            if (beginStrafing == true)
             {
                 beginStrafing = false;
             }
@@ -172,7 +135,7 @@ namespace Far_Off_Wanderer
             }
             else if (strafing >= -strafingIdle)
             {
-                var strafeDirection = Vector3.Normalize(Vector3.Cross(Up, Direction));
+                var strafeDirection = Right;
                 if (strafe == StrafingDirection.Right)
                 {
                     strafeDirection = -strafeDirection;
@@ -186,38 +149,17 @@ namespace Far_Off_Wanderer
                 }
             }
 
-
-            if (SensorPoints != null)
-            {
-                foreach (var point in SensorPoints)
-                {
-                    for (var i = 0f; i < 1f; i += .05f)
-                    {
-                        yield return new Explosion(
-                            id: Data.Sparkle,
-                            position: Vector3.Lerp(Position, point, i),
-                            endOfLife: 0.001f,
-                            minSize: 100,
-                            maxSize: 100,
-                            startSpin: 0,
-                            spin: 0
-                        );
-                    }
-                }
-            }
-
             foreach (var thrustParticle in GenerateThrust(Environment, ElapsedTime))
             {
                 yield return thrustParticle;
             }
 
-
             if (leftFlame != null && rightFlame != null)
             {
                 if (Speed > 0 && strafe.HasValue == false)
                 {
-                    leftFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
-                    rightFlame.UpdateThrust(Position, Direction, Up, ElapsedTime, Environment);
+                    leftFlame.UpdateThrust(Position, Forward, Up, ElapsedTime, Environment);
+                    rightFlame.UpdateThrust(Position, Forward, Up, ElapsedTime, Environment);
                 }
                 else
                 {
@@ -230,12 +172,12 @@ namespace Far_Off_Wanderer
 
         public override void HorizontalTurnAngle(float Angle)
         {
-            targetHorizontalRotation = Angle;
+            horizontalRotationSpeed = Angle;
         }
 
         public override void VerticalTurnAngle(float Angle)
         {
-            targetVerticalRotation = Angle;
+            verticalRotation = Angle;
         }
 
         public override void AccelerateAmount(float Amount)
@@ -302,11 +244,11 @@ namespace Far_Off_Wanderer
                         yield return new Orbit(this, explosion, strafe == StrafingDirection.Left ? -rollSpeed : rollSpeed);
                     }
                 }
-                foreach (var explosion in createThrustFlames(leftFlame, (float)Math.Exp(-10 * horizontalRotation)))
+                foreach (var explosion in createThrustFlames(leftFlame, (float)Math.Exp(-horizontalRotation / 2)))
                 {
                     yield return explosion;
                 }
-                foreach (var explosion in createThrustFlames(rightFlame, (float)Math.Exp(10 * horizontalRotation)))
+                foreach (var explosion in createThrustFlames(rightFlame, (float)Math.Exp(horizontalRotation / 2)))
                 {
                     yield return explosion;
                 }

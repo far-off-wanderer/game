@@ -352,7 +352,7 @@ namespace Far_Off_Wanderer
                                     CullMode = CullMode.None
                                 } : RasterizerState.CullNone;
 
-                                model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromQuaternion(spaceship.Orientation * spaceship.ShipLeaning * spaceship.Strafing) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                                model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromYawPitchRoll(spaceship.HorizontalOrientation, spaceship.VerticalOrientation, 0) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
                             }
                         }
                         DrawSpaceships();
@@ -411,7 +411,10 @@ namespace Far_Off_Wanderer
                                             MaxMipLevel = 8,
                                             MipMapLevelOfDetailBias = -.5f,
                                             MaxAnisotropy = 8,
-                                            Filter = TextureFilter.Anisotropic
+                                            Filter = TextureFilter.Anisotropic,
+                                            AddressU = TextureAddressMode.Clamp,
+                                            AddressV = TextureAddressMode.Clamp,
+                                            AddressW = TextureAddressMode.Clamp
                                         };
 
                                         var diffuseColor = b.DiffuseColor;
@@ -441,6 +444,8 @@ namespace Far_Off_Wanderer
                                                         var textureSpace = pointToObject * .5f + Vector3.One * .5f;
 
                                                         var fade = 1 / (1 + pointToObject.Y * pointToObject.Y * (pointToObject.Y < 0 ? 1000000000000000 : 1));
+
+                                                        fade = 1;
 
                                                         return new VertexPositionColorTexture(
                                                             position: at + shift,
@@ -472,7 +477,7 @@ namespace Far_Off_Wanderer
 
                                     if (points != null)
                                     {
-                                        DrawShadow(basicEffect, (scene.Environment.BackgroundColor.Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
+                                        DrawShadow(basicEffect, scene.Environment.BackgroundColor.Complementary().GreyedOut(.8f) * .1f, textures["Shadow"], points, distanceTo, radius * factor);
                                     }
                                 }
                             }
@@ -531,12 +536,15 @@ namespace Far_Off_Wanderer
                         void DrawText()
                         {
                             var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
-                            var enemyCountText = (enemyCount > 0 ? enemyCount - 1 : 0).ToString();
+                            var enemyCountText = $"Enemies:  {(enemyCount > 0 ? enemyCount - 1 : 0):00}";
                             var enemyCountSize = spriteFonts[Data.Font].MeasureString(enemyCountText).X;
 
                             var objectCount = level.Objects3D.Count();
                             var objectCountText = objectCount.ToString();
                             var objectCountSize = spriteFonts[Data.Font].MeasureString(objectCountText).X;
+
+                            var playerVerticalRotation = $"vertical Rotation: {level.LocalPlayer.ControlledObject.VerticalOrientation}";
+                            var playerVerticalRotationLength = spriteFonts[Data.Font].MeasureString(playerVerticalRotation).X;
 
                             var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
@@ -544,7 +552,9 @@ namespace Far_Off_Wanderer
 
                             graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
 
-                            graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
+                       //     graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
+
+                       //     graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], playerVerticalRotation, new Vector2(graphics.GraphicsDevice.Viewport.Width - playerVerticalRotationLength - 20, 210), osdBlend);
 
                             if (fadeOut.HasValue)
                             {

@@ -117,8 +117,8 @@ namespace Far_Off_Wanderer
 
             if (UIViewSettings.GetForCurrentView().UserInteractionMode == UserInteractionMode.Touch && pad.IsConnected == false)
             {
-                horizontalTurnAngle += Math.Sign(-environment.Acceleration.X) * MathHelper.Clamp((Math.Abs(environment.Acceleration.X) - deadZone) / (1 - deadZone), 0, 1);
-                verticalTurnAngle += Math.Sign(-environment.Acceleration.Y) * MathHelper.Clamp((Math.Abs(environment.Acceleration.Y) - deadZone) / (1 - deadZone), 0, 1);
+                horizontalTurnAngle += -environment.Acceleration.X;
+                verticalTurnAngle += -environment.Acceleration.Y;
             }
             if (shoot)
             {

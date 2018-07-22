@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace Far_Off_Wanderer
@@ -18,8 +17,8 @@ namespace Far_Off_Wanderer
             var my = ControlledObject as Spaceship;
             var visibleRange = defaultVisibleRange * my.Speed / 150;
 
-            var forward = Vector3.Normalize(Vector3.Transform(Vector3.Forward, my.Orientation));
-            var left = Vector3.Normalize(Vector3.Cross(Vector3.Up, forward));
+            var forward = my.Forward;
+            var left = -my.Right;
 
             //var field = environment.DistanceField;
             
@@ -122,7 +121,7 @@ namespace Far_Off_Wanderer
                 }
                 else
                 {
-                    spaceShip.HorizontalTurnAngle(directions[direction] / 4);
+                    spaceShip.HorizontalTurnAngle(directions[direction]);
                 }
             }
         }

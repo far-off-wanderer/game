@@ -30,8 +30,8 @@ namespace Far_Off_Wanderer
             worldSimulation.Add(new Spaceship(
                 id: Data.Ship,
                 position: Vector3.Zero,
-                orientation: Quaternion.Identity,
-                speed: 10,
+                horizontalOrientation: 0f,
+                speed: 150,
                 radius: modelBoundaries[Data.Ship]
             ));
             for (int y = -factor; y <= factor; y++)
@@ -45,7 +45,7 @@ namespace Far_Off_Wanderer
                         var spaceship = new Spaceship(
                             id: id,
                             position: (9400 * (Vector3.Forward * y + Vector3.Right * x) * factor) * 2 / 5,
-                            orientation: Quaternion.CreateFromAxisAngle(Vector3.Up, x - y),
+                            horizontalOrientation: x - y,
                             speed: id == ids[0] ? 150 : 2,
                             radius: modelBoundaries[id]
                         );
@@ -64,7 +64,6 @@ namespace Far_Off_Wanderer
             {
                 Camera = new FixedCamera()
                 {
-                    Orientation = Quaternion.Identity,
                     Up = Vector3.Up,
                     FieldOFView = (float)Math.PI / 4,
                     NearCutOff = 100,
@@ -77,7 +76,6 @@ namespace Far_Off_Wanderer
             {
                 Camera = new SpaceshipFollowingCamera()
                 {
-                    Orientation = Quaternion.Identity,
                     Up = Vector3.Up,
                     FieldOFView = (float)Math.PI / 3,
                     NearCutOff = 100,
