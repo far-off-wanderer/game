@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace Far_Off_Wanderer
 {
@@ -8,14 +9,14 @@ namespace Far_Off_Wanderer
         {
             public class Environment_
             {
-                public string BackgroundColor { get; set; }
+                public Color BackgroundColor { get; set; }
                 public float Fog { get; set; }
             }
 
             public class Surface_
             {
                 public string Texture { get; set; }
-                public string Color { get; set; }
+                public Color Color { get; set; }
                 public int Size { get; set; }
                 public int Height { get; set; }
                 public Noise_ Noise { get; set; }

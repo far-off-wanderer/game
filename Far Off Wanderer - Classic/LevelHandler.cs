@@ -147,7 +147,7 @@ namespace Far_Off_Wanderer
 
                     var landscapes = scene.Surfaces.SelectFromDictionary((name, surface, index) =>
                     {
-                        return new Landscape(name, content.GraphicsDevice, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color.ToColor(), surface.BorderToInfinity)
+                        return new Landscape(name, content.GraphicsDevice, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.BorderToInfinity)
                         {
                             Radius = surface.Size,
                             Position = Vector3.UnitX * -surface.Size / 2 + Vector3.UnitY * surface.Height + Vector3.UnitZ * -surface.Size / 2
@@ -310,7 +310,7 @@ namespace Far_Off_Wanderer
 
                         var basicEffect = new BasicEffect(graphics.GraphicsDevice);
 
-                        var backgroundColor = scene.Environment.BackgroundColor.ToColor();
+                        var backgroundColor = scene.Environment.BackgroundColor;
 
                         graphics.GraphicsDevice.Clear(backgroundColor);
 
@@ -472,7 +472,7 @@ namespace Far_Off_Wanderer
 
                                     if (points != null)
                                     {
-                                        DrawShadow(basicEffect, (scene.Environment.BackgroundColor.ToColor().Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
+                                        DrawShadow(basicEffect, (scene.Environment.BackgroundColor.Complementary().GreyedOut(.8f) * .1f), textures["Shadow"], points, distanceTo, radius * factor);
                                     }
                                 }
                             }

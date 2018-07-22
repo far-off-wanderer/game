@@ -112,6 +112,9 @@
     <Compile Include="Array2D.cs" />
     <Compile Include="ColorHelper.cs" />
     <Compile Include="Content.cs" />
+    <Compile Include="Convert\ColorConverter.cs" />
+    <Compile Include="Convert\Json.cs" />
+    <Compile Include="Convert\Vector3Converter.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Game\WorldSimulation.cs" />
     <Compile Include="Input\GamePad.cs" />

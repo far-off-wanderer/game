@@ -22,11 +22,11 @@ namespace Far_Off_Wanderer
                 var path = Path.Combine(Package.Current.InstalledLocation.Path, "Content", "Scenes", $"{name}.json");
                 var content = File.ReadAllText(path);
 
-                var scene = Newtonsoft.Json.JsonConvert.DeserializeObject<BaseScene>(content);
+                var scene = Convert.Json.Convert<BaseScene>(content);
                 var foundTypes = SceneTypes.Where(t => string.Equals(t.Name, scene.Type, StringComparison.OrdinalIgnoreCase));
                 if (foundTypes.Any())
                 {
-                    var loaded = (Scene)Newtonsoft.Json.JsonConvert.DeserializeObject(content, foundTypes.First().AsType());
+                    var loaded = (Scene)Convert.Json.Convert(content, foundTypes.First().AsType());
                     loaded.Name = name;
                     return loaded;
                 }
