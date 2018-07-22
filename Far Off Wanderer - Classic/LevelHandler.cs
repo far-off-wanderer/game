@@ -150,7 +150,7 @@ namespace Far_Off_Wanderer
                         return new Landscape(name, content.GraphicsDevice, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.BorderToInfinity)
                         {
                             Radius = surface.Size,
-                            Position = Vector3.UnitX * -surface.Size / 2 + Vector3.UnitY * surface.Height + Vector3.UnitZ * -surface.Size / 2
+                            Position = Vector3.UnitX * -surface.Size / 2 + surface.Position + Vector3.UnitZ * -surface.Size / 2
                         };
                     });
 

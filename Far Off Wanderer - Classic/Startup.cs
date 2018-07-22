@@ -32,6 +32,7 @@
         protected override void Initialize()
         {
             base.Initialize();
+
             graphics = new Graphics
             {
                 GraphicsDevice = manager.GraphicsDevice,

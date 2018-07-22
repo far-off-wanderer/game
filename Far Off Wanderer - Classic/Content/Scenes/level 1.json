@@ -8,7 +8,7 @@
     "heightmap": {
       "color": "#444100",
       "size": 150000,
-      "height": -13000,
+      "position": [ 0, -13000, 0 ],
       "noise": {
         "top": 1,
         "bottom": 0
@@ -18,19 +18,10 @@
     "stonemap": {
       "color": "#333333",
       "size": 150000,
-      "height": -17500,
+      "position": [ 60000, -17500, 0 ],
       "noise": {
         "top": 0,
         "bottom": 15
-      }
-    },
-    "grassmap": {
-      "color": "#113E10",
-      "size": 150000,
-      "height": -13000,
-      "noise": {
-        "top": 0.1,
-        "bottom": 0.1
       }
     }
   },
@@ -38,5 +29,14 @@
     "won": "level 2",
     "gameover": "level 1",
     "cancel": "index"
+  },
+  "grassmap": {
+    "color": "#113E10",
+    "size": 150000,
+    "position": [ 0, -13000, 0 ],
+    "noise": {
+      "top": 0.1,
+      "bottom": 0.1
+    }
   }
 }

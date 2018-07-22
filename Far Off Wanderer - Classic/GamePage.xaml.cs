@@ -5,19 +5,13 @@ namespace Far_Off_Wanderer
 {
     public sealed partial class GamePage : Page
     {
-        private Startup game;
-
         public GamePage()
         {
             this.InitializeComponent();
 
-            game = MonoGame.Framework.XamlGame<Startup>.Create(string.Empty, Window.Current.CoreWindow, swapChainPanel);
-            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += GamePage_BackRequested;
-        }
+            var game = MonoGame.Framework.XamlGame<Startup>.Create(string.Empty, Window.Current.CoreWindow, swapChainPanel);
 
-        private void GamePage_BackRequested(object sender, Windows.UI.Core.BackRequestedEventArgs e)
-        {
-            game.GoBack();
+            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += (sender, e) => game.GoBack();
         }
     }
 }

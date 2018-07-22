@@ -18,7 +18,7 @@ namespace Far_Off_Wanderer
                 public string Texture { get; set; }
                 public Color Color { get; set; }
                 public int Size { get; set; }
-                public int Height { get; set; }
+                public Vector3 Position { get; set; }
                 public Noise_ Noise { get; set; }
                 public float? BorderToInfinity { get; set; }
 
