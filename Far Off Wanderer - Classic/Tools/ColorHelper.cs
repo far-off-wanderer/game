@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Far_Off_Wanderer
+namespace Far_Off_Wanderer.Tools
 {
     static class ColorHelper
     {

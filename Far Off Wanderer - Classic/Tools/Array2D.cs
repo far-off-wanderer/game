@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Far_Off_Wanderer
+namespace Far_Off_Wanderer.Tools
 {
     public static class Array2D
     {

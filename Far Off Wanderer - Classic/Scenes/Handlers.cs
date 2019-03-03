@@ -10,7 +10,7 @@
         readonly Dictionary<Type, Type> handlers;
         Handler current;
         All all;
-        Content content;
+        GlobalContent content;
         readonly Action onExit;
 
         public void Update(TimeSpan timeSpan, Input input) => current.Update?.Invoke(timeSpan, input);
@@ -22,8 +22,7 @@
             var handler = Activator.CreateInstance(handlerType, scene) as Handler;
             if(handler.Begin != null)
             {
-                content.Scene = scene.Name;
-                handler.Begin(content);
+                handler.Begin(content.For(scene.Name));
             }
             handler.OnNext = RunNext;
             return handler;
@@ -56,7 +55,7 @@
             }).ToDictionary(item => item.SceneType, item => item.HandlerType);
         }
 
-        public void Run(All all, Content content, string startScene)
+        public void Run(All all, GlobalContent content, string startScene)
         {
             this.all = all;
             this.content = content;

@@ -36,7 +36,10 @@ namespace Far_Off_Wanderer
             }
 #endif
 
-            if (!(Window.Current.Content is Frame rootFrame))
+            if (Window.Current.Content is Frame rootFrame)
+            {
+            }
+            else
             {
                 rootFrame = new Frame();
                 rootFrame.NavigationFailed += OnNavigationFailed;

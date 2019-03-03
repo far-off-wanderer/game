@@ -11,18 +11,18 @@
         readonly GraphicsDeviceManager manager;
         readonly SceneHandlers handlers;
         Graphics graphics;
-        Content content;
+        GlobalContent content;
         Input input;
         Song song;
 
         public Startup()
         {
-            var parameters = this.LaunchParameters;
-
             manager = new GraphicsDeviceManager(this)
             {
                 IsFullScreen = Debugger.IsAttached == false
             };
+
+            IsMouseVisible = manager.IsFullScreen == false;
             
             handlers = new SceneHandlers(onExit: Exit);
 
@@ -38,11 +38,8 @@
                 GraphicsDevice = manager.GraphicsDevice,
                 SpriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice)
             };
-            content = new Content
-            {
-                ContentManager = Content,
-                GraphicsDevice = manager.GraphicsDevice
-            };
+            content = new GlobalContent(contentManager: Content, graphicsDevice: manager.GraphicsDevice);
+
             input = new Input();
             handlers.Run(All.Load(), content, LaunchParameters.ContainsKey("-scene") ? LaunchParameters["-scene"] : null);
         }

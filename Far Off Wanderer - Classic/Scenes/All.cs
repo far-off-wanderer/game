@@ -7,7 +7,7 @@ namespace Far_Off_Wanderer
     {
         public class All
         {
-            ReadOnlyDictionary<string, Scene> scenes;
+            readonly ReadOnlyDictionary<string, Scene> scenes;
 
             public All(IDictionary<string, Scene> scenes)
             {

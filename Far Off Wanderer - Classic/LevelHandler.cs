@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Far_Off_Wanderer.Tools;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SixLabors.ImageSharp;
@@ -16,7 +18,7 @@ namespace Far_Off_Wanderer
     {
         public class InputActions
         {
-            Input input;
+            readonly Input input;
             public InputActions(Input input) => this.input = input;
 
             public bool CancelingLevel => input.Keyboard.On[(int)Keys.Escape] || input.TouchKeys.OnBackButton;
@@ -142,12 +144,12 @@ namespace Far_Off_Wanderer
                     BoundingSphere CreateMerged(IEnumerable<BoundingSphere> spheres) => spheres.Aggregate((a, b) => BoundingSphere.CreateMerged(a, b));
 
                     models = GetAll<Model>(Data.Ship, Data.Drone, Data.Spaceship);
-                    environment.Sounds = GetAll<Microsoft.Xna.Framework.Audio.SoundEffect>("puiiw", "explosion");
+                    environment.Sounds = GetAll<SoundEffect>("puiiw", "explosion");
                     textures = GetAll<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
 
                     var landscapes = scene.Surfaces.SelectFromDictionary((name, surface, index) =>
                     {
-                        return new Landscape(name, content.GraphicsDevice, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.BorderToInfinity)
+                        return new Landscape(name, content, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.BorderToInfinity)
                         {
                             Radius = surface.Size,
                             Position = Vector3.UnitX * -surface.Size / 2 + surface.Position + Vector3.UnitZ * -surface.Size / 2

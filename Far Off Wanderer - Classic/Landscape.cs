@@ -26,7 +26,7 @@ namespace Far_Off_Wanderer
         public IndexBuffer IndexBuffer => indexBuffer;
         public int Resolution => width;
 
-        public Landscape(string name, GraphicsDevice graphicsDevice, Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float? borderToInfinity)
+        public Landscape(string name, Content content, Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float? borderToInfinity)
         {
             this.name = name;
             this.color = color;
@@ -79,8 +79,7 @@ namespace Far_Off_Wanderer
                 }
             }
 
-            vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), vertices.Length, BufferUsage.WriteOnly);
-            vertexBuffer.SetData(vertices);
+            vertexBuffer = content.CreateVertexBuffer(vertices);
 
             /// indexing thanks to
             /// http://www.learnopengles.com/tag/triangle-strips/
@@ -109,8 +108,7 @@ namespace Far_Off_Wanderer
                 }
             }
             var indexArray = indices.ToArray();
-            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indexArray.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indexArray);
+            indexBuffer = content.CreateIndexBuffer(indexArray);
         }
 
         public float this[float x, float z]

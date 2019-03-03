@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Far_Off_Wanderer
+namespace Far_Off_Wanderer.Tools
 {
     public static class DictionaryExtensions
     {

@@ -14,7 +14,7 @@
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
-    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="Far_Off_Wanderer___Classic.App">
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="Far_Off_Wanderer.UI.App">
       <uap:VisualElements DisplayName="Far Off Wanderer - Classic" Square150x150Logo="Package\Assets\Square150x150Logo.png" Square44x44Logo="Package\Assets\Square44x44Logo.png" Description="Far Off Wanderer - Classic" BackgroundColor="transparent">
         <uap:LockScreen Notification="badge" BadgeLogo="Package\Assets\BadgeLogo.png" />
         <uap:DefaultTile Wide310x150Logo="Package\Assets\Wide310x150Logo.png" ShortName="Far Off Wanderer" Square310x310Logo="Package\Assets\LargeTile.png" Square71x71Logo="Package\Assets\SmallTile.png">

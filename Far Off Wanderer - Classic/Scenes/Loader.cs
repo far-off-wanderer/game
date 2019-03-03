@@ -10,7 +10,7 @@ namespace Far_Off_Wanderer
     {
         static class Loader
         {
-            static TypeInfo[] SceneTypes = typeof(Scene).GetTypeInfo().Assembly.DefinedTypes
+            static readonly TypeInfo[] SceneTypes = typeof(Scene).GetTypeInfo().Assembly.DefinedTypes
                        .Where(t => t.IsSubclassOf(typeof(Scene))).ToArray();
 
             class BaseScene : Scene

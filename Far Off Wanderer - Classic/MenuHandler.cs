@@ -9,7 +9,7 @@ namespace Far_Off_Wanderer
     {
         class InputActions
         {
-            Input input;
+            readonly Input input;
 
             public InputActions(Input input) => this.input = input;
 
@@ -24,8 +24,8 @@ namespace Far_Off_Wanderer
             Begin = content =>
             {
                 var bg = scene.Background;
-                textures[bg.Portrait.Name] = content.GetTexture(bg.Portrait.Name);
-                textures[bg.Landscape.Name] = content.GetTexture(bg.Landscape.Name);
+                textures[bg.Portrait.Name] = content.Get<Texture2D>(bg.Portrait.Name);
+                textures[bg.Landscape.Name] = content.Get<Texture2D>(bg.Landscape.Name);
             };
 
             Update = (gameTime, input) =>
