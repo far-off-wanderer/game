@@ -56,11 +56,11 @@
             }).ToDictionary(item => item.SceneType, item => item.HandlerType);
         }
 
-        public void Run(All all, Content content)
+        public void Run(All all, Content content, string startScene)
         {
             this.all = all;
             this.content = content;
-            this.current = Create(all.Index);
+            this.current = Create(all.Scenes.FirstOrDefault(s => s.Name == startScene) ?? all.Index);
         }
     }
 }

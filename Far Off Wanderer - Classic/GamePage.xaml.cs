@@ -1,5 +1,6 @@
 ﻿using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace Far_Off_Wanderer
 {
@@ -8,10 +9,15 @@ namespace Far_Off_Wanderer
         public GamePage()
         {
             this.InitializeComponent();
+        }
 
-            var game = MonoGame.Framework.XamlGame<Startup>.Create(string.Empty, Window.Current.CoreWindow, swapChainPanel);
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            var game = MonoGame.Framework.XamlGame<Startup>.Create(e.Parameter as string, Window.Current.CoreWindow, swapChainPanel);
 
-            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += (sender, e) => game.GoBack();
+            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += (_, __) => game.GoBack();
+
+            base.OnNavigatedTo(e);
         }
     }
 }

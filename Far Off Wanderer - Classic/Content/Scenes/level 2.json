@@ -4,6 +4,27 @@
     "backgroundColor": "#E19E00",
     "fog": 1
   },
+  "surfaces": {
+    "heightmap": {
+      "color": "#3B3C33",
+      "size": 65000,
+      "position": [ 0, -500, 0 ],
+      "noise": {
+        "top": 1,
+        "bottom": 0
+      },
+      "borderToInfinity": 1
+    },
+    "grassmap": {
+      "color": "#338333",
+      "size": 150000,
+      "position": [ 60000, -25500, 0 ],
+      "noise": {
+        "top": 0,
+        "bottom": 15
+      }
+    }
+  },
   "surface": {
     "textured": null,
     "color": "#3B3C33",

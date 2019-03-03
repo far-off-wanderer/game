@@ -5,13 +5,11 @@
     using Microsoft.Xna.Framework.Audio;
     using Microsoft.Xna.Framework.Media;
     using System.Diagnostics;
-    using System.Threading.Tasks;
 
     internal class Startup : Game
     {
-        GraphicsDeviceManager manager;
-
-        SceneHandlers handlers;
+        readonly GraphicsDeviceManager manager;
+        readonly SceneHandlers handlers;
         Graphics graphics;
         Content content;
         Input input;
@@ -19,6 +17,8 @@
 
         public Startup()
         {
+            var parameters = this.LaunchParameters;
+
             manager = new GraphicsDeviceManager(this)
             {
                 IsFullScreen = Debugger.IsAttached == false
@@ -44,7 +44,7 @@
                 GraphicsDevice = manager.GraphicsDevice
             };
             input = new Input();
-            handlers.Run(All.Load(), content);
+            handlers.Run(All.Load(), content, LaunchParameters.ContainsKey("-scene") ? LaunchParameters["-scene"] : null);
         }
 
         protected override void LoadContent()
