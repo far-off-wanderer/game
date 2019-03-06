@@ -133,19 +133,17 @@ namespace Far_Off_Wanderer
 
             Begin = async content =>
             {
-                Dictionary<string, T> GetAll<T>(params string[] names) => names.SelectAsDictionary(name => content.Get<T>(name));
-
                 // at start for loading screen
-                spriteFonts = GetAll<SpriteFont>(Data.Font);
+                spriteFonts = content.GetAll<SpriteFont>(Data.Font);
 
                 // delayed till game starts
                 await Task.Run(() =>
                 {
                     BoundingSphere CreateMerged(IEnumerable<BoundingSphere> spheres) => spheres.Aggregate((a, b) => BoundingSphere.CreateMerged(a, b));
 
-                    models = GetAll<Model>(Data.Ship, Data.Drone, Data.Spaceship);
-                    environment.Sounds = GetAll<SoundEffect>("puiiw", "explosion");
-                    textures = GetAll<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
+                    models = content.GetAll<Model>(Data.Ship, Data.Drone, Data.Spaceship);
+                    environment.Sounds = content.GetAll<SoundEffect>("puiiw", "explosion");
+                    textures = content.GetAll<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
 
                     var landscapes = scene.Surfaces.SelectFromDictionary((name, surface, index) =>
                     {
@@ -248,26 +246,29 @@ namespace Far_Off_Wanderer
 
             Draw = graphics =>
             {
-                environment.ScreenSize = new Size(graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height);
+                var g = graphics.GraphicsDevice;
+                var s = graphics.SpriteBatch;
+
+                environment.ScreenSize = new Size(g.Viewport.Width, g.Viewport.Height);
 
                 leftEye = leftEye ?? new RenderTarget2D(
-                    graphics.GraphicsDevice,
-                    graphics.GraphicsDevice.DisplayMode.Width,
-                    graphics.GraphicsDevice.DisplayMode.Height,
+                    g,
+                    g.DisplayMode.Width,
+                    g.DisplayMode.Height,
                     false,
-                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
-                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
-                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
+                    g.PresentationParameters.BackBufferFormat,
+                    g.PresentationParameters.DepthStencilFormat,
+                    g.PresentationParameters.MultiSampleCount,
                     RenderTargetUsage.PlatformContents
                 );
                 rightEye = rightEye ?? new RenderTarget2D(
-                    graphics.GraphicsDevice,
-                    graphics.GraphicsDevice.DisplayMode.Width,
-                    graphics.GraphicsDevice.DisplayMode.Height,
+                    g,
+                    g.DisplayMode.Width,
+                    g.DisplayMode.Height,
                     false,
-                    graphics.GraphicsDevice.PresentationParameters.BackBufferFormat,
-                    graphics.GraphicsDevice.PresentationParameters.DepthStencilFormat,
-                    graphics.GraphicsDevice.PresentationParameters.MultiSampleCount,
+                    g.PresentationParameters.BackBufferFormat,
+                    g.PresentationParameters.DepthStencilFormat,
+                    g.PresentationParameters.MultiSampleCount,
                     RenderTargetUsage.PlatformContents
                 );
 
@@ -275,49 +276,49 @@ namespace Far_Off_Wanderer
                 {
                     (
                         target: leftEye,
-                        area: overUnder ? new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2) : new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
+                        area: overUnder ? new Rectangle(0, 0, g.Viewport.Width, g.Viewport.Height / 2) : new Rectangle(0, 0, g.Viewport.Width / 2, g.Viewport.Height),
                         eye: -30f
                     ),
                     (
                         target: rightEye,
-                        area: overUnder ? new Rectangle(0, graphics.GraphicsDevice.Viewport.Height - graphics.GraphicsDevice.Viewport.Height / 2, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height / 2) : new Rectangle(graphics.GraphicsDevice.Viewport.Width - graphics.GraphicsDevice.Viewport.Width / 2, 0, graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height),
+                        area: overUnder ? new Rectangle(0, g.Viewport.Height - g.Viewport.Height / 2, g.Viewport.Width, g.Viewport.Height / 2) : new Rectangle(g.Viewport.Width - g.Viewport.Width / 2, 0, g.Viewport.Width / 2, g.Viewport.Height),
                         eye: 30f
                     )
                 } : new[]
                 {
                     (
                         target: leftEye,
-                        area: new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height),
+                        area: new Rectangle(0, 0, g.Viewport.Width, g.Viewport.Height),
                         eye: 0f
                     )
                 };
                 foreach (var (target, area, eye) in views)
                 {
-                    graphics.GraphicsDevice.SetRenderTarget(target);
+                    g.SetRenderTarget(target);
 
                     if (!started)
                     {
-                        graphics.GraphicsDevice.Clear(Color.Black);
+                        g.Clear(Color.Black);
                         var text = "loading...";
                         var textSize = spriteFonts[Data.Font].MeasureString(text);
-                        graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-                        graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], "loading...", (new Vector2(graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height) - textSize) / 2, Color.White);
-                        graphics.SpriteBatch.End();
+                        s.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+                        s.DrawString(spriteFonts[Data.Font], "loading...", (new Vector2(g.Viewport.Width, g.Viewport.Height) - textSize) / 2, Color.White);
+                        s.End();
                     }
 
                     if (started)
                     {
                         level.Camera.FarCutOff = scene.Surfaces.First(s => s.Value.BorderToInfinity.HasValue).Value.Size;
-                        var camera = new CameraModel(level.Camera, eye, new Size(graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height));
+                        var camera = new CameraModel(level.Camera, eye, new Size(g.Viewport.Width, g.Viewport.Height));
 
-                        var basicEffect = new BasicEffect(graphics.GraphicsDevice);
+                        var basicEffect = new BasicEffect(g);
 
                         var backgroundColor = scene.Environment.BackgroundColor;
 
-                        graphics.GraphicsDevice.Clear(backgroundColor);
+                        g.Clear(backgroundColor);
 
-                        graphics.GraphicsDevice.BlendState = BlendState.Opaque;
-                        graphics.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                        g.BlendState = BlendState.Opaque;
+                        g.DepthStencilState = DepthStencilState.Default;
 
                         basicEffect.EnableDefaultLighting();
 
@@ -340,7 +341,7 @@ namespace Far_Off_Wanderer
                         basicEffect.View = camera.View;
                         basicEffect.Projection = camera.Projection;
 
-                        graphics.GraphicsDevice.BlendState = BlendState.Opaque;
+                        g.BlendState = BlendState.Opaque;
 
                         void DrawSpaceships()
                         {
@@ -348,7 +349,7 @@ namespace Far_Off_Wanderer
                             {
                                 var model = models[spaceship.Id];
 
-                                graphics.GraphicsDevice.RasterizerState = wireframe ? new RasterizerState()
+                                g.RasterizerState = wireframe ? new RasterizerState()
                                 {
                                     FillMode = FillMode.WireFrame,
                                     CullMode = CullMode.None
@@ -361,7 +362,7 @@ namespace Far_Off_Wanderer
 
                         void DrawLandscapes()
                         {
-                            graphics.GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+                            g.RasterizerState = RasterizerState.CullNone;
 
                             basicEffect.GraphicsDevice.BlendState = BlendState.Opaque;
 
@@ -489,12 +490,12 @@ namespace Far_Off_Wanderer
 
                         void DrawSparclesFireballsAndBullets()
                         {
-                            var bounds = graphics.GraphicsDevice.Viewport.Bounds;
-                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                            graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                            var bounds = g.Viewport.Bounds;
+                            s.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                            g.DepthStencilState = DepthStencilState.DepthRead;
                             foreach (var explosion in level.Objects3D.OfType<Explosion>())
                             {
-                                var transformed = graphics.GraphicsDevice.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
+                                var transformed = g.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
                                 var distance = (explosion.Position - level.Camera.Position).Length();
                                 if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                                 {
@@ -506,18 +507,18 @@ namespace Far_Off_Wanderer
                                         width *= 2f;
                                     }
                                     var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                                    if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
+                                    if (rectangle.Intersects(g.Viewport.Bounds))
                                     {
-                                        graphics.SpriteBatch.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age / 2, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                        s.Draw(sprite, rectangle, null, new Color(2 - explosion.Age, 2 - explosion.Age, 1 - explosion.Age / 2, 2 - explosion.Age), explosion.StartSpin + explosion.Spin * explosion.Age, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                                     }
                                 }
                             }
-                            graphics.SpriteBatch.End();
-                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
-                            graphics.GraphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+                            s.End();
+                            s.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+                            g.DepthStencilState = DepthStencilState.DepthRead;
                             foreach (var bullet in level.Objects3D.OfType<Bullet>())
                             {
-                                var transformed = graphics.GraphicsDevice.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
+                                var transformed = g.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
                                 var distance = (bullet.Position - level.Camera.Position).Length();
                                 if (transformed.Z > 0 && transformed.Z < 1 && distance > 0)
                                 {
@@ -525,13 +526,13 @@ namespace Far_Off_Wanderer
                                     var width = Math.Max(bounds.Width, bounds.Height) * bullet.Radius / distance;
                                     width *= 8f;
                                     var rectangle = new Rectangle((int)(transformed.X), (int)(transformed.Y), (int)width, (int)width);
-                                    if (rectangle.Intersects(graphics.GraphicsDevice.Viewport.Bounds))
+                                    if (rectangle.Intersects(g.Viewport.Bounds))
                                     {
-                                        graphics.SpriteBatch.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
+                                        s.Draw(sprite, rectangle, null, Color.White, 0, new Vector2(sprite.Width / 2), SpriteEffects.None, transformed.Z);
                                     }
                                 }
                             }
-                            graphics.SpriteBatch.End();
+                            s.End();
                         }
                         DrawSparclesFireballsAndBullets();
 
@@ -550,22 +551,22 @@ namespace Far_Off_Wanderer
 
                             var osdBlend = Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
-                            graphics.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                            s.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
 
-                            graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
+                            s.DrawString(spriteFonts[Data.Font], enemyCountText, new Vector2(g.Viewport.Width - enemyCountSize - 20, 10), osdBlend);
 
-                       //     graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(graphics.GraphicsDevice.Viewport.Width - objectCountSize - 20, 110), osdBlend);
+                       //     s.DrawString(spriteFonts[Data.Font], objectCountText, new Vector2(g.Viewport.Width - objectCountSize - 20, 110), osdBlend);
 
-                       //     graphics.SpriteBatch.DrawString(spriteFonts[Data.Font], playerVerticalRotation, new Vector2(graphics.GraphicsDevice.Viewport.Width - playerVerticalRotationLength - 20, 210), osdBlend);
+                       //     s.DrawString(spriteFonts[Data.Font], playerVerticalRotation, new Vector2(g.Viewport.Width - playerVerticalRotationLength - 20, 210), osdBlend);
 
                             if (fadeOut.HasValue)
                             {
-                                graphics.SpriteBatch.Draw(textures[Data.BlackBackground], new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
+                                s.Draw(textures[Data.BlackBackground], new Rectangle(0, 0, g.Viewport.Width, g.Viewport.Height), new Color(0, 0, 0, fadeOut.Value / 2));
 
                                 var splashTexture = textures[won.Value ? Data.GameWonOverlay : Data.GameOverOverlay];
                                 var (Width, Height) = (1280, 768);
 
-                                var screen = graphics.GraphicsDevice.Viewport;
+                                var screen = g.Viewport;
                                 var screenAspect = (float)screen.Width / screen.Height;
                                 var output = new Rectangle();
                                 var titleAspect = (float)Width / Height;
@@ -577,10 +578,10 @@ namespace Far_Off_Wanderer
                                 }
                                 if (dead.Value || won.Value)
                                 {
-                                    graphics.SpriteBatch.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
+                                    s.Draw(splashTexture, output, new Color(1f, 1f, 1f) * MathHelper.Clamp(fadeOut.Value * 2.5f - 1, 0, 1));
                                 }
                             }
-                            graphics.SpriteBatch.End();
+                            s.End();
                         }
                         DrawText();
 
@@ -592,9 +593,9 @@ namespace Far_Off_Wanderer
                                 return a - b * (float)Math.Floor(a / b);
                             }
                             var range = scene.Surfaces.First(s => s.Value.BorderToInfinity.HasValue).Value.Size;
-                            graphics.SpriteBatch.Begin();
-                            var floorSize = graphics.GraphicsDevice.Viewport.Width / 4;
-                            var maparea = new Rectangle((int)(graphics.GraphicsDevice.Viewport.Width - floorSize * 1.1f), (int)(graphics.GraphicsDevice.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
+                            s.Begin();
+                            var floorSize = g.Viewport.Width / 4;
+                            var maparea = new Rectangle((int)(g.Viewport.Width - floorSize * 1.1f), (int)(g.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
                             foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
                             {
                                 var shipicon = ship.Id == Data.Ship ? textures["arrow"] : textures["dot"];
@@ -604,45 +605,45 @@ namespace Far_Off_Wanderer
                                     MathHelper.Lerp(maparea.Left, maparea.Right, Mod(ship.Position.X - range / 2f, range) / range),
                                     MathHelper.Lerp(maparea.Top, maparea.Bottom, Mod(ship.Position.Z - range / 2f, range) / range)
                                 );
-                                graphics.SpriteBatch.Draw(shipicon, shipposition, null, shipcolor, (float)Math.Atan2(ship.Forward.X, -ship.Forward.Z), Vector2.One * shipicon.Width / 2, shipsize / shipicon.Width, SpriteEffects.None, 0f);
+                                s.Draw(shipicon, shipposition, null, shipcolor, (float)Math.Atan2(ship.Forward.X, -ship.Forward.Z), Vector2.One * shipicon.Width / 2, shipsize / shipicon.Width, SpriteEffects.None, 0f);
                             }
-                            graphics.SpriteBatch.End();
+                            s.End();
 
-                            //graphics.SpriteBatch.Begin();
-                            //graphics.SpriteBatch.Draw(floor, maparea, new Color(255, 255, 255, 4));
-                            //graphics.SpriteBatch.End();
+                            //s.Begin();
+                            //s.Draw(floor, maparea, new Color(255, 255, 255, 4));
+                            //s.End();
                         }
                         DrawMap();
 
                         void DrawCameraEffects()
                         {
-                            graphics.SpriteBatch.Begin(blendState: BlendState.Additive);
+                            s.Begin(blendState: BlendState.Additive);
                             var noise = textures["LDR_LLL1_0"];
-                            for (var y = environment.Random.Next(1 - noise.Height, 0); y < graphics.GraphicsDevice.Viewport.Height; y += noise.Height)
+                            for (var y = environment.Random.Next(1 - noise.Height, 0); y < g.Viewport.Height; y += noise.Height)
                             {
-                                for (var x = environment.Random.Next(1 - noise.Width, 0); x < graphics.GraphicsDevice.Viewport.Width; x += noise.Width)
+                                for (var x = environment.Random.Next(1 - noise.Width, 0); x < g.Viewport.Width; x += noise.Width)
                                 {
-                                    graphics.SpriteBatch.Draw(noise, new Vector2(x, y), new Color(255, 255, 255, 4));
+                                    s.Draw(noise, new Vector2(x, y), new Color(255, 255, 255, 4));
                                 }
                             }
-                            graphics.SpriteBatch.End();
+                            s.End();
 
-                            graphics.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
-                            graphics.SpriteBatch.Draw(textures["vignette"], graphics.GraphicsDevice.Viewport.Bounds, new Color(1f, 1f, 1f, 1.0f));
-                            graphics.SpriteBatch.End();
+                            s.Begin(blendState: BlendState.AlphaBlend);
+                            s.Draw(textures["vignette"], g.Viewport.Bounds, new Color(1f, 1f, 1f, 1.0f));
+                            s.End();
                         }
                         DrawCameraEffects();
                     }
                 }
 
-                graphics.GraphicsDevice.SetRenderTarget(null);
+                g.SetRenderTarget(null);
 
-                graphics.SpriteBatch.Begin();
+                s.Begin();
                 foreach (var (target, area, eye) in views)
                 {
-                    graphics.SpriteBatch.Draw(target, area, Color.White);
+                    s.Draw(target, area, Color.White);
                 }
-                graphics.SpriteBatch.End();
+                s.End();
             };
         }
     }

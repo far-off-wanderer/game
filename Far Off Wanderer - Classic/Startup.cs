@@ -3,6 +3,7 @@
     using Far_Off_Wanderer.Scenes;
     using Microsoft.Xna.Framework;
     using Microsoft.Xna.Framework.Audio;
+    using Microsoft.Xna.Framework.Graphics;
     using Microsoft.Xna.Framework.Media;
     using System.Diagnostics;
 
@@ -11,7 +12,7 @@
         readonly GraphicsDeviceManager manager;
         readonly SceneHandlers handlers;
         Graphics graphics;
-        GlobalContent content;
+        Content content;
         Input input;
         Song song;
 
@@ -33,12 +34,8 @@
         {
             base.Initialize();
 
-            graphics = new Graphics
-            {
-                GraphicsDevice = manager.GraphicsDevice,
-                SpriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice)
-            };
-            content = new GlobalContent(contentManager: Content, graphicsDevice: manager.GraphicsDevice);
+            graphics = new Graphics(graphicsDevice: manager.GraphicsDevice, spriteBatch: new SpriteBatch(manager.GraphicsDevice));
+            content = new Content(contentManager: Content, graphicsDevice: manager.GraphicsDevice);
 
             input = new Input();
             handlers.Run(All.Load(), content, LaunchParameters.ContainsKey("-scene") ? LaunchParameters["-scene"] : null);

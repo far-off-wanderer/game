@@ -10,7 +10,7 @@
         readonly Dictionary<Type, Type> handlers;
         Handler current;
         All all;
-        GlobalContent content;
+        Content content;
         readonly Action onExit;
 
         public void Update(TimeSpan timeSpan, Input input) => current.Update?.Invoke(timeSpan, input);
@@ -55,7 +55,7 @@
             }).ToDictionary(item => item.SceneType, item => item.HandlerType);
         }
 
-        public void Run(All all, GlobalContent content, string startScene)
+        public void Run(All all, Content content, string startScene)
         {
             this.all = all;
             this.content = content;
