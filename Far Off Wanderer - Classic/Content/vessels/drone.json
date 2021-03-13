@@ -1,7 +1,0 @@
-{
-  "name": "drone",
-  "mesh": "sonde V29.obj",
-  "textures": {
-    "albedo": "sonde textur 06.png"
-  }
-}

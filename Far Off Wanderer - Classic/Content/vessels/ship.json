@@ -1,7 +1,0 @@
-{
-  "name": "ship",
-  "mesh": "schiff V37.obj",
-  "textures": {
-    "albedo": "schiff textur 09.png"
-  }
-}
