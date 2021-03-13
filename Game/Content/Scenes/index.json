@@ -1,0 +1,15 @@
+﻿{
+  "type": "menu",
+  "background": {
+    "portrait": {
+      "name": "titlescreen-portrait"
+    },
+    "landscape": {
+      "name": "titlescreen-landscape"
+    }
+  },
+  "on": {
+    "next": "level 1"
+  },
+  "timeout": 0
+}
