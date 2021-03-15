@@ -53,7 +53,7 @@ artifacts/
 *_i.h
 *.ilk
 *.meta
-*.obj
+# *.obj
 *.pch
 *.pdb
 *.pgc
@@ -184,11 +184,11 @@ BundleArtifacts/
 Package.StoreAssociation.xml
 _pkginfo.txt
 
-# Visual Studio cache files
-# files ending in .cache can be ignored
-*.[Cc]ache
-# but keep track of directories ending in .cache
-!*.[Cc]ache/
+# # Visual Studio cache files
+# # files ending in .cache can be ignored
+# *.[Cc]ache
+# # but keep track of directories ending in .cache
+# !*.[Cc]ache/
 
 # Others
 ClientBin/
