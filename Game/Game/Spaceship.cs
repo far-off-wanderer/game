@@ -20,7 +20,6 @@ namespace Far_Off_Wanderer
         float verticalRotation = 0;
 
         float horizontalRotationSpeed = 0;
-        float verticalRotationSpeed = 0;
 
         float forwardAcceleration;
 
@@ -98,7 +97,6 @@ namespace Far_Off_Wanderer
             }
 
             horizontalRotationSpeed = 0;
-            verticalRotationSpeed = 0;
 
             if (readyToShoot && shooting)
             {

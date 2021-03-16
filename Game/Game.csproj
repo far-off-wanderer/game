@@ -12,9 +12,6 @@
     <AssemblyName>Far Off Wanderer</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
-    <!--<TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />-->
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.0.1641" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
@@ -29,5 +26,8 @@
     <None Update="Content\Scenes\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Content\Scenes\level 1.json"></AdditionalFiles>
   </ItemGroup>
 </Project>

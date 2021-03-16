@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31105.61
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{63EB7905-F125-43F9-90C9-0B0BBD3ED3AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Game", "Game\Game.csproj", "{63EB7905-F125-43F9-90C9-0B0BBD3ED3AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Content Manager", "Content Manager\Content Manager.csproj", "{07F33350-CEEF-45E6-BA26-B9312211536A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,22 @@ Global
 		{63EB7905-F125-43F9-90C9-0B0BBD3ED3AA}.Release|x64.Build.0 = Release|Any CPU
 		{63EB7905-F125-43F9-90C9-0B0BBD3ED3AA}.Release|x86.ActiveCfg = Release|Any CPU
 		{63EB7905-F125-43F9-90C9-0B0BBD3ED3AA}.Release|x86.Build.0 = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|ARM.Build.0 = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|x64.Build.0 = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Debug|x86.Build.0 = Debug|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|ARM.ActiveCfg = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|ARM.Build.0 = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|x64.ActiveCfg = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|x64.Build.0 = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|x86.ActiveCfg = Release|Any CPU
+		{07F33350-CEEF-45E6-BA26-B9312211536A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
