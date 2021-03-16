@@ -11,7 +11,7 @@ with.
     <!--
     Modify this string to change the font that will be imported.
     -->
-    <FontName>C:\Users\davep\Downloads\01 DigiGraphics.ttf</FontName>
+    <FontName>..\..\Content\Fonts\01 DigiGraphics.ttf</FontName>
 
     <!--
     Size is a float value, measured in points. Modify this value to change
