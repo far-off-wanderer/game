@@ -1,4 +1,5 @@
 ﻿using Conesoft.Files;
+using Humanizer;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -31,15 +32,16 @@ namespace Content_Manager
             {
                 Console.WriteLine($"file: {item.Name}");
 
-                using var zip = (destiny / vessels.Name / Filename.From(item.Content.Name, "vessel")).AsNewZip();
-                zip["mesh"] = (await (item.Parent / Filename.FromExtended(item.Content.Mesh)).ReadFromWavefrontObjFormat()).GetBytes();
-                zip["albedo"] = await (item.Parent / Filename.FromExtended(item.Content.Textures.Albedo)).ReadBytes();
+                var zipped = destiny / vessels.Name / Filename.From(item.Content.Name, "vessel");
+                {
+                    using var zip = zipped.AsNewZip();
+                    zip["mesh"] = (await (item.Parent / Filename.FromExtended(item.Content.Mesh)).ReadFromWavefrontObjFormat()).GetBytes();
+                    zip["albedo"] = await (item.Parent / Filename.FromExtended(item.Content.Textures.Albedo)).ReadBytes();
+                }
+
+                Console.WriteLine($"\tsize: {zipped.Info.Length.Bytes().Humanize("#.#0")}");
             }
         }
-    }
-
-    class Zip
-    {
     }
 
     record Vertex(Vector3 Position, Vector2 TextureCoordinate, Vector3 Normal);
@@ -50,48 +52,51 @@ namespace Content_Manager
         {
             var lines = await file.ReadLines();
 
-            var positions = lines.Where(l => l.StartsWith("v ")).Select(line =>
-            {
-                var s = line.Split(' ').Skip(1).Select(s => float.Parse(s)).ToArray();
-                return new Vector3(s[0], s[1], s[2]);
-            }).ToArray();
+            static float[] ParsedNumbersFromLine(string line) => line
+                .Split(' ')
+                .Skip(1)
+                .Select(float.Parse)
+                .ToArray();
 
-            var normals = lines.Where(l => l.StartsWith("vn ")).Select(line =>
-            {
-                var s = line.Split(' ').Skip(1).Select(s => float.Parse(s)).ToArray();
-                return new Vector3(s[0], s[1], s[2]);
-            }).ToArray();
+            static int[] ParsedIntegersFromFaceEdge(string edge) => edge
+                .Split('/')
+                .Select(int.Parse)
+                .Select(i => i - 1)
+                .ToArray();
 
-            var textureCoordinates = lines.Where(l => l.StartsWith("vt ")).Select(line =>
-            {
-                var s = line.Split(' ').Skip(1).Select(s => float.Parse(s)).ToArray();
-                return new Vector2(s[0], s[1]);
-            }).ToArray();
+            var positions = lines
+                .Where(l => l.StartsWith("v "))
+                .Select(ParsedNumbersFromLine)
+                .Select(s => new Vector3(s[0], s[1], s[2]))
+                .ToArray();
 
-            return lines.Where(l => l.StartsWith("f ")).SelectMany(line =>
-            {
-                var s = line.Split(' ').Skip(1).ToArray();
-                var all = s.Select(s => s.Split('/').Select(s => int.Parse(s) - 1).ToArray()).ToArray();
-                return all.Select(v => new Vertex(positions[v[0]], textureCoordinates[v[1]], normals[v[2]])).ToArray();
-            }).ToArray();
+            var normals = lines
+                .Where(l => l.StartsWith("vn "))
+                .Select(ParsedNumbersFromLine)
+                .Select(s => new Vector3(s[0], s[1], s[2]))
+                .ToArray();
+
+            var textureCoordinates = lines
+                .Where(l => l.StartsWith("vt "))
+                .Select(ParsedNumbersFromLine)
+                .Select(s => new Vector2(s[0], s[1]))
+                .ToArray();
+
+            return lines
+                .Where(l => l.StartsWith("f "))
+                .SelectMany(l => l.Split(' ').Skip(1).ToArray())
+                .Select(ParsedIntegersFromFaceEdge)
+                .Select(v => new Vertex(positions[v[0]], textureCoordinates[v[1]], normals[v[2]]))
+                .ToArray();
         }
     }
 
     static class FiletypeMeshWriter
     {
-        public static byte[] GetBytes(this Vertex[] vertices)
-        {
-            byte[] GetBytesV3(Vector3 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).Concat(BitConverter.GetBytes(v.Z)).ToArray();
-            byte[] GetBytesV2(Vector2 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).ToArray();
-            byte[] GetBytes(Vertex v) => GetBytesV3(v.Position).Concat(GetBytesV3(v.Normal)).Concat(GetBytesV2(v.TextureCoordinate)).ToArray();
-
-            return vertices.SelectMany(GetBytes).ToArray();
-        }
-
-        public static async Task WriteAsMesh(this File file, Vertex[] vertices)
-        {
-            await file.WriteBytes(vertices.GetBytes());
-        }
+        static byte[] GetBytesV3(Vector3 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).Concat(BitConverter.GetBytes(v.Z)).ToArray();
+        static byte[] GetBytesV2(Vector2 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).ToArray();
+        static byte[] GetBytes(Vertex v) => GetBytesV3(v.Position).Concat(GetBytesV3(v.Normal)).Concat(GetBytesV2(v.TextureCoordinate)).ToArray();
+        public static byte[] GetBytes(this Vertex[] vertices) => vertices.SelectMany(GetBytes).ToArray();
     }
 
     namespace ContentTypes
