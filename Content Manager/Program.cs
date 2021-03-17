@@ -30,16 +30,16 @@ namespace Content_Manager
             foreach (var item in await vessels.Filtered("*.json", allDirectories: false).ReadFromJson<ContentTypes.Vessel>(options))
             {
                 Console.WriteLine($"file: {item.Name}");
-                Console.WriteLine($"name: {item.Content.Name}");
 
-                var vertices = await (item.Parent / Filename.FromExtended(item.Content.Mesh)).ReadFromWavefrontObjFormat();
-                await (destiny / vessels.Name / Filename.From(item.Content.Name, "mesh")).WriteAsMesh(vertices);
-
-                Console.WriteLine($"\tfaces: {vertices.Length / 3f}");
-
-                Console.WriteLine();
+                using var zip = (destiny / vessels.Name / Filename.From(item.Content.Name, "vessel")).AsNewZip();
+                zip["mesh"] = (await (item.Parent / Filename.FromExtended(item.Content.Mesh)).ReadFromWavefrontObjFormat()).GetBytes();
+                zip["albedo"] = await (item.Parent / Filename.FromExtended(item.Content.Textures.Albedo)).ReadBytes();
             }
         }
+    }
+
+    class Zip
+    {
     }
 
     record Vertex(Vector3 Position, Vector2 TextureCoordinate, Vector3 Normal);
@@ -79,13 +79,18 @@ namespace Content_Manager
 
     static class FiletypeMeshWriter
     {
-        public static async Task WriteAsMesh(this File file, Vertex[] vertices)
+        public static byte[] GetBytes(this Vertex[] vertices)
         {
             byte[] GetBytesV3(Vector3 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).Concat(BitConverter.GetBytes(v.Z)).ToArray();
             byte[] GetBytesV2(Vector2 v) => BitConverter.GetBytes(v.X).Concat(BitConverter.GetBytes(v.Y)).ToArray();
             byte[] GetBytes(Vertex v) => GetBytesV3(v.Position).Concat(GetBytesV3(v.Normal)).Concat(GetBytesV2(v.TextureCoordinate)).ToArray();
 
-            await file.WriteBytes(vertices.SelectMany(GetBytes).ToArray());
+            return vertices.SelectMany(GetBytes).ToArray();
+        }
+
+        public static async Task WriteAsMesh(this File file, Vertex[] vertices)
+        {
+            await file.WriteBytes(vertices.GetBytes());
         }
     }
 
