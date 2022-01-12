@@ -1,14 +1,13 @@
-﻿using System;
+﻿namespace Far_Off_Wanderer;
 
-namespace Far_Off_Wanderer
+using System;
+
+public static class Program
 {
-    public static class Program
+    [STAThread]
+    static void Main()
     {
-        [STAThread]
-        static void Main()
-        {
-            using var game = new Startup();
-            game.Run();
-        }
+        using Startup game = new();
+        game.Run();
     }
 }

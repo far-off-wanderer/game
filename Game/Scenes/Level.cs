@@ -11,6 +11,9 @@ namespace Far_Off_Wanderer
             {
                 public Color BackgroundColor { get; set; }
                 public float Fog { get; set; }
+                public string[] Sounds { get; set; }
+                public string[] Models { get; set; }
+                public string[] Textures { get; set; }
             }
 
             public class Surface_

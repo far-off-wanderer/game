@@ -1,10 +1,9 @@
-﻿using System;
+﻿namespace Far_Off_Wanderer.Game;
 
-namespace Far_Off_Wanderer
+using System;
+
+public abstract class Player
 {
-    public abstract class Player
-    {
-        public Object3D ControlledObject { get; set; }
-        public abstract void UpdateThinking(TimeSpan timeSpan, Environment playerEnvironment);
-    }
+    public Object3D ControlledObject { get; set; }
+    public abstract void UpdateThinking(TimeSpan timeSpan, Environment playerEnvironment);
 }

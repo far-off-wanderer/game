@@ -21,7 +21,7 @@ namespace Far_Off_Wanderer
         {
             var textures = new Dictionary<string, Texture2D>();
 
-            Begin = content =>
+            Begin = async content =>
             {
                 var bg = scene.Background;
                 textures[bg.Portrait.Name] = content.Get<Texture2D>(bg.Portrait.Name);
@@ -42,7 +42,7 @@ namespace Far_Off_Wanderer
                 }
             };
 
-            Draw = graphics =>
+            Draw = (graphics, started) =>
             {
                 graphics.GraphicsDevice.Clear(Color.Black);
                 graphics.SpriteBatch.Begin();

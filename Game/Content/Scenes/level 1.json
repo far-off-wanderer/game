@@ -2,13 +2,16 @@
   "type": "level",
   "environment": {
     "backgroundColor": "skyblue",
-    "fog": 0.025
+    "fog": 0.025,
+    "models": [ "vessels/schiff V37", "vessels/sonde V29", "vic viper small junctioned" ],
+    "textures": [ "vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", "Black Background", "Bullet", "overlays/gameover", "overlays/gamewon", "grass A bump", "Sparkle" ],
+    "sounds": [ "puiiw", "explosion" ]
   },
   "surfaces": {
     "heightmap": {
       "color": "#444100",
-      "size": 150000,
-      "position": [ 0, -13000, 0 ],
+      "size": 8000000,
+      "position": [ 0, -400000, 500000 ],
       "noise": {
         "top": 1,
         "bottom": 0
@@ -17,8 +20,8 @@
     },
     "stonemap": {
       "color": "#333333",
-      "size": 150000,
-      "position": [ 60000, -17500, 0 ],
+      "size": 3000000,
+      "position": [ 0, -400000, 0 ],
       "noise": {
         "top": 0,
         "bottom": 15
@@ -29,14 +32,5 @@
     "won": "level 2",
     "gameover": "level 1",
     "cancel": "index"
-  },
-  "grassmap": {
-    "color": "#113E10",
-    "size": 150000,
-    "position": [ 0, -13000, 0 ],
-    "noise": {
-      "top": 0.1,
-      "bottom": 0.1
-    }
   }
 }

@@ -1,55 +1,51 @@
-﻿using Microsoft.Xna.Framework;
+﻿namespace Far_Off_Wanderer.Game;
+
+using Microsoft.Xna.Framework;
 using System;
 
-namespace Far_Off_Wanderer
+public class SpaceshipFollowingCamera : Camera
 {
-    public class SpaceshipFollowingCamera : Camera
+    private Vector3 _target = Vector3.Zero;
+    private Vector3 _position = Vector3.Zero;
+
+    public Spaceship Ship { get; set; }
+    public bool ZoomIn { get; set; }
+
+    public override Vector3 Target
     {
-        private Vector3 _target = Vector3.Zero;
-        private Vector3 _position = Vector3.Zero;
-
-        public Spaceship Ship { get; set; }
-
-        public float Yaw { get; set; }
-        public float Pitch { get; set; }
-        public bool ZoomIn { get; set; }
-
-        public override Vector3 Target
+        get
         {
-            get
+            if (Ship != null)
             {
-                if (Ship != null)
+                _target = Ship.Position;
+                if (ZoomIn == false)
                 {
-                    _target = Ship.Position;
-                    if (ZoomIn == false)
-                    {
-                        _target += Vector3.Transform(Vector3.Forward * 250f, Matrix.CreateRotationY(Ship.HorizontalOrientation));
-                    }
+                    _target += Vector3.Transform(Vector3.Forward * 250f, Matrix.CreateRotationY(Ship.Yaw));
                 }
-                return _target;
             }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            return _target;
         }
-
-        public override Vector3 Position
+        set
         {
-            get
+            throw new NotImplementedException();
+        }
+    }
+
+    public override Vector3 Position
+    {
+        get
+        {
+            if (Ship != null)
             {
-                if (Ship != null)
-                {
-                    var bla = Ship.Speed;
-                    _position = Ship.Position
-                        + (ZoomIn ? 0.3f : 1f) * (Ship.Forward * -100 + Ship.Up * 60 + Ship.Right * 0) * ((float)Math.Sqrt(1 + 75 + Math.Abs(Ship.Speed / 2)));
-                }
-                return _position;
+                var bla = Ship.Speed;
+                _position = Ship.Position
+                    + (ZoomIn ? 0.3f : 1f) * (Ship.Forward * -100 + Ship.Up * 60 + Ship.Right * 0) * (float)Math.Sqrt(1 + 75 + Math.Abs(Ship.Speed / 2));
             }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            return _position;
+        }
+        set
+        {
+            throw new NotImplementedException();
         }
     }
 }
