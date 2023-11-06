@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Far_Off_Wanderer.Game;
+using Microsoft.Xna.Framework;
 
 namespace Far_Off_Wanderer
 {

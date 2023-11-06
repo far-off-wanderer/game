@@ -1,50 +1,43 @@
-﻿using System;
+﻿namespace Far_Off_Wanderer.Game;
+
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
-namespace Far_Off_Wanderer
+public class Explosion : Object3D
 {
-    public class Explosion : Object3D
+    readonly float endOfLife;
+    readonly float maxSize;
+    readonly float minSize;
+    float age;
+    readonly float spin;
+    readonly float startSpin;
+
+    public float Age => age;
+    public float Spin => spin;
+    public float StartSpin => startSpin;
+
+    public Explosion(string id, Vector3 position, float endOfLife, float minSize, float maxSize, float startSpin, float spin)
     {
-        readonly float endOfLife;
-        readonly float maxSize;
-        readonly float minSize;
-        float age;
-        readonly float spin;
-        readonly float startSpin;
+        Id = id;
 
-        public float Age => age;
-        public float Spin => spin;
-        public float StartSpin => startSpin;
+        Position = position;
+        this.endOfLife = endOfLife;
+        this.minSize = minSize;
+        this.maxSize = maxSize;
+        this.startSpin = startSpin;
+        this.spin = spin;
+    }
 
-        public Explosion(string id, Vector3 position, float endOfLife, float minSize, float maxSize, float startSpin, float spin)
+    public float CurrentSize => MathHelper.Lerp(minSize, maxSize, age / endOfLife);
+
+    public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
+    {
+        age += (float)ElapsedTime.TotalSeconds;
+        if (age > endOfLife)
         {
-            this.Id = id;
-
-            this.Position = position;
-            this.endOfLife = endOfLife;
-            this.minSize = minSize;
-            this.maxSize = maxSize;
-            this.startSpin = startSpin;
-            this.spin = spin;
+            Alive = false;
         }
-
-        public float CurrentSize
-        {
-            get
-            {
-                return MathHelper.Lerp(minSize, maxSize, age / endOfLife);
-            }
-        }
-
-        public override IEnumerable<Object3D> Update(Environment Environment, TimeSpan ElapsedTime)
-        {
-            age += (float)ElapsedTime.TotalSeconds;
-            if (age > endOfLife)
-            {
-                Alive = false;
-            }
-            yield break;
-        }
+        yield break;
     }
 }

@@ -2,7 +2,10 @@
   "type": "level",
   "environment": {
     "backgroundColor": "#44AAFF",
-    "fog": 0
+    "fog": 0,
+    "models": [ "vessels/schiff V37", "vessels/sonde V29", "vic viper small junctioned" ],
+    "textures": [ "vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", "Black Background", "Bullet", "overlays/gameover", "overlays/gamewon", "grass A bump", "Sparkle" ],
+    "sounds": [ "puiiw", "explosion" ]
   },
   "surfaces": {
     "heightmap": {
@@ -26,12 +29,6 @@
         "bottom": 15
       }
     }
-  },
-  "surface": {
-    "textured": null,
-    "color": "#33573E",
-    "size": 127000,
-    "height": 9000
   },
   "on": {
     "won": "congratulations",

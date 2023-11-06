@@ -4,25 +4,33 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
 
     class SceneHandlers
     {
         readonly Dictionary<Type, Type> handlers;
         Handler current;
+        Task currentIsReady;
         All all;
         Content content;
         readonly Action onExit;
 
-        public void Update(TimeSpan timeSpan, Input input) => current.Update?.Invoke(timeSpan, input);
-        public void Draw(Graphics graphics) => current.Draw?.Invoke(graphics);
+        public void Update(TimeSpan timeSpan, Input input)
+        {
+            if (currentIsReady.IsCompleted)
+            {
+                current.Update?.Invoke(timeSpan, input);
+            }
+        }
+        public void Draw(Graphics graphics) => current.Draw?.Invoke(graphics, currentIsReady.IsCompleted);
 
-        public Handler Create(Scene scene)
+        public (Handler, Task) Create(Scene scene)
         {
             var handlerType = handlers[scene.GetType()];
             var handler = Activator.CreateInstance(handlerType, scene) as Handler;
-            handler.Begin?.Invoke(content.For(scene.Name));
+
             handler.OnNext = RunNext;
-            return handler;
+            return (handler, handler.Begin?.Invoke(content.For(scene.Name)));
         }
 
         public void RunNext(string sceneName)
@@ -30,7 +38,7 @@
             var scene = all.Scenes.FirstOrDefault(s => s.Name == sceneName);
             if (scene != null)
             {
-                current = Create(scene);
+                (current, currentIsReady) = Create(scene);
             }
             else
             {
@@ -56,7 +64,7 @@
         {
             this.all = all;
             this.content = content;
-            this.current = Create(all.Scenes.FirstOrDefault(s => s.Name == startScene) ?? all.Index);
+            (this.current, this.currentIsReady) = Create(all.Scenes.FirstOrDefault(s => s.Name == startScene) ?? all.Index);
         }
     }
 }

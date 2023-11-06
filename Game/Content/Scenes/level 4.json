@@ -2,7 +2,10 @@
   "type": "level",
   "environment": {
     "backgroundColor": "#000000",
-    "fog": 1
+    "fog": 1,
+    "models": [ "vessels/schiff V37", "vessels/sonde V29", "vic viper small junctioned" ],
+    "textures": [ "vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", "Black Background", "Bullet", "overlays/gameover", "overlays/gamewon", "grass A bump", "Sparkle" ],
+    "sounds": [ "puiiw", "explosion" ]
   },
   "surface": {
     "textured": "grass A bump",
