@@ -3,8 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SharpDX.DXGI;
-using SharpDX.MediaFoundation;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -17,11 +15,8 @@ namespace Far_Off_Wanderer
 {
     public class LevelHandler : Scenes.Handler<Scenes.Level>
     {
-        public class InputActions
+        public class InputActions(Input input)
         {
-            readonly Input input;
-            public InputActions(Input input) => this.input = input;
-
             public bool CancelingLevel => input.Keyboard.On[(int)Keys.Escape] || input.TouchKeys.OnBackButton;
             public bool CheckingForExitClickAfterGameOver => input.Keyboard.On[(int)Keys.Space] || input.GamePad.On[Buttons.A];
             public bool ToggleWireframe => input.Keyboard.On[(int)Keys.F2];
@@ -45,38 +40,6 @@ namespace Far_Off_Wanderer
             public bool WinQuicklyCheat => input.Keyboard.On[(int)Keys.O];
         }
 
-        struct State<T>
-        {
-            private T previousValue;
-            private T currentValue;
-
-            public State(T value)
-            {
-                previousValue = value;
-                currentValue = value;
-            }
-
-            public void Set(T value)
-            {
-                previousValue = currentValue;
-                currentValue = value;
-            }
-
-            public void Reset(T value)
-            {
-                previousValue = value;
-                currentValue = value;
-            }
-
-            public T Value => currentValue;
-
-            public bool HasChanged => previousValue.Equals(currentValue) == false;
-        }
-
-        static class State
-        {
-            public static State<T> Track<T>(T value) => new(value);
-        }
 
         public LevelHandler(Scenes.Level scene)
         {
@@ -87,11 +50,11 @@ namespace Far_Off_Wanderer
             var fadeIn = 0f;
             var fadeInTime = 0.25f;
             var runtime = default(TimeSpan);
-            var environment = new Environment()
+            var environment = new Game.Environment()
             {
                 Random = new Random()
             };
-            var level = default(Level);
+            var level = default(Game.Level);
 
             var models = default(Dictionary<string, Model>);
             var textures = default(Dictionary<string, Texture2D>);
@@ -156,7 +119,7 @@ namespace Far_Off_Wanderer
 
                     var boundaries = models.SelectAsDictionary(m => CreateMerged(m.Meshes.Select(mesh => mesh.BoundingSphere)).Radius);
 
-                    level = new Level(environment, boundaries, landscapes);
+                    level = new Game.Level(environment, boundaries, landscapes);
                 });
 
                 StartGame();
@@ -168,8 +131,6 @@ namespace Far_Off_Wanderer
 
                 if (started)
                 {
-                    environment.Update(timeSpan);
-
                     if (actions.CancelingLevel)
                     {
                         OnNext(scene.On.Cancel);
@@ -242,7 +203,7 @@ namespace Far_Off_Wanderer
                 }
             };
 
-            Draw = graphics =>
+            Draw = (graphics, isReady) =>
             {
                 var g = graphics.GraphicsDevice;
                 var s = graphics.SpriteBatch;
@@ -343,7 +304,7 @@ namespace Far_Off_Wanderer
 
                         void DrawSpaceships()
                         {
-                            foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
+                            foreach (var spaceship in level.Objects3D.OfType<Game.Spaceship>())
                             {
                                 var model = models[spaceship.Id];
 
@@ -353,7 +314,7 @@ namespace Far_Off_Wanderer
                                     CullMode = CullMode.None
                                 } : RasterizerState.CullNone;
 
-                                model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromYawPitchRoll(spaceship.HorizontalOrientation, spaceship.VerticalOrientation, 0) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
+                                model.Draw(Matrix.CreateRotationY(MathHelper.ToRadians(180)) * Matrix.CreateFromYawPitchRoll(spaceship.Yaw, spaceship.Pitch, spaceship.Roll) * Matrix.CreateTranslation(spaceship.Position), camera.View, camera.Projection);
                             }
                         }
                         DrawSpaceships();
@@ -419,7 +380,7 @@ namespace Far_Off_Wanderer
                         {
                             foreach (var landscape in level.Objects3D.OfType<Landscape>())
                             {
-                                foreach (var spaceship in level.Objects3D.OfType<Spaceship>())
+                                foreach (var spaceship in level.Objects3D.OfType<Game.Spaceship>())
                                 {
                                     void DrawShadow(BasicEffect b, Microsoft.Xna.Framework.Color color, Texture2D texture, Vector3[,] shadowPoints, Vector3 toObject, float sizeOfObject)
                                     {
@@ -514,7 +475,7 @@ namespace Far_Off_Wanderer
                             var bounds = g.Viewport.Bounds;
                             s.Begin(SpriteSortMode.Immediate, BlendState.Additive);
                             g.DepthStencilState = DepthStencilState.DepthRead;
-                            foreach (var explosion in level.Objects3D.OfType<Explosion>())
+                            foreach (var explosion in level.Objects3D.OfType<Game.Explosion>())
                             {
                                 var transformed = g.Viewport.Project(explosion.Position, camera.Projection, camera.View, Matrix.Identity);
                                 var distance = (explosion.Position - level.Camera.Position).Length();
@@ -537,7 +498,7 @@ namespace Far_Off_Wanderer
                             s.End();
                             s.Begin(SpriteSortMode.Immediate, BlendState.Additive);
                             g.DepthStencilState = DepthStencilState.DepthRead;
-                            foreach (var bullet in level.Objects3D.OfType<Bullet>())
+                            foreach (var bullet in level.Objects3D.OfType<Game.Bullet>())
                             {
                                 var transformed = g.Viewport.Project(bullet.Position, camera.Projection, camera.View, Matrix.Identity);
                                 var distance = (bullet.Position - level.Camera.Position).Length();
@@ -559,16 +520,13 @@ namespace Far_Off_Wanderer
 
                         void DrawText()
                         {
-                            var enemyCount = level.Objects3D.OfType<Spaceship>().Count();
+                            var enemyCount = level.Objects3D.OfType<Game.Spaceship>().Count();
                             var enemyCountText = $"Enemies:  {(enemyCount > 0 ? enemyCount - 1 : 0):00}";
                             var enemyCountSize = spriteFonts[Data.Font].MeasureString(enemyCountText).X;
 
                             var objectCount = level.Objects3D.Count();
                             var objectCountText = objectCount.ToString();
                             var objectCountSize = spriteFonts[Data.Font].MeasureString(objectCountText).X;
-
-                            var playerVerticalRotation = $"vertical Rotation: {level.LocalPlayer.ControlledObject.VerticalOrientation}";
-                            var playerVerticalRotationLength = spriteFonts[Data.Font].MeasureString(playerVerticalRotation).X;
 
                             var osdBlend = Microsoft.Xna.Framework.Color.White * (1f - MathHelper.Clamp((fadeOut ?? 0) * 1.5f - 1, 0, 1));
 
@@ -617,7 +575,7 @@ namespace Far_Off_Wanderer
                             s.Begin();
                             var floorSize = g.Viewport.Width / 4;
                             var maparea = new Microsoft.Xna.Framework.Rectangle((int)(g.Viewport.Width - floorSize * 1.1f), (int)(g.Viewport.Height - floorSize * 1.1f), floorSize, floorSize);
-                            foreach (var ship in level.Objects3D.OfType<Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
+                            foreach (var ship in level.Objects3D.OfType<Game.Spaceship>().OrderBy(s => s == level.LocalPlayer.ControlledObject))
                             {
                                 var shipicon = ship.Id == Data.Ship ? textures["arrow"] : textures["dot"];
                                 var shipsize = (1 / 8f) * (maparea.Width + maparea.Height) / 2f;
@@ -640,9 +598,9 @@ namespace Far_Off_Wanderer
                         {
                             s.Begin(blendState: BlendState.Additive);
                             var noise = textures["LDR_LLL1_0"];
-                            for (var y = environment.Random.Next(1 - noise.Height, 0); y < g.Viewport.Height; y += noise.Height)
+                            for (var y = environment.Random.Integer.Between(1 - noise.Height, 0); y < g.Viewport.Height; y += noise.Height)
                             {
-                                for (var x = environment.Random.Next(1 - noise.Width, 0); x < g.Viewport.Width; x += noise.Width)
+                                for (var x = environment.Random.Integer.Between(1 - noise.Width, 0); x < g.Viewport.Width; x += noise.Width)
                                 {
                                     s.Draw(noise, new Vector2(x, y), new Microsoft.Xna.Framework.Color(255, 255, 255, 4));
                                 }

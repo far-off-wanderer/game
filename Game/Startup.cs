@@ -7,7 +7,7 @@
     using Microsoft.Xna.Framework.Media;
     using System.Diagnostics;
 
-    internal class Startup : Game
+    internal class Startup : Microsoft.Xna.Framework.Game
     {
         readonly GraphicsDeviceManager manager;
         readonly SceneHandlers handlers;
