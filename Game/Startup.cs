@@ -24,6 +24,7 @@
             manager.ApplyChanges();
 
             manager.IsFullScreen = shouldGoFullscreen;
+            manager.GraphicsProfile = GraphicsProfile.HiDef;
             manager.PreferredBackBufferWidth = shouldGoFullscreen ? GraphicsDevice.Adapter.CurrentDisplayMode.Width : 1280;
             manager.PreferredBackBufferHeight = shouldGoFullscreen ? GraphicsDevice.Adapter.CurrentDisplayMode.Height : 720;
             manager.ApplyChanges();
@@ -43,7 +44,7 @@
             content = new Content(contentManager: Content, graphicsDevice: manager.GraphicsDevice);
 
             input = new Input();
-            handlers.Run(All.Load(), content, LaunchParameters.ContainsKey("-scene") ? LaunchParameters["-scene"] : null);
+            handlers.Run(All.Load(), content, LaunchParameters.TryGetValue("-scene", out string value) ? value : null);
         }
 
         protected override void LoadContent()

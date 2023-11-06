@@ -34,7 +34,7 @@ namespace Content_Manager
 
                 var zipped = destiny / vessels.Name / Filename.From(item.Content.Name, "vessel");
                 {
-                    using var zip = zipped.AsNewZip();
+                    var zip = zipped.AsNewZip();
                     zip["mesh"] = (await (item.Parent / Filename.FromExtended(item.Content.Mesh)).ReadFromWavefrontObjFormat()).GetBytes();
                     zip["albedo"] = await (item.Parent / Filename.FromExtended(item.Content.Textures.Albedo)).ReadBytes();
                 }

@@ -10,7 +10,8 @@ namespace Far_Off_Wanderer
     public class Landscape : Object3D
     {
         private readonly string name;
-        private readonly Color color;
+        private readonly Color? color;
+        private readonly string texture;
         private readonly SixLabors.ImageSharp.Image<Rgba32> map;
         private readonly int width;
         private readonly int height;
@@ -19,16 +20,18 @@ namespace Far_Off_Wanderer
         private readonly VertexBuffer vertexBuffer;
         private readonly IndexBuffer indexBuffer;
 
-        public Color Color => color;
+        public Color? Color => color;
+        public string Texture => texture;
         public Vector3[,] Points => pointmap;
         public VertexBuffer VertexBuffer => vertexBuffer;
         public IndexBuffer IndexBuffer => indexBuffer;
         public int Resolution => width;
 
-        public Landscape(string name, Content content, SixLabors.ImageSharp.Image<Rgba32> map, float bottomNoise, float topNoise, Color color, float? borderToInfinity)
+        public Landscape(string name, Content content, SixLabors.ImageSharp.Image<Rgba32> map, float bottomNoise, float topNoise, Color? color, string texture, float? borderToInfinity)
         {
             this.name = name;
             this.color = color;
+            this.texture = texture;
             this.map = map;
             this.width = map.Width;
             this.length = map.Height;
@@ -58,7 +61,7 @@ namespace Far_Off_Wanderer
 
                     pointmap[x, z] = p;
 
-                    vertices[x + width * z] = new VertexPositionNormalTexture(pointmap[x, z], Vector3.Up, (4f / width) * new Vector2(1f * x / width, 1f * z / length));
+                    vertices[x + width * z] = new VertexPositionNormalTexture(pointmap[x, z], Vector3.Up, 64f * new Vector2(1f * x / width, 1f * z / length));
                 }
             }
 

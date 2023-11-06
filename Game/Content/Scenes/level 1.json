@@ -6,7 +6,8 @@
   },
   "surfaces": {
     "heightmap": {
-      "color": "#444100",
+      "--color": "#444100",
+      "texture": "grass",
       "size": 150000,
       "position": [ 0, -13000, 0 ],
       "noise": {
@@ -16,7 +17,8 @@
       "borderToInfinity": 0.8
     },
     "stonemap": {
-      "color": "#333333",
+      "--color": "#333333",
+      "texture": "stone",
       "size": 150000,
       "position": [ 60000, -17500, 0 ],
       "noise": {

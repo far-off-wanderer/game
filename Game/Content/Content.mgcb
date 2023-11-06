@@ -1,8 +1,8 @@
 
 #----------------------------- Global Properties ----------------------------#
 
-/outputDir:bin
-/intermediateDir:obj
+/outputDir:bin/$(Platform)
+/intermediateDir:obj/$(Platform)
 /platform:Windows
 /config:
 /profile:Reach
@@ -131,6 +131,18 @@
 /processorParam:TextureFormat=Compressed
 /build:grass A bump.jpg
 
+#begin grass.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:grass.jpg
+
 #begin LDR_LLL1_0.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -203,6 +215,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Sparkle.png
+
+#begin stone.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stone.jpg
 
 #begin vessels/schiff textur 09.png
 /importer:TextureImporter

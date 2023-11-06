@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SharpDX.DXGI;
+using SharpDX.MediaFoundation;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
@@ -141,11 +143,11 @@ namespace Far_Off_Wanderer
 
                     models = content.GetAll<Model>(Data.Ship, Data.Drone, Data.Spaceship);
                     environment.Sounds = content.GetAll<SoundEffect>("puiiw", "explosion");
-                    textures = content.GetAll<Texture2D>("vignette", "Floor", "arrow", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
+                    textures = content.GetAll<Texture2D>("vignette", "Floor", "arrow", "stone", "grass", "dot", "LDR_LLL1_0", "Shadow", Data.BlackBackground, Data.Bullet, Data.GameOverOverlay, Data.GameWonOverlay, Data.Grass, Data.Sparkle);
 
                     var landscapes = scene.Surfaces.SelectFromDictionary((name, surface, index) =>
                     {
-                        return new Landscape(name, content, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.BorderToInfinity)
+                        return new Landscape(name, content, content.Get<Image<Rgba32>>(name), surface.Noise.Bottom, surface.Noise.Top, surface.Color, surface.Texture, surface.BorderToInfinity)
                         {
                             Radius = surface.Size,
                             Position = Vector3.UnitX * -surface.Size / 2 + surface.Position + Vector3.UnitZ * -surface.Size / 2
@@ -328,7 +330,7 @@ namespace Far_Off_Wanderer
 
                         basicEffect.DirectionalLight0.Enabled = true;
                         basicEffect.DirectionalLight0.DiffuseColor = new Vector3(0, 0, 0);
-                        basicEffect.DirectionalLight0.Direction = new Vector3(1, 0, 0);
+                        basicEffect.DirectionalLight0.Direction = new Vector3(1, 1, 0);
                         basicEffect.DirectionalLight0.SpecularColor = new Vector3(0, 0, 0);
 
                         basicEffect.PreferPerPixelLighting = true;
@@ -362,15 +364,38 @@ namespace Far_Off_Wanderer
 
                             basicEffect.GraphicsDevice.BlendState = BlendState.Opaque;
 
-                            basicEffect.LightingEnabled = false;
+                            basicEffect.LightingEnabled = true;
                             basicEffect.PreferPerPixelLighting = true;
                             basicEffect.TextureEnabled = false;
                             basicEffect.VertexColorEnabled = false;
 
+                            basicEffect.GraphicsDevice.SamplerStates[0] = new()
+                            {
+                                Filter = TextureFilter.Point,
+                                AddressU = TextureAddressMode.Wrap,
+                                AddressV = TextureAddressMode.Wrap
+                            };
+
                             foreach (var landscape in level.Objects3D.OfType<Landscape>())
                             {
                                 var diffuseColor = basicEffect.DiffuseColor;
-                                basicEffect.DiffuseColor = landscape.Color.ToVector3();
+                                if(landscape.Color != null)
+                                {
+                                    basicEffect.DiffuseColor = landscape.Color.Value.ToVector3();
+                                }
+                                else
+                                {
+                                    basicEffect.DiffuseColor = Vector3.One;
+                                }
+                                if(landscape.Texture != null)
+                                {
+                                    basicEffect.TextureEnabled = true;
+                                    basicEffect.Texture = textures[landscape.Texture];
+                                }
+                                else
+                                {
+                                    basicEffect.TextureEnabled = false;
+                                }
 
                                 basicEffect.GraphicsDevice.SetVertexBuffer(landscape.VertexBuffer);
                                 basicEffect.GraphicsDevice.Indices = landscape.IndexBuffer;
